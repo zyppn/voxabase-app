@@ -22,6 +22,7 @@ function PricingContent() {
   }, [])
 
   const handleUpgrade = async (priceId: string, plan: string) => {
+    console.log('Upgrading:', plan, 'priceId:', priceId)
     setLoading(plan)
     const res = await fetch('/api/subscription/checkout', {
       method: 'POST',
@@ -29,8 +30,12 @@ function PricingContent() {
       body: JSON.stringify({ priceId, plan }),
     })
     const data = await res.json()
+    console.log('Response:', data)
     if (data.url) window.location.href = data.url
-    else setLoading(null)
+    else {
+      console.error('No URL returned:', data)
+      setLoading(null)
+    }
   }
 
   const plans = [
