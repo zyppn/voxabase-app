@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-05-27.dahlia',
 })
+
+// Use service role key for webhook — no auth cookies available
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -17,11 +22,9 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err) {
+    console.error('Webhook signature error:', err)
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
-
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
@@ -29,7 +32,9 @@ export async function POST(request: Request) {
     const plan = session.metadata?.plan
 
     if (userId && plan && session.mode === 'subscription') {
-      await supabase.from('profiles').update({ plan }).eq('id', userId)
+      const { error } = await supabase.from('profiles').update({ plan }).eq('id', userId)
+      if (error) console.error('Failed to update plan:', error)
+      else console.log(`Updated plan to ${plan} for user ${userId}`)
     }
   }
 
