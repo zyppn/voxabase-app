@@ -14,6 +14,7 @@ interface Portal {
   is_active: boolean
   owner_username: string
   files_ready: boolean
+  portal_password: string | null
 }
 
 interface FileRecord {
@@ -38,6 +39,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editInvoice, setEditInvoice] = useState('')
+  const [editPassword, setEditPassword] = useState('')
+  const [userPlan, setUserPlan] = useState('free')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingReady, setTogglingReady] = useState(false)
@@ -55,12 +58,18 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       const { id } = await params
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+
+      const { data: profileData } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
+      if (profileData?.plan) setUserPlan(profileData.plan)
+
       const { data: portalData } = await supabase.from('portals').select('*').eq('id', id).eq('user_id', user.id).single()
       if (!portalData) { router.push('/dashboard'); return }
       setPortal(portalData)
       setEditName(portalData.name)
       setEditDescription(portalData.description || '')
       setEditInvoice(portalData.invoice_amount?.toString() || '')
+      setEditPassword(portalData.portal_password || '')
+
       const { data: filesData } = await supabase
         .from('files')
         .select('*')
@@ -69,7 +78,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         .order('sort_order', { ascending: true })
       setFiles(filesData || [])
 
-      // Fetch view stats
       const { data: viewData } = await supabase
         .from('portal_views')
         .select('viewed_at')
@@ -101,10 +109,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const maxOrder = files.length > 0 ? Math.max(...files.map(f => f.sort_order || 0)) : 0
     let orderCounter = maxOrder + 1
-
     for (const file of Array.from(fileList)) {
       const filePath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
       const { error: uploadError } = await supabase.storage.from('deliverables').upload(filePath, file)
@@ -120,8 +126,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         })
       }
     }
-
-    const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).order('sort_order', { ascending: true })
+    const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', user.id).order('sort_order', { ascending: true })
     setFiles(filesData || [])
     setUploading(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -135,9 +140,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const handleDropZone = async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    if (e.dataTransfer.files.length > 0) {
-      await uploadFiles(e.dataTransfer.files)
-    }
+    if (e.dataTransfer.files.length > 0) await uploadFiles(e.dataTransfer.files)
   }
 
   const handleReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,13 +155,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const newPath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
     const { error: uploadError } = await supabase.storage.from('deliverables').upload(newPath, file)
     if (!uploadError) {
-      await supabase.from('files').update({
-        name: file.name,
-        file_path: newPath,
-        file_size: file.size,
-        file_type: file.type,
-      }).eq('id', replacingId)
-      const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).order('sort_order', { ascending: true })
+      await supabase.from('files').update({ name: file.name, file_path: newPath, file_size: file.size, file_type: file.type }).eq('id', replacingId)
+      const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', user.id).order('sort_order', { ascending: true })
       setFiles(filesData || [])
     }
     setReplacingId(null)
@@ -178,7 +176,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  // Drag and drop reordering
   const handleDragStart = (e: React.DragEvent, fileId: string) => {
     setDraggingId(fileId)
     e.dataTransfer.effectAllowed = 'move'
@@ -193,37 +190,35 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const handleDrop = async (e: React.DragEvent, targetId: string) => {
     e.preventDefault()
     if (!draggingId || draggingId === targetId) return
-
     const dragIndex = files.findIndex(f => f.id === draggingId)
     const targetIndex = files.findIndex(f => f.id === targetId)
     if (dragIndex === -1 || targetIndex === -1) return
-
     const newFiles = [...files]
     const [removed] = newFiles.splice(dragIndex, 1)
     newFiles.splice(targetIndex, 0, removed)
-
-    // Update sort_order
     const updated = newFiles.map((f, i) => ({ ...f, sort_order: i }))
     setFiles(updated)
     setDraggingId(null)
     setDragOverId(null)
-
-    // Persist to DB
-    await Promise.all(
-      updated.map(f => supabase.from('files').update({ sort_order: f.sort_order }).eq('id', f.id))
-    )
+    await Promise.all(updated.map(f => supabase.from('files').update({ sort_order: f.sort_order }).eq('id', f.id)))
   }
 
   const handleEditSave = async () => {
     if (!portal) return
-    if (portal.invoice_paid) return // locked after payment
     setSaving(true)
     await supabase.from('portals').update({
       name: editName,
       description: editDescription || null,
-      invoice_amount: editInvoice ? parseFloat(editInvoice) : null,
+      invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
+      portal_password: userPlan !== 'free' ? (editPassword || null) : portal.portal_password,
     }).eq('id', portal.id)
-    setPortal({ ...portal, name: editName, description: editDescription, invoice_amount: editInvoice ? parseFloat(editInvoice) : null })
+    setPortal({
+      ...portal,
+      name: editName,
+      description: editDescription,
+      invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
+      portal_password: userPlan !== 'free' ? (editPassword || null) : portal.portal_password,
+    })
     setSaving(false)
     setShowEditModal(false)
   }
@@ -245,14 +240,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`
   }
 
-  if (loading) return <PortalDetailSkeleton />
-
-  if (!portal) return null
-
-  const portalUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/${portal.owner_username}/${portal.slug}`
-    : `voxabase.com/${portal.owner_username}/${portal.slug}`
-
   const timeAgo = (dateStr: string | null) => {
     if (!dateStr) return null
     const diff = Date.now() - new Date(dateStr).getTime()
@@ -266,7 +253,15 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     return new Date(dateStr).toLocaleDateString()
   }
 
+  if (loading) return <PortalDetailSkeleton />
+  if (!portal) return null
+
+  const portalUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/${portal.owner_username}/${portal.slug}`
+    : `voxabase.com/${portal.owner_username}/${portal.slug}`
+
   const canToggleReady = files.length > 0
+  const isPro = userPlan === 'pro' || userPlan === 'agency'
 
   return (
     <main className="min-h-screen bg-[#090909] text-white">
@@ -307,6 +302,17 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 Preview
               </a>
             </div>
+            <div className="flex items-center gap-1.5 mt-2">
+              <svg className="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-xs text-gray-600">
+                {viewStats.count > 0
+                  ? `${viewStats.count} view${viewStats.count !== 1 ? 's' : ''} · Last viewed ${timeAgo(viewStats.lastViewed)}`
+                  : 'No views yet'}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button onClick={() => setShowEditModal(true)}
@@ -323,15 +329,13 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         {/* Files ready toggle */}
         <div className={`rounded-xl border p-5 mb-6 flex items-center justify-between transition-all ${portal.files_ready ? 'bg-green-400/5 border-green-400/20' : 'bg-[#111114] border-[#1e1e24]'}`}>
           <div>
-            <p className="font-semibold text-white text-sm">
-              {portal.files_ready ? 'Files are live' : 'Files not ready yet'}
-            </p>
+            <p className="font-semibold text-white text-sm">{portal.files_ready ? 'Files are live' : 'Files not ready yet'}</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {!canToggleReady
                 ? 'Upload at least one file before marking as ready'
                 : portal.files_ready
                 ? 'Your client can see and download all files'
-                : 'Your client sees a "Coming soon" message — flip when ready'}
+                : 'Your client sees a "Files being prepared" message — flip when ready'}
             </p>
           </div>
           <button
@@ -365,18 +369,14 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </h2>
               {files.length > 1 && <p className="text-xs text-gray-600 mt-0.5">Drag to reorder</p>}
             </div>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="text-xs font-semibold bg-[#8b3cf7] hover:bg-[#9d55f8] text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            >
+            <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+              className="text-xs font-semibold bg-[#8b3cf7] hover:bg-[#9d55f8] text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
               {uploading ? 'Uploading...' : '+ Upload files'}
             </button>
             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
             <input ref={replaceInputRef} type="file" onChange={handleReplace} className="hidden" />
           </div>
 
-          {/* Drop zone */}
           <div
             onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
             onDragLeave={() => setIsDragOver(false)}
@@ -384,10 +384,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             className={`transition-all ${isDragOver ? 'bg-[#1a0d30]/40 border-2 border-dashed border-[#8b3cf7]/50' : ''}`}
           >
             {files.length === 0 ? (
-              <div
-                className="px-6 py-16 text-center cursor-pointer hover:bg-[#1a0d30]/10 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
-              >
+              <div className="px-6 py-16 text-center cursor-pointer hover:bg-[#1a0d30]/10 transition-colors" onClick={() => fileInputRef.current?.click()}>
                 <div className="w-12 h-12 bg-[#1a0d30] border border-[#8b3cf7]/20 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -399,9 +396,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             ) : (
               <div className="divide-y divide-[#1e1e24]">
                 {files.map((file) => (
-                  <div
-                    key={file.id}
-                    draggable
+                  <div key={file.id} draggable
                     onDragStart={(e) => handleDragStart(e, file.id)}
                     onDragOver={(e) => handleDragOver(e, file.id)}
                     onDrop={(e) => handleDrop(e, file.id)}
@@ -409,7 +404,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     className={`px-6 py-4 flex items-center justify-between group transition-all cursor-grab active:cursor-grabbing ${draggingId === file.id ? 'opacity-40' : ''} ${dragOverId === file.id && draggingId !== file.id ? 'bg-[#1a0d30]/30 border-l-2 border-[#8b3cf7]' : 'hover:bg-[#0d0d10]'}`}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="text-gray-600 hover:text-gray-400 flex-shrink-0 cursor-grab">
+                      <div className="text-gray-600 hover:text-gray-400 flex-shrink-0">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
                         </svg>
@@ -423,34 +418,25 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-3">
-                      <a
-                        href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/deliverables/${file.file_path}`}
+                      <a href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/deliverables/${file.file_path}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-gray-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-[#1e1e24] hover:border-[#3a3a4a] transition-colors"
-                      >
+                        className="text-xs text-gray-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-[#1e1e24] hover:border-[#3a3a4a] transition-colors">
                         View
                       </a>
-                      <button
-                        onClick={() => { setReplacingId(file.id); replaceInputRef.current?.click() }}
-                        className="text-xs text-gray-400 hover:text-[#8b3cf7] px-2.5 py-1.5 rounded-lg border border-[#1e1e24] hover:border-[#8b3cf7]/40 transition-colors"
-                      >
+                      <button onClick={() => { setReplacingId(file.id); replaceInputRef.current?.click() }}
+                        className="text-xs text-gray-400 hover:text-[#8b3cf7] px-2.5 py-1.5 rounded-lg border border-[#1e1e24] hover:border-[#8b3cf7]/40 transition-colors">
                         Replace
                       </button>
-                      <button
-                        onClick={() => setDeleteFileId(file.id)}
-                        className="text-xs text-gray-400 hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-[#1e1e24] hover:border-red-400/30 transition-colors"
-                      >
+                      <button onClick={() => setDeleteFileId(file.id)}
+                        className="text-xs text-gray-400 hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-[#1e1e24] hover:border-red-400/30 transition-colors">
                         Delete
                       </button>
                     </div>
                   </div>
                 ))}
                 <div className="px-6 py-3">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="text-xs text-gray-500 hover:text-[#8b3cf7] transition-colors"
-                  >
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                    className="text-xs text-gray-500 hover:text-[#8b3cf7] transition-colors">
                     {uploading ? 'Uploading...' : '+ Add more files'}
                   </button>
                 </div>
@@ -477,10 +463,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 </span>
               )}
               {!portal.invoice_paid ? (
-                <button
-                  onClick={() => setShowEditModal(true)}
-                  className="text-xs text-gray-400 hover:text-white border border-[#1e1e24] px-3 py-1.5 rounded-lg transition-colors"
-                >
+                <button onClick={() => setShowEditModal(true)}
+                  className="text-xs text-gray-400 hover:text-white border border-[#1e1e24] px-3 py-1.5 rounded-lg transition-colors">
                   {portal.invoice_amount ? 'Edit invoice' : 'Add invoice'}
                 </button>
               ) : (
@@ -523,6 +507,27 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     placeholder="0.00" min="0" step="0.01" />
                 </div>
               </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-1.5 block">
+                  Portal password <span className="text-gray-600">(optional)</span>
+                  {!isPro && <span className="ml-2 text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Pro</span>}
+                </label>
+                {isPro ? (
+                  <>
+                    <input type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
+                      className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8b3cf7] text-sm"
+                      placeholder="Leave blank to remove password" />
+                    <p className="text-xs text-gray-600 mt-1">Clients must enter this password to view the portal</p>
+                  </>
+                ) : (
+                  <div className="bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed flex items-center justify-between">
+                    <span className="text-gray-600 text-sm">Upgrade to Pro to enable password protection</span>
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowEditModal(false)} className="flex-1 border border-[#1e1e24] text-gray-400 hover:text-white py-2.5 rounded-lg text-sm transition-colors">Cancel</button>
@@ -564,8 +569,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <button onClick={() => setDeleteFileId(null)} className="flex-1 border border-[#1e1e24] text-gray-400 hover:text-white py-2.5 rounded-lg text-sm transition-colors">Cancel</button>
               <button
                 onClick={() => { const file = files.find(f => f.id === deleteFileId); if (file) handleDeleteFile(file.id, file.file_path) }}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors"
-              >
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">
                 Delete file
               </button>
             </div>
