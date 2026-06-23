@@ -106,7 +106,7 @@ export default async function DashboardPage() {
               </div>
               <div>
                 <p className="font-semibold text-white text-sm">Connect Stripe to collect payments</p>
-                <p className="text-gray-400 text-xs mt-0.5">Your clients can not pay invoices until you connect your Stripe account</p>
+                <p className="text-gray-400 text-xs mt-0.5">Your clients cannot pay invoices until you connect your Stripe account</p>
               </div>
             </div>
             <a href="/stripe-setup" className="flex-shrink-0 bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors">
@@ -196,20 +196,17 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <h2 className="font-semibold text-white text-sm">{portal.name}</h2>
+                    <p className="text-gray-500 text-xs mt-0.5">voxabase.com/{portal.owner_username || username}/{portal.slug}</p>
                     <p className="text-gray-600 text-xs mt-0.5 flex items-center gap-1">
                       <svg className="w-3 h-3 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      {viewMap[portal.id].count} view{viewMap[portal.id].count !== 1 ? 's' : ''}
-                      {viewMap[portal.id].lastViewed && (
-                        <span>· Last viewed {timeAgo(viewMap[portal.id].lastViewed)}</span>
-                      )}
+                      {viewMap[portal.id]
+                        ? <>{viewMap[portal.id].count} view{viewMap[portal.id].count !== 1 ? 's' : ''}{viewMap[portal.id].lastViewed && <span>&nbsp;· Last viewed {timeAgo(viewMap[portal.id].lastViewed)}</span>}</>
+                        : 'No views yet'
+                      }
                     </p>
-                    )}
-                    {!viewMap[portal.id] && (
-                      <p className="text-gray-600 text-xs mt-0.5">No views yet</p>
-                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
