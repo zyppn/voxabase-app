@@ -3,9 +3,16 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 
+function generateRandomSlug(name: string) {
+  const random = Math.random().toString(36).slice(2, 7)
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + random
+}
+
 export default function NewPortalPage() {
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
+  const [customSlug, setCustomSlug] = useState('')
+  const [useCustomSlug, setUseCustomSlug] = useState(false)
   const [description, setDescription] = useState('')
   const [invoiceAmount, setInvoiceAmount] = useState('')
   const [portalPassword, setPortalPassword] = useState('')
@@ -13,6 +20,7 @@ export default function NewPortalPage() {
   const [plan, setPlan] = useState('free')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
 
@@ -27,6 +35,7 @@ export default function NewPortalPage() {
         .single()
       if (profile?.username) setUsername(profile.username)
       if (profile?.plan) setPlan(profile.plan)
+      setProfileLoading(false)
     }
     getProfile()
   }, [])
@@ -34,8 +43,11 @@ export default function NewPortalPage() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setName(val)
-    const random = Math.random().toString(36).slice(2, 7)
-    setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + random)
+    const generated = generateRandomSlug(val)
+    setSlug(generated)
+    if (!useCustomSlug) {
+      setCustomSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,20 +70,28 @@ export default function NewPortalPage() {
       }
     }
 
+    const finalSlug = isPro && useCustomSlug && customSlug ? customSlug : slug
+
     const { error } = await supabase.from('portals').insert({
       user_id: user.id,
       name,
-      slug,
+      slug: finalSlug,
       description: description || null,
       owner_username: username,
       invoice_amount: invoiceAmount ? parseFloat(invoiceAmount) : null,
-      portal_password: portalPassword || null,
+      portal_password: isPro ? (portalPassword || null) : null,
     })
     if (error) { setError(error.message); setLoading(false) }
     else router.push('/dashboard')
   }
 
   const isPro = plan === 'pro' || plan === 'agency'
+
+  if (profileLoading) return (
+    <main className="min-h-screen bg-[#090909] flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+    </main>
+  )
 
   return (
     <main className="min-h-screen bg-[#090909] text-white">
@@ -107,17 +127,52 @@ export default function NewPortalPage() {
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 mb-1.5 block">
-              Portal URL
-              <span className="ml-2 text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Free plan</span>
-            </label>
-            <div className="flex items-center bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 opacity-60 cursor-not-allowed">
-              <span className="text-gray-600 text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
-              <span className="text-gray-400 text-sm">{slug || 'auto-generated'}</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm text-gray-400">Portal URL</label>
+              {isPro && (
+                <button
+                  type="button"
+                  onClick={() => setUseCustomSlug(!useCustomSlug)}
+                  className="text-xs text-[#8b3cf7] hover:underline font-semibold"
+                >
+                  {useCustomSlug ? 'Use random URL instead' : 'Set custom URL'}
+                </button>
+              )}
+              {!isPro && (
+                <span className="text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Free plan</span>
+              )}
             </div>
-            <p className="text-xs text-gray-600 mt-1">
-              Custom slugs available on <span className="text-[#8b3cf7]">Pro plan</span>
-            </p>
+
+            {isPro && useCustomSlug ? (
+              <>
+                <div className="flex items-center bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 focus-within:border-[#8b3cf7]">
+                  <span className="text-gray-600 text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
+                  <input
+                    type="text"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm"
+                    placeholder="my-custom-url"
+                  />
+                </div>
+                <p className="text-xs text-gray-600 mt-1">Lowercase letters, numbers, and hyphens only</p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 opacity-60 cursor-not-allowed">
+                  <span className="text-gray-600 text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
+                  <span className="text-gray-400 text-sm">{slug || 'auto-generated'}</span>
+                </div>
+                {isPro && (
+                  <p className="text-xs text-gray-600 mt-1">Random URL — click "Set custom URL" above to customize</p>
+                )}
+                {!isPro && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Custom slugs available on <span className="text-[#8b3cf7]">Pro plan</span>
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           <div>
@@ -150,9 +205,7 @@ export default function NewPortalPage() {
           <div>
             <label className="text-sm text-gray-400 mb-1.5 block">
               Portal password <span className="text-gray-600">(optional)</span>
-              {!isPro && (
-                <span className="ml-2 text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Pro</span>
-              )}
+              {!isPro && <span className="ml-2 text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Pro</span>}
             </label>
             {isPro ? (
               <>
