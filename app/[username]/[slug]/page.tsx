@@ -43,7 +43,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
   return (
     <main className="min-h-screen bg-[#090909] text-white">
-      <PortalTracker portalId={portal.id} />
+      <PortalTracker portalId={portal.id} ownerUsername={username} />
 
       {/* If password protected, show gate first */}
       {isPasswordProtected ? (
