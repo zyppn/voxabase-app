@@ -24,7 +24,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('business_name, full_name')
+    .select('business_name, full_name, brand_color')
     .eq('username', username)
     .single()
 
@@ -35,6 +35,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
     .order('sort_order', { ascending: true })
 
   const displayName = profile?.business_name || profile?.full_name || username
+  const brandColor = profile?.brand_color || '#8b3cf7'
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const isReady = portal.files_ready
   const fileCount = files?.length || 0
@@ -42,7 +43,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
   return (
     <main className="min-h-screen bg-[#090909] text-white">
-      <PortalTracker portalId={portal.id} ownerUsername={username} />
+      <PortalTracker portalId={portal.id} />
 
       {/* If password protected, show gate first */}
       {isPasswordProtected ? (
@@ -60,6 +61,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           invoicePaid={portal.invoice_paid}
           username={username}
           slug={slug}
+          brandColor={brandColor}
         />
       ) : (
         <>
@@ -122,7 +124,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
                   <p className="text-gray-600 text-sm">No files uploaded yet</p>
                 </div>
               ) : (
-                <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={5} />
+                <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={5} brandColor={brandColor} />
               )}
             </div>
 
@@ -156,6 +158,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
                       amount={portal.invoice_amount}
                       username={username}
                       slug={slug}
+                      brandColor={brandColor}
                     />
                   ) : (
                     <div className="w-full bg-green-400/10 border border-green-400/20 text-green-400 font-semibold py-4 rounded-xl text-center text-sm flex items-center justify-center gap-2">

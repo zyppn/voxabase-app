@@ -7,9 +7,10 @@ interface PayInvoiceButtonProps {
   amount: number
   username: string
   slug: string
+  brandColor?: string
 }
 
-export default function PayInvoiceButton({ portalId, portalName, amount, username, slug }: PayInvoiceButtonProps) {
+export default function PayInvoiceButton({ portalId, portalName, amount, username, slug, brandColor = '#8b3cf7' }: PayInvoiceButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,7 +46,11 @@ export default function PayInvoiceButton({ portalId, portalName, amount, usernam
       <button
         onClick={handlePay}
         disabled={loading}
-        className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-purple-900/40 flex items-center justify-center gap-2 text-sm disabled:opacity-70"
+        className="w-full text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-70"
+        style={{
+          background: brandColor,
+          boxShadow: `0 8px 30px ${brandColor}40`,
+        }}
       >
         {loading ? (
           <>
