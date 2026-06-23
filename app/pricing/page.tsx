@@ -22,7 +22,6 @@ function PricingContent() {
   }, [])
 
   const handleUpgrade = async (priceId: string, plan: string) => {
-    console.log('Upgrading:', plan, 'priceId:', priceId)
     setLoading(plan)
     const res = await fetch('/api/subscription/checkout', {
       method: 'POST',
@@ -30,12 +29,20 @@ function PricingContent() {
       body: JSON.stringify({ priceId, plan }),
     })
     const data = await res.json()
-    console.log('Response:', data)
     if (data.url) window.location.href = data.url
-    else {
-      console.error('No URL returned:', data)
-      setLoading(null)
+    else setLoading(null)
+  }
+
+  const handleManageBilling = async () => {
+    setLoading('billing')
+    try {
+      const res = await fetch('/api/billing-portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {
+      // silent
     }
+    setLoading(null)
   }
 
   const plans = [
@@ -52,7 +59,6 @@ function PricingContent() {
         'Stripe payment collection',
       ],
       priceId: null,
-      cta: 'Current plan',
     },
     {
       key: 'pro',
@@ -68,7 +74,6 @@ function PricingContent() {
         'Priority support',
       ],
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-      cta: 'Upgrade to Pro',
       featured: true,
     },
     {
@@ -85,9 +90,65 @@ function PricingContent() {
         'Dedicated support',
       ],
       priceId: process.env.NEXT_PUBLIC_STRIPE_AGENCY_PRICE_ID,
-      cta: 'Upgrade to Agency',
     },
   ]
+
+  const renderButton = (plan: typeof plans[0]) => {
+    const isCurrent = currentPlan === plan.key
+
+    if (isCurrent) {
+      return (
+        <div className="w-full text-center py-3 rounded-lg border border-[#1e1e24] text-gray-500 text-sm font-semibold">
+          Current plan
+        </div>
+      )
+    }
+
+    if (plan.key === 'free') {
+      return (
+        <a href="/dashboard" className="w-full text-center py-3 rounded-lg border border-[#1e1e24] text-gray-400 hover:text-white text-sm font-semibold transition-colors block">
+          Go to dashboard
+        </a>
+      )
+    }
+
+    // Pro user trying to get Agency — use billing portal for proration
+    if (plan.key === 'agency' && currentPlan === 'pro') {
+      return (
+        <button
+          onClick={handleManageBilling}
+          disabled={loading === 'billing'}
+          className="w-full py-3 rounded-lg text-sm font-semibold bg-[#1e1e24] hover:bg-[#2a2a34] text-white transition-colors disabled:opacity-50"
+        >
+          {loading === 'billing' ? 'Opening...' : 'Upgrade via billing portal'}
+        </button>
+      )
+    }
+
+    // Agency user — already on highest plan, show downgrade via portal
+    if (currentPlan === 'agency' && plan.key === 'pro') {
+      return (
+        <button
+          onClick={handleManageBilling}
+          disabled={loading === 'billing'}
+          className="w-full py-3 rounded-lg text-sm font-semibold border border-[#1e1e24] text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+        >
+          {loading === 'billing' ? 'Opening...' : 'Manage via billing portal'}
+        </button>
+      )
+    }
+
+    // Free user upgrading
+    return (
+      <button
+        onClick={() => plan.priceId && handleUpgrade(plan.priceId, plan.key)}
+        disabled={loading === plan.key}
+        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-[#8b3cf7] hover:bg-[#9d55f8] text-white shadow-lg shadow-purple-900/30' : 'bg-[#1e1e24] hover:bg-[#2a2a34] text-white'}`}
+      >
+        {loading === plan.key ? 'Redirecting...' : plan.key === 'pro' ? 'Upgrade to Pro' : 'Upgrade to Agency'}
+      </button>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-[#090909] text-white">
@@ -116,63 +177,46 @@ function PricingContent() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          {plans.map((plan) => {
-            const isCurrent = currentPlan === plan.key
-            const isUpgrade = plan.key !== 'free' && !isCurrent
-
-            return (
-              <div
-                key={plan.key}
-                className={`rounded-xl p-6 flex flex-col ${plan.featured ? 'bg-[#1a0d30] border-2 border-[#8b3cf7]' : 'bg-[#111114] border border-[#1e1e24]'}`}
-              >
-                {plan.featured && (
-                  <span className="text-xs font-bold bg-[#8b3cf7] text-white px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
-                    Most popular
-                  </span>
-                )}
-                <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">{plan.name}</h2>
-                <div className="mb-1">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="text-gray-500 text-sm">{plan.period}</span>
-                </div>
-                <div className="h-px bg-[#1e1e24] my-5" />
-                <ul className="flex flex-col gap-3 mb-8 flex-1">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2.5 text-sm text-gray-300">
-                      <div className="w-4 h-4 rounded-full bg-[#8b3cf7]/15 border border-[#8b3cf7]/35 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-2.5 h-2.5 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {isCurrent ? (
-                  <div className="w-full text-center py-3 rounded-lg border border-[#1e1e24] text-gray-500 text-sm font-semibold">
-                    Current plan
-                  </div>
-                ) : plan.key === 'free' ? (
-                  <a href="/dashboard" className="w-full text-center py-3 rounded-lg border border-[#1e1e24] text-gray-400 hover:text-white text-sm font-semibold transition-colors block">
-                    Go to dashboard
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => plan.priceId && handleUpgrade(plan.priceId, plan.key)}
-                    disabled={loading === plan.key}
-                    className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-[#8b3cf7] hover:bg-[#9d55f8] text-white shadow-lg shadow-purple-900/30' : 'bg-[#1e1e24] hover:bg-[#2a2a34] text-white'}`}
-                  >
-                    {loading === plan.key ? 'Redirecting...' : plan.cta}
-                  </button>
-                )}
+          {plans.map((plan) => (
+            <div
+              key={plan.key}
+              className={`rounded-xl p-6 flex flex-col ${plan.featured ? 'bg-[#1a0d30] border-2 border-[#8b3cf7]' : 'bg-[#111114] border border-[#1e1e24]'}`}
+            >
+              {plan.featured && (
+                <span className="text-xs font-bold bg-[#8b3cf7] text-white px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
+                  Most popular
+                </span>
+              )}
+              {currentPlan === plan.key && (
+                <span className="text-xs font-bold bg-green-400/10 text-green-400 border border-green-400/20 px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
+                  Current plan
+                </span>
+              )}
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">{plan.name}</h2>
+              <div className="mb-1">
+                <span className="text-4xl font-bold text-white">{plan.price}</span>
+                <span className="text-gray-500 text-sm">{plan.period}</span>
               </div>
-            )
-          })}
+              <div className="h-px bg-[#1e1e24] my-5" />
+              <ul className="flex flex-col gap-3 mb-8 flex-1">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-2.5 text-sm text-gray-300">
+                    <div className="w-4 h-4 rounded-full bg-[#8b3cf7]/15 border border-[#8b3cf7]/35 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              {renderButton(plan)}
+            </div>
+          ))}
         </div>
 
         <p className="text-center text-xs text-gray-600 mt-8">
-          Payments are processed securely by Stripe. Cancel anytime.
+          Payments processed securely by Stripe. Upgrades are prorated. Cancel anytime.
         </p>
       </div>
     </main>
