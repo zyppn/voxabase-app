@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, full_name, business_name, stripe_account_id, stripe_onboarding_complete')
+    .select('username, full_name, business_name, stripe_account_id, stripe_onboarding_complete, plan')
     .eq('id', user.id)
     .single()
 
