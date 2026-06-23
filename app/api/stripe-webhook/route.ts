@@ -11,51 +11,25 @@ export async function POST(request: Request) {
   const sig = request.headers.get('stripe-signature')!
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
-  console.log('Webhook received, secret exists:', !!webhookSecret)
-  console.log('Supabase URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('Service role key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-
   let event: Stripe.Event
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err) {
-    console.error('Webhook signature error:', err)
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
 
-  console.log('Event type:', event.type)
-
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
-    console.log('Session metadata:', JSON.stringify(session.metadata))
-    console.log('Session mode:', session.mode)
-
     const userId = session.metadata?.supabase_user_id
     const plan = session.metadata?.plan
 
-    console.log('userId:', userId, 'plan:', plan)
-
     if (userId && plan && session.mode === 'subscription') {
-      // Create Supabase client with service role
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       )
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ plan })
-        .eq('id', userId)
-        .select()
-
-      if (error) {
-        console.error('Supabase update error:', JSON.stringify(error))
-      } else {
-        console.log('Plan updated successfully:', JSON.stringify(data))
-      }
-    } else {
-      console.log('Skipping update - missing userId, plan, or not subscription mode')
+      await supabase.from('profiles').update({ plan }).eq('id', userId)
     }
   }
 
@@ -76,7 +50,6 @@ export async function POST(request: Request) {
 
     if (profile) {
       await supabase.from('profiles').update({ plan: 'free' }).eq('id', profile.id)
-      console.log('Plan reset to free for customer:', customerId)
     }
   }
 
@@ -104,7 +77,6 @@ export async function POST(request: Request) {
 
       if (profile) {
         await supabase.from('profiles').update({ plan }).eq('id', profile.id)
-        console.log('Plan updated to', plan, 'for customer:', customerId)
       }
     }
   }
