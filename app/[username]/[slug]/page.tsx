@@ -61,7 +61,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           invoicePaid={portal.invoice_paid}
           username={username}
           slug={slug}
-          brandColor={brandColor}
+          brandColor: string;
         />
       ) : (
         <>
