@@ -104,11 +104,33 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setTogglingReady(false)
   }
 
+  const STORAGE_LIMITS: Record<string, number> = {
+    free: 1_073_741_824,       // 1GB
+    pro: 26_843_545_600,       // 25GB
+    agency: 268_435_456_000,   // 250GB
+  }
+
   const uploadFiles = async (fileList: FileList) => {
     if (!portal) return
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    // Check storage limit
+    const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+    const usedBytes = storageData || 0
+    const limitBytes = STORAGE_LIMITS[userPlan] || STORAGE_LIMITS.free
+    const incomingBytes = Array.from(fileList).reduce((sum, f) => sum + f.size, 0)
+
+    if (usedBytes + incomingBytes > limitBytes) {
+      const usedGB = (usedBytes / 1_073_741_824).toFixed(2)
+      const limitGB = (limitBytes / 1_073_741_824).toFixed(0)
+      alert(`Storage limit reached. You've used ${usedGB}GB of your ${limitGB}GB limit. Upgrade your plan to upload more files.`)
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     const maxOrder = files.length > 0 ? Math.max(...files.map(f => f.sort_order || 0)) : 0
     let orderCounter = maxOrder + 1
     for (const file of Array.from(fileList)) {
