@@ -27,6 +27,7 @@ interface Props {
   invoicePaid: boolean
   username: string
   slug: string
+  brandColor: string
 }
 
 export default function PortalPasswordGate({
