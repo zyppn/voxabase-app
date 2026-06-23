@@ -30,10 +30,11 @@ export async function POST(request: Request) {
     const plan = session.metadata?.plan
 
     if (userId && plan && session.mode === 'subscription') {
-      // Fetch subscription to get period end date
       const subscriptionId = session.subscription as string
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-      const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rawEnd = (subscription as any).current_period_end
+      const periodEnd = rawEnd ? new Date(rawEnd * 1000).toISOString() : null
 
       await supabase.from('profiles').update({
         plan,
@@ -66,7 +67,9 @@ export async function POST(request: Request) {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
     const status = subscription.status
-    const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawEnd = (subscription as any).current_period_end
+    const periodEnd = rawEnd ? new Date(rawEnd * 1000).toISOString() : null
 
     if (status === 'active') {
       const priceId = subscription.items.data[0]?.price.id
