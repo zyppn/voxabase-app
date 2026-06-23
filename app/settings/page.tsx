@@ -207,22 +207,6 @@ export default function AccountSettingsPage() {
             )}
           </div>
         </div>
-
-        {/* Danger zone */}
-        <div className="bg-[#111114] border border-red-400/20 rounded-xl p-6">
-          <h2 className="font-semibold text-white mb-1">Danger zone</h2>
-          <p className="text-gray-500 text-sm mb-4">Permanently delete your account and all associated data</p>
-          <button
-            onClick={() => {
-              if (confirm('Are you sure? This will permanently delete your account, all portals, and all files. This cannot be undone.')) {
-                alert('Please contact support@voxabase.com to delete your account.')
-              }
-            }}
-            className="text-sm text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-4 py-2 rounded-lg transition-colors"
-          >
-            Delete account
-          </button>
-        </div>
       </div>
     </main>
   )
