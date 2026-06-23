@@ -19,28 +19,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
 
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.supabase_user_id
     const plan = session.metadata?.plan
 
     if (userId && plan && session.mode === 'subscription') {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
-      await supabase.from('profiles').update({ plan }).eq('id', userId)
+      // Fetch subscription to get period end date
+      const subscriptionId = session.subscription as string
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+      await supabase.from('profiles').update({
+        plan,
+        subscription_id: subscriptionId,
+        subscription_period_end: periodEnd,
+      }).eq('id', userId)
     }
   }
 
   if (event.type === 'customer.subscription.deleted' || event.type === 'customer.subscription.paused') {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -49,7 +54,11 @@ export async function POST(request: Request) {
       .single()
 
     if (profile) {
-      await supabase.from('profiles').update({ plan: 'free' }).eq('id', profile.id)
+      await supabase.from('profiles').update({
+        plan: 'free',
+        subscription_id: null,
+        subscription_period_end: null,
+      }).eq('id', profile.id)
     }
   }
 
@@ -57,17 +66,13 @@ export async function POST(request: Request) {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
     const status = subscription.status
+    const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
 
     if (status === 'active') {
       const priceId = subscription.items.data[0]?.price.id
       const proPrice = process.env.STRIPE_PRO_PRICE_ID
       const agencyPrice = process.env.STRIPE_AGENCY_PRICE_ID
       const plan = priceId === agencyPrice ? 'agency' : priceId === proPrice ? 'pro' : 'free'
-
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -76,7 +81,10 @@ export async function POST(request: Request) {
         .single()
 
       if (profile) {
-        await supabase.from('profiles').update({ plan }).eq('id', profile.id)
+        await supabase.from('profiles').update({
+          plan,
+          subscription_period_end: periodEnd,
+        }).eq('id', profile.id)
       }
     }
   }

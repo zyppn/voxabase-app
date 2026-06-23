@@ -1,22 +1,27 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function AccountSettingsPage() {
+function SettingsContent() {
   const [fullName, setFullName] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [email, setEmail] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [plan, setPlan] = useState('free')
   const [username, setUsername] = useState('')
+  const [subscriptionPeriodEnd, setSubscriptionPeriodEnd] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [changingEmail, setChangingEmail] = useState(false)
+  const [managingBilling, setManagingBilling] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const upgraded = searchParams.get('upgraded')
 
   useEffect(() => {
     const load = async () => {
@@ -27,7 +32,7 @@ export default function AccountSettingsPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, business_name, username, plan')
+        .select('full_name, business_name, username, plan, subscription_period_end')
         .eq('id', user.id)
         .single()
 
@@ -36,11 +41,19 @@ export default function AccountSettingsPage() {
         setBusinessName(profile.business_name || '')
         setUsername(profile.username || '')
         setPlan(profile.plan || 'free')
+        setSubscriptionPeriodEnd(profile.subscription_period_end || null)
       }
       setLoading(false)
     }
     load()
   }, [])
+
+  useEffect(() => {
+    if (upgraded) {
+      setSuccessMessage('Your plan has been upgraded successfully!')
+      setTimeout(() => setSuccessMessage(''), 5000)
+    }
+  }, [upgraded])
 
   const handleSaveProfile = async () => {
     setSaving(true)
@@ -81,8 +94,25 @@ export default function AccountSettingsPage() {
     setChangingEmail(false)
   }
 
+  const handleManageBilling = async () => {
+    setManagingBilling(true)
+    try {
+      const res = await fetch('/api/billing-portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else setErrorMessage(data.error || 'Could not open billing portal')
+    } catch {
+      setErrorMessage('Something went wrong')
+    }
+    setManagingBilling(false)
+  }
+
   const planLabel = plan === 'pro' ? 'Pro' : plan === 'agency' ? 'Agency' : 'Free'
-  const planColor = plan === 'free' ? 'text-gray-400' : 'text-[#8b3cf7]'
+  const planColor = plan === 'free' ? 'text-gray-400' : plan === 'agency' ? 'text-yellow-400' : 'text-[#8b3cf7]'
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  }
 
   if (loading) return (
     <main className="min-h-screen bg-[#090909] flex items-center justify-center">
@@ -107,7 +137,10 @@ export default function AccountSettingsPage() {
         <p className="text-gray-400 text-sm mb-8">Manage your profile and account details</p>
 
         {successMessage && (
-          <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-6">
+          <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
             {successMessage}
           </div>
         )}
@@ -182,32 +215,64 @@ export default function AccountSettingsPage() {
           </div>
         </div>
 
-        {/* Plan */}
+        {/* Plan & Billing */}
         <div className="bg-[#111114] border border-[#1e1e24] rounded-xl p-6 mb-5">
-          <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-white mb-5">Plan & Billing</h2>
+          <div className="flex items-start justify-between mb-5">
             <div>
-              <h2 className="font-semibold text-white mb-1">Current plan</h2>
-              <p className={`text-sm font-semibold ${planColor}`}>{planLabel}</p>
+              <p className={`text-lg font-bold ${planColor}`}>{planLabel} plan</p>
+              {subscriptionPeriodEnd && plan !== 'free' && (
+                <p className="text-gray-500 text-xs mt-1">
+                  Renews on {formatDate(subscriptionPeriodEnd)}
+                </p>
+              )}
+              {plan === 'free' && (
+                <p className="text-gray-500 text-xs mt-1">Free forever — upgrade for more features</p>
+              )}
             </div>
-            {plan === 'free' && (
-              <a
-                href="/pricing"
-                className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors"
-              >
-                Upgrade to Pro
-              </a>
-            )}
-            {plan !== 'free' && (
-              <a
-                href="/stripe-setup"
-                className="text-xs text-gray-400 hover:text-white border border-[#1e1e24] px-3 py-1.5 rounded-lg transition-colors"
-              >
-                Manage billing
-              </a>
-            )}
+            <div className="flex flex-col gap-2 items-end">
+              {plan === 'free' ? (
+                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors">
+                  Upgrade plan
+                </a>
+              ) : (
+                <>
+                  <button
+                    onClick={handleManageBilling}
+                    disabled={managingBilling}
+                    className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors disabled:opacity-50"
+                  >
+                    {managingBilling ? 'Opening...' : 'Manage billing'}
+                  </button>
+                  {plan !== 'agency' && (
+                    <a href="/pricing" className="text-xs text-gray-400 hover:text-white transition-colors">
+                      Upgrade to Agency →
+                    </a>
+                  )}
+                </>
+              )}
+            </div>
           </div>
+
+          {plan !== 'free' && (
+            <div className="bg-[#090909] border border-[#1e1e24] rounded-lg p-4 text-xs text-gray-500">
+              <p>Subscriptions auto-renew monthly. Cancel anytime through Manage billing — your plan stays active until the end of the current period.</p>
+            </div>
+          )}
         </div>
       </div>
     </main>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#090909] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+      </main>
+    }>
+      <SettingsContent />
+    </Suspense>
   )
 }
