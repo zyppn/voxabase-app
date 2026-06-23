@@ -50,6 +50,18 @@ export default function StripeSetupContent() {
     setLoading(false)
   }
 
+  const handleManage = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/stripe-connect/login-link', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.open(data.url, '_blank')
+    } catch (err) {
+      console.error(err)
+    }
+    setLoading(false)
+  }
+
   if (status === 'loading') {
     return (
       <main className="min-h-screen bg-[#090909] flex items-center justify-center">
@@ -96,12 +108,25 @@ export default function StripeSetupContent() {
                 </div>
               ))}
             </div>
-            <a
-              href="/dashboard"
-              className="w-full inline-flex items-center justify-center bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors"
-            >
-              Go to dashboard
-            </a>
+            <div className="flex flex-col gap-3">
+              <a
+                href="/dashboard"
+                className="w-full inline-flex items-center justify-center bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors"
+              >
+                Go to dashboard
+              </a>
+              <button
+                onClick={handleManage}
+                disabled={loading}
+                className="w-full inline-flex items-center justify-center gap-2 border border-[#1e1e24] hover:border-[#3a3a4a] text-gray-400 hover:text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                </svg>
+                {loading ? 'Opening...' : 'Manage Stripe account'}
+              </button>
+              <p className="text-xs text-gray-600 text-center">Update your bank account, view payouts, and manage your Stripe settings</p>
+            </div>
           </div>
         ) : (
           <div className="text-center">

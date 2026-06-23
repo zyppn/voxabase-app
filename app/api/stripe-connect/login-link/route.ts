@@ -1,0 +1,35 @@
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-05-27.dahlia',
+})
+
+export async function POST() {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.stripe_account_id) {
+      return NextResponse.json({ error: 'No Stripe account connected' }, { status: 400 })
+    }
+
+    const loginLink = await stripe.accounts.createLoginLink(profile.stripe_account_id)
+
+    return NextResponse.json({ url: loginLink.url })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
