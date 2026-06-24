@@ -26,7 +26,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('business_name, full_name, brand_color, logo_url, brand_display')
+    .select('business_name, full_name, brand_color, logo_url, brand_display, plan')
     .eq('username', username)
     .single()
 
@@ -40,6 +40,8 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
   const brandColor = profile?.brand_color || '#8b3cf7'
   const logoUrl = profile?.logo_url || null
   const brandDisplay = profile?.brand_display || 'both'
+  const ownerPlan = profile?.plan || 'free'
+  const ownerIsPro = ownerPlan === 'pro' || ownerPlan === 'agency'
   const brandInitial = (displayName || 'V').charAt(0).toUpperCase()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const isReady = portal.files_ready
@@ -70,24 +72,29 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           logoUrl={logoUrl}
           brandDisplay={brandDisplay}
           displayInitial={brandInitial}
+          ownerIsPro={ownerIsPro}
         />
       ) : (
         <>
           <div className="border-b border-[#1e1e24] px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              {(brandDisplay === 'both' || brandDisplay === 'logo') && (
-                logoUrl ? (
-                  <img src={logoUrl} alt={displayName} className="h-9 w-auto max-w-[200px] object-contain" />
-                ) : (
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
-                    <span className="text-white text-sm font-bold">{brandInitial}</span>
-                  </div>
-                )
-              )}
-              {(brandDisplay === 'both' || brandDisplay === 'name') && (
-                <span className="text-base font-bold text-white">{displayName}</span>
-              )}
-            </div>
+            {ownerIsPro ? (
+              <div className="flex items-center gap-2.5">
+                {(brandDisplay === 'both' || brandDisplay === 'logo') && (
+                  logoUrl ? (
+                    <img src={logoUrl} alt={displayName} className="h-9 w-auto max-w-[200px] object-contain" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
+                      <span className="text-white text-sm font-bold">{brandInitial}</span>
+                    </div>
+                  )
+                )}
+                {(brandDisplay === 'both' || brandDisplay === 'name') && (
+                  <span className="text-base font-bold text-white">{displayName}</span>
+                )}
+              </div>
+            ) : (
+              <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
+            )}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isReady ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
               <span className="text-xs text-gray-500">{isReady ? 'Ready to download' : 'Files being prepared'}</span>
