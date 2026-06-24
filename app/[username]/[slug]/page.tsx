@@ -7,7 +7,7 @@ import PayInvoiceButton from './PayInvoiceButton'
 import PortalTracker from './PortalTracker'
 import PortalPasswordGate from './PortalPasswordGate'
 
-export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export default async function PortalPage({ params }: { params: Promise<{ username: string; slug: string }> }) {
   const { username, slug } = await params
