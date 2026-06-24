@@ -7,6 +7,8 @@ import PayInvoiceButton from './PayInvoiceButton'
 import PortalTracker from './PortalTracker'
 import PortalPasswordGate from './PortalPasswordGate'
 
+export const revalidate = 0
+
 export default async function PortalPage({ params }: { params: Promise<{ username: string; slug: string }> }) {
   const { username, slug } = await params
   const cookieStore = await cookies()
@@ -75,7 +77,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
           <div className="max-w-2xl mx-auto px-6 py-12">
             <div className="mb-8">
-              <p className="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-2">
+              <p className="text-xs uppercase tracking-widest font-semibold mb-2" style={{ color: brandColor }}>
                 Delivered by {displayName}
               </p>
               <div className="flex items-start justify-between gap-4">
@@ -86,7 +88,8 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
                   )}
                 </div>
                 {isReady && fileCount > 0 ? (
-                  <span className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-400/30 bg-green-400/10 text-green-400 uppercase tracking-wide">
+                  <span className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide"
+                    style={{ color: brandColor, background: `${brandColor}15`, border: `1px solid ${brandColor}50` }}>
                     Ready to download
                   </span>
                 ) : (
