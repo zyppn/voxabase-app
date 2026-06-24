@@ -81,7 +81,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
             style={{ background: `radial-gradient(ellipse 50% 100% at 50% 0%, ${brandColor}0d 0%, transparent 72%)` }}
           />
 
-          <div className="relative max-w-xl mx-auto px-6 py-10">
+          <div className="relative max-w-2xl mx-auto px-6 py-10">
             {/* ── One unified portal card ── */}
             <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden">
 
@@ -143,7 +143,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
                 </div>
               ) : (
                 <>
-                  <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={6} brandColor={brandColor} />
+                  <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={4} brandColor={brandColor} />
                   {fileCount > 1 && (
                     <div className="px-3 pb-2 pt-1">
                       <DownloadAllButton portalId={portal.id} portalName={portal.name} />
