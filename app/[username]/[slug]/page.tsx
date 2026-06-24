@@ -75,100 +75,95 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
         />
       ) : (
         <div className="relative">
-          {/* Subtle ambient brand glow — dialed back */}
+          {/* Subtle ambient brand glow */}
           <div
             className="pointer-events-none absolute inset-x-0 top-0 h-64"
             style={{ background: `radial-gradient(ellipse 50% 100% at 50% 0%, ${brandColor}0d 0%, transparent 72%)` }}
           />
 
-          <div className="relative max-w-2xl mx-auto px-6">
-            {/* Brand bar */}
-            <div className="flex items-center justify-between py-6 border-b border-[#16161a]">
-              {ownerIsPro ? (
-                <div className="flex items-center gap-3">
-                  {(brandDisplay === 'both' || brandDisplay === 'logo') && (
-                    logoUrl ? (
-                      <div className="h-10 flex items-center justify-center bg-[#101013] border border-[#1c1c22] rounded-xl px-3">
-                        <img src={logoUrl} alt={displayName} className="max-h-7 w-auto max-w-[160px] object-contain" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
-                        <span className="text-white text-base font-bold">{brandInitial}</span>
-                      </div>
-                    )
-                  )}
-                  {(brandDisplay === 'both' || brandDisplay === 'name') && (
-                    <span className="text-base font-bold text-white tracking-tight">{displayName}</span>
-                  )}
-                </div>
-              ) : (
-                <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
-              )}
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: isReady ? brandColor : '#facc15' }} />
-                <span className="text-xs text-gray-500 font-medium">{isReady ? 'Ready to download' : 'Files being prepared'}</span>
-              </div>
-            </div>
+          <div className="relative max-w-xl mx-auto px-6 py-10">
+            {/* ── One unified portal card ── */}
+            <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden">
 
-            {/* Project header */}
-            <div className="pt-10 pb-8">
-              <p className="text-[11px] uppercase tracking-[0.14em] font-semibold mb-3" style={{ color: brandColor }}>
-                Delivered by {displayName}
-              </p>
-              <h1 className="text-[1.7rem] font-bold text-white mb-2 tracking-tight leading-tight">{portal.name}</h1>
-              {portal.description && (
-                <p className="text-gray-400 text-sm leading-relaxed mb-2">{portal.description}</p>
-              )}
-              <p className="text-xs text-gray-600">
-                {fileCount} file{fileCount !== 1 ? 's' : ''}
-                {isReady && fileCount > 0 ? ' · Ready to download' : ' · In progress'}
-              </p>
-            </div>
-
-            {/* Files */}
-            <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden mb-4">
-              <div className="px-6 py-4 border-b border-[#1c1c22] flex items-center justify-between">
-                <h2 className="font-semibold text-xs text-gray-500 uppercase tracking-[0.1em]">Deliverables</h2>
-                {isReady && fileCount > 1 && (
-                  <DownloadAllButton portalId={portal.id} portalName={portal.name} />
+              {/* Brand bar */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-[#16161a]">
+                {ownerIsPro ? (
+                  <div className="flex items-center gap-3">
+                    {(brandDisplay === 'both' || brandDisplay === 'logo') && (
+                      logoUrl ? (
+                        <img src={logoUrl} alt={displayName} className="max-h-8 w-auto max-w-[160px] object-contain" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
+                          <span className="text-white text-sm font-bold">{brandInitial}</span>
+                        </div>
+                      )
+                    )}
+                    {(brandDisplay === 'both' || brandDisplay === 'name') && (
+                      <span className="text-base font-bold text-white tracking-tight">{displayName}</span>
+                    )}
+                  </div>
+                ) : (
+                  <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
                 )}
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: isReady ? brandColor : '#facc15' }} />
+                  <span className="text-xs text-gray-500 font-medium hidden sm:inline">{isReady ? 'Ready' : 'Preparing'}</span>
+                </div>
               </div>
 
+              {/* Project header */}
+              <div className="px-6 pt-7 pb-5">
+                <p className="text-[11px] uppercase tracking-[0.14em] font-semibold mb-2.5" style={{ color: brandColor }}>
+                  Delivered by {displayName}
+                </p>
+                <h1 className="text-2xl font-bold text-white mb-1.5 tracking-tight leading-tight">{portal.name}</h1>
+                {portal.description && (
+                  <p className="text-gray-400 text-sm leading-relaxed mb-2">{portal.description}</p>
+                )}
+                <p className="text-xs text-gray-600">
+                  {fileCount} file{fileCount !== 1 ? 's' : ''}
+                  {isReady && fileCount > 0 ? ' · Ready to download' : ' · In progress'}
+                </p>
+              </div>
+
+              {/* Files */}
               {!isReady ? (
-                <div className="px-6 py-14 text-center">
+                <div className="px-6 py-12 text-center">
                   <div className="w-12 h-12 bg-yellow-400/10 border border-yellow-400/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
                     <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
                     </svg>
                   </div>
                   <p className="text-gray-300 text-sm font-medium">Files are being prepared</p>
-                  <p className="text-gray-600 text-xs mt-1.5">Check back soon — you'll be able to download everything here</p>
+                  <p className="text-gray-600 text-xs mt-1.5">Check back soon — everything will be here to download</p>
                 </div>
               ) : !files || files.length === 0 ? (
-                <div className="px-6 py-14 text-center">
+                <div className="px-6 py-12 text-center">
                   <p className="text-gray-600 text-sm">No files uploaded yet</p>
                 </div>
               ) : (
-                <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={5} brandColor={brandColor} />
+                <>
+                  <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={6} brandColor={brandColor} />
+                  {fileCount > 1 && (
+                    <div className="px-3 pb-2 pt-1">
+                      <DownloadAllButton portalId={portal.id} portalName={portal.name} />
+                    </div>
+                  )}
+                </>
               )}
-            </div>
 
-            {/* Invoice */}
-            {portal.invoice_amount && (
-              <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-[#1c1c22]">
-                  <h2 className="font-semibold text-xs text-gray-500 uppercase tracking-[0.1em]">Invoice</h2>
-                </div>
-                <div className="px-6 py-6">
-                  <div className="flex items-end justify-between mb-6">
+              {/* Invoice — same card, directly under files */}
+              {portal.invoice_amount && (
+                <div className="px-6 pt-5 pb-6 mt-3 border-t border-[#16161a]">
+                  <div className="flex items-end justify-between mb-5">
                     <div>
-                      <p className="text-white font-semibold">{portal.name}</p>
-                      <p className="text-gray-500 text-sm mt-0.5">
+                      <p className="text-gray-500 text-xs uppercase tracking-[0.1em] font-semibold mb-1.5">Invoice</p>
+                      <p className="text-gray-400 text-sm">
                         {portal.invoice_paid ? 'Payment complete' : 'Payment due upon receipt'}
                       </p>
                     </div>
                     <div className="text-right flex flex-col items-end">
-                      <p className="text-[1.7rem] font-bold text-white tracking-tight leading-none mb-1.5">
+                      <p className="text-2xl font-bold text-white tracking-tight leading-none mb-1.5">
                         ${Number(portal.invoice_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </p>
                       <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${portal.invoice_paid ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
@@ -193,12 +188,13 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
                       Payment received
                     </div>
                   )}
-                  <p className="text-center text-xs text-gray-600 mt-4">Secure payment powered by Stripe</p>
+                  <p className="text-center text-xs text-gray-600 mt-3.5">Secure payment powered by Stripe</p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            <div className="py-12 text-center">
+            {/* Footer */}
+            <div className="pt-8 text-center">
               <p className="text-xs text-gray-700">
                 Delivered via <span className="text-gray-500 font-medium">VoxaBase</span>
               </p>
