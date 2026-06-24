@@ -45,7 +45,7 @@ function FileRow({ file, supabaseUrl, brandColor }: { file: FileRecord; supabase
         href={downloadUrl}
         download={file.name}
         className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex-shrink-0 ml-4"
-        style={{ color: brandColor, borderColor: `${brandColor}50`, border: '1px solid' }}
+        style={{ color: brandColor, borderWidth: '1px', borderStyle: 'solid', borderColor: `${brandColor}50`, background: 'transparent' }}
         onMouseOver={(e) => {
           (e.currentTarget as HTMLElement).style.background = `${brandColor}15`
           ;(e.currentTarget as HTMLElement).style.borderColor = brandColor
