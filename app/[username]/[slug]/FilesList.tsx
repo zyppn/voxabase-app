@@ -28,10 +28,10 @@ function FileRow({ file, supabaseUrl, brandColor }: { file: FileRecord; supabase
   const downloadUrl = `${supabaseUrl}/storage/v1/object/public/deliverables/${file.file_path}`
 
   return (
-    <div className="px-6 py-4 flex items-center justify-between hover:bg-[#0d0d10] transition-colors">
+    <div className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
       <div className="flex items-center gap-4 min-w-0 flex-1">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-          style={{ background: `${brandColor}20`, border: `1px solid ${brandColor}40`, color: brandColor }}>
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-transform group-hover:scale-105"
+          style={{ background: `${brandColor}18`, border: `1px solid ${brandColor}33`, color: brandColor }}>
           {ext}
         </div>
         <div className="min-w-0">
