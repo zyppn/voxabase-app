@@ -25,6 +25,7 @@ function SettingsContent() {
   const [brandColor, setBrandColor] = useState('#8b3cf7')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [brandDisplay, setBrandDisplay] = useState('both')
   const [subscriptionPeriodEnd, setSubscriptionPeriodEnd] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [savingBrand, setSavingBrand] = useState(false)
@@ -47,7 +48,7 @@ function SettingsContent() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, business_name, username, plan, subscription_period_end, brand_color, logo_url')
+        .select('full_name, business_name, username, plan, subscription_period_end, brand_color, logo_url, brand_display')
         .eq('id', user.id)
         .single()
 
@@ -59,6 +60,7 @@ function SettingsContent() {
         setSubscriptionPeriodEnd(profile.subscription_period_end || null)
         setBrandColor(profile.brand_color || '#8b3cf7')
         setLogoUrl(profile.logo_url || null)
+        setBrandDisplay(profile.brand_display || 'both')
       }
       setLoading(false)
     }
@@ -95,7 +97,7 @@ function SettingsContent() {
     if (!user) return
     const { error } = await supabase
       .from('profiles')
-      .update({ brand_color: brandColor })
+      .update({ brand_color: brandColor, brand_display: brandDisplay })
       .eq('id', user.id)
     if (error) setErrorMessage(error.message)
     else { setSuccessMessage('Branding updated — your portals will use the new color'); setTimeout(() => setSuccessMessage(''), 4000) }
@@ -291,13 +293,22 @@ function SettingsContent() {
               <div className="bg-[#090909] border border-[#1e1e24] rounded-lg p-4">
                 <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide font-semibold">Portal preview</p>
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1e1e24]">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Your logo" className="h-7 w-auto max-w-[140px] object-contain" />
-                  ) : (
-                    <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto opacity-50" />
-                  )}
+                  <div className="flex items-center gap-2.5">
+                    {(brandDisplay === 'both' || brandDisplay === 'logo') && (
+                      logoUrl ? (
+                        <img src={logoUrl} alt="Your logo" className="h-7 w-auto max-w-[120px] object-contain" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: brandColor }}>
+                          <span className="text-white text-xs font-bold">{(businessName || fullName || 'V').charAt(0).toUpperCase()}</span>
+                        </div>
+                      )
+                    )}
+                    {(brandDisplay === 'both' || brandDisplay === 'name') && (
+                      <span className="text-sm font-bold text-white">{businessName || fullName || username || 'Your brand'}</span>
+                    )}
+                  </div>
                   <span style={{ color: brandColor }} className="text-[10px] font-semibold uppercase tracking-wide">
-                    Delivered by you
+                    Delivered by {businessName || fullName || 'you'}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -345,6 +356,35 @@ function SettingsContent() {
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
                   </label>
                 )}
+              </div>
+
+              {/* Header display toggle */}
+              <div>
+                <p className="text-xs text-gray-500 mb-3">Portal header shows</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 'both', label: 'Logo + name' },
+                    { value: 'logo', label: 'Logo only' },
+                    { value: 'name', label: 'Name only' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setBrandDisplay(opt.value)}
+                      className={`text-xs font-semibold py-2.5 rounded-lg border transition-colors ${
+                        brandDisplay === opt.value
+                          ? 'border-[#8b3cf7] bg-[#1a0d30] text-white'
+                          : 'border-[#1e1e24] text-gray-400 hover:text-white hover:border-[#3a3a4a]'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                  {brandDisplay === 'name' && !businessName && !fullName
+                    ? 'Add a business name in your profile above for this option'
+                    : 'Choose what appears in the top-left of your client portals'}
+                </p>
               </div>
 
               {/* Preset colors */}

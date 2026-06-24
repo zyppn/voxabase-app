@@ -29,12 +29,14 @@ interface Props {
   slug: string
   brandColor?: string
   logoUrl?: string | null
+  brandDisplay?: string
+  displayInitial?: string
 }
 
 export default function PortalPasswordGate({
   portalId, portalPassword, displayName, portalName, portalDescription,
   files, supabaseUrl, isReady, fileCount, invoiceAmount, invoicePaid,
-  username, slug, brandColor = '#8b3cf7', logoUrl = null
+  username, slug, brandColor = '#8b3cf7', logoUrl = null, brandDisplay = 'both', displayInitial = 'V'
 }: Props) {
   const [unlocked, setUnlocked] = useState(false)
   const [input, setInput] = useState('')
@@ -55,11 +57,20 @@ export default function PortalPasswordGate({
       <div className="min-h-screen bg-[#090909] flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            {logoUrl ? (
-              <img src={logoUrl} alt={displayName} className="h-9 w-auto max-w-[180px] object-contain mx-auto mb-6" />
-            ) : (
-              <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto mx-auto mb-6" />
-            )}
+            <div className="flex items-center justify-center gap-2.5 mb-6">
+              {(brandDisplay === 'both' || brandDisplay === 'logo') && (
+                logoUrl ? (
+                  <img src={logoUrl} alt={displayName} className="h-9 w-auto max-w-[180px] object-contain" />
+                ) : (
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
+                    <span className="text-white text-sm font-bold">{displayInitial}</span>
+                  </div>
+                )
+              )}
+              {(brandDisplay === 'both' || brandDisplay === 'name') && (
+                <span className="text-base font-bold text-white">{displayName}</span>
+              )}
+            </div>
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: `${brandColor}20`, border: `1px solid ${brandColor}40` }}>
               <svg className="w-7 h-7" style={{ color: brandColor }} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -96,11 +107,20 @@ export default function PortalPasswordGate({
   return (
     <>
       <div className="border-b border-[#1e1e24] px-8 py-4 flex items-center justify-between">
-        {logoUrl ? (
-          <img src={logoUrl} alt={displayName} className="h-8 w-auto max-w-[180px] object-contain" />
-        ) : (
-          <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
-        )}
+        <div className="flex items-center gap-2.5">
+          {(brandDisplay === 'both' || brandDisplay === 'logo') && (
+            logoUrl ? (
+              <img src={logoUrl} alt={displayName} className="h-9 w-auto max-w-[200px] object-contain" />
+            ) : (
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
+                <span className="text-white text-sm font-bold">{displayInitial}</span>
+              </div>
+            )
+          )}
+          {(brandDisplay === 'both' || brandDisplay === 'name') && (
+            <span className="text-base font-bold text-white">{displayName}</span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${isReady ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
           <span className="text-xs text-gray-500">{isReady ? 'Ready to download' : 'Files being prepared'}</span>
