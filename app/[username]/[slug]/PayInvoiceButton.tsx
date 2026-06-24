@@ -49,7 +49,7 @@ export default function PayInvoiceButton({ portalId, portalName, amount, usernam
         className="w-full text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-70"
         style={{
           background: brandColor,
-          boxShadow: `0 8px 30px ${brandColor}40`,
+          boxShadow: `0 6px 20px -8px ${brandColor}66`,
         }}
       >
         {loading ? (

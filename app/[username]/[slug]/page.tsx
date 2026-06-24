@@ -52,7 +52,6 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
     <main className="min-h-screen bg-[#08080a] text-white">
       <PortalTracker portalId={portal.id} ownerUsername={username} />
 
-      {/* If password protected, show gate first */}
       {isPasswordProtected ? (
         <PortalPasswordGate
           portalId={portal.id}
@@ -76,69 +75,60 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
         />
       ) : (
         <div className="relative">
-          {/* Ambient brand glow behind header */}
+          {/* Subtle ambient brand glow — dialed back */}
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-80"
-            style={{ background: `radial-gradient(ellipse 60% 100% at 50% 0%, ${brandColor}18 0%, transparent 70%)` }}
+            className="pointer-events-none absolute inset-x-0 top-0 h-64"
+            style={{ background: `radial-gradient(ellipse 50% 100% at 50% 0%, ${brandColor}0d 0%, transparent 72%)` }}
           />
 
-          <div className="relative px-8 py-5 flex items-center justify-between backdrop-blur-sm">
-            {ownerIsPro ? (
-              <div className="flex items-center gap-2.5">
-                {(brandDisplay === 'both' || brandDisplay === 'logo') && (
-                  logoUrl ? (
-                    <img src={logoUrl} alt={displayName} className="h-9 w-auto max-w-[200px] object-contain" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: brandColor, boxShadow: `0 6px 20px -8px ${brandColor}` }}>
-                      <span className="text-white text-sm font-bold">{brandInitial}</span>
-                    </div>
-                  )
-                )}
-                {(brandDisplay === 'both' || brandDisplay === 'name') && (
-                  <span className="text-base font-bold text-white tracking-tight">{displayName}</span>
-                )}
+          <div className="relative max-w-2xl mx-auto px-6">
+            {/* Brand bar */}
+            <div className="flex items-center justify-between py-6 border-b border-[#16161a]">
+              {ownerIsPro ? (
+                <div className="flex items-center gap-3">
+                  {(brandDisplay === 'both' || brandDisplay === 'logo') && (
+                    logoUrl ? (
+                      <div className="h-10 flex items-center justify-center bg-[#101013] border border-[#1c1c22] rounded-xl px-3">
+                        <img src={logoUrl} alt={displayName} className="max-h-7 w-auto max-w-[160px] object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
+                        <span className="text-white text-base font-bold">{brandInitial}</span>
+                      </div>
+                    )
+                  )}
+                  {(brandDisplay === 'both' || brandDisplay === 'name') && (
+                    <span className="text-base font-bold text-white tracking-tight">{displayName}</span>
+                  )}
+                </div>
+              ) : (
+                <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
+              )}
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: isReady ? brandColor : '#facc15' }} />
+                <span className="text-xs text-gray-500 font-medium">{isReady ? 'Ready to download' : 'Files being prepared'}</span>
               </div>
-            ) : (
-              <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
-            )}
-            <div className="flex items-center gap-2 bg-[#101013] border border-[#1c1c22] rounded-full px-3 py-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${isReady ? 'animate-pulse' : 'bg-yellow-400'}`} style={isReady ? { background: brandColor } : undefined} />
-              <span className="text-xs text-gray-400 font-medium">{isReady ? 'Ready to download' : 'Files being prepared'}</span>
             </div>
-          </div>
 
-          <div className="relative max-w-2xl mx-auto px-6 py-14">
-            <div className="mb-9">
+            {/* Project header */}
+            <div className="pt-10 pb-8">
               <p className="text-[11px] uppercase tracking-[0.14em] font-semibold mb-3" style={{ color: brandColor }}>
                 Delivered by {displayName}
               </p>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h1 className="text-[1.7rem] font-bold text-white mb-1.5 tracking-tight leading-tight">{portal.name}</h1>
-                  {portal.description && (
-                    <p className="text-gray-400 text-sm leading-relaxed">{portal.description}</p>
-                  )}
-                </div>
-                {isReady && fileCount > 0 ? (
-                  <span className="flex-shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide"
-                    style={{ color: brandColor, background: `${brandColor}15`, border: `1px solid ${brandColor}40` }}>
-                    Ready to download
-                  </span>
-                ) : (
-                  <span className="flex-shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 text-yellow-400 uppercase tracking-wide">
-                    In progress
-                  </span>
-                )}
-              </div>
-              {fileCount > 0 && (
-                <p className="text-xs text-gray-600 mt-3">{fileCount} file{fileCount !== 1 ? 's' : ''} · Ready when you are</p>
+              <h1 className="text-[1.7rem] font-bold text-white mb-2 tracking-tight leading-tight">{portal.name}</h1>
+              {portal.description && (
+                <p className="text-gray-400 text-sm leading-relaxed mb-2">{portal.description}</p>
               )}
+              <p className="text-xs text-gray-600">
+                {fileCount} file{fileCount !== 1 ? 's' : ''}
+                {isReady && fileCount > 0 ? ' · Ready to download' : ' · In progress'}
+              </p>
             </div>
 
             {/* Files */}
-            <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden mb-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)]">
+            <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden mb-4">
               <div className="px-6 py-4 border-b border-[#1c1c22] flex items-center justify-between">
-                <h2 className="font-semibold text-xs text-gray-400 uppercase tracking-[0.1em]">Deliverables</h2>
+                <h2 className="font-semibold text-xs text-gray-500 uppercase tracking-[0.1em]">Deliverables</h2>
                 {isReady && fileCount > 1 && (
                   <DownloadAllButton portalId={portal.id} portalName={portal.name} />
                 )}
@@ -165,19 +155,19 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
             {/* Invoice */}
             {portal.invoice_amount && (
-              <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden shadow-[0_24px_60px_-30px_rgba(0,0,0,0.8)]">
+              <div className="bg-[#101013] border border-[#1c1c22] rounded-2xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-[#1c1c22]">
-                  <h2 className="font-semibold text-xs text-gray-400 uppercase tracking-[0.1em]">Invoice</h2>
+                  <h2 className="font-semibold text-xs text-gray-500 uppercase tracking-[0.1em]">Invoice</h2>
                 </div>
                 <div className="px-6 py-6">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-end justify-between mb-6">
                     <div>
                       <p className="text-white font-semibold">{portal.name}</p>
                       <p className="text-gray-500 text-sm mt-0.5">
                         {portal.invoice_paid ? 'Payment complete' : 'Payment due upon receipt'}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end">
                       <p className="text-[1.7rem] font-bold text-white tracking-tight leading-none mb-1.5">
                         ${Number(portal.invoice_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </p>
@@ -208,7 +198,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
               </div>
             )}
 
-            <div className="mt-12 text-center">
+            <div className="py-12 text-center">
               <p className="text-xs text-gray-700">
                 Delivered via <span className="text-gray-500 font-medium">VoxaBase</span>
               </p>
