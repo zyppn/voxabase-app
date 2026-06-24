@@ -26,7 +26,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('business_name, full_name, brand_color')
+    .select('business_name, full_name, brand_color, logo_url')
     .eq('username', username)
     .single()
 
@@ -38,6 +38,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
 
   const displayName = profile?.business_name || profile?.full_name || username
   const brandColor = profile?.brand_color || '#8b3cf7'
+  const logoUrl = profile?.logo_url || null
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const isReady = portal.files_ready
   const fileCount = files?.length || 0
@@ -64,11 +65,16 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           username={username}
           slug={slug}
           brandColor={brandColor}
+          logoUrl={logoUrl}
         />
       ) : (
         <>
           <div className="border-b border-[#1e1e24] px-8 py-4 flex items-center justify-between">
-            <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
+            {logoUrl ? (
+              <img src={logoUrl} alt={displayName} className="h-8 w-auto max-w-[180px] object-contain" />
+            ) : (
+              <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
+            )}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isReady ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
               <span className="text-xs text-gray-500">{isReady ? 'Ready to download' : 'Files being prepared'}</span>

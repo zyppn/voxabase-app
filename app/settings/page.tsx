@@ -23,6 +23,8 @@ function SettingsContent() {
   const [plan, setPlan] = useState('free')
   const [username, setUsername] = useState('')
   const [brandColor, setBrandColor] = useState('#8b3cf7')
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
   const [subscriptionPeriodEnd, setSubscriptionPeriodEnd] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [savingBrand, setSavingBrand] = useState(false)
@@ -45,7 +47,7 @@ function SettingsContent() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, business_name, username, plan, subscription_period_end, brand_color')
+        .select('full_name, business_name, username, plan, subscription_period_end, brand_color, logo_url')
         .eq('id', user.id)
         .single()
 
@@ -56,6 +58,7 @@ function SettingsContent() {
         setPlan(profile.plan || 'free')
         setSubscriptionPeriodEnd(profile.subscription_period_end || null)
         setBrandColor(profile.brand_color || '#8b3cf7')
+        setLogoUrl(profile.logo_url || null)
       }
       setLoading(false)
     }
@@ -97,6 +100,77 @@ function SettingsContent() {
     if (error) setErrorMessage(error.message)
     else { setSuccessMessage('Branding updated — your portals will use the new color'); setTimeout(() => setSuccessMessage(''), 4000) }
     setSavingBrand(false)
+  }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('Please upload an image file (PNG, JPG, or SVG)')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMessage('Logo must be under 2MB')
+      return
+    }
+
+    setUploadingLogo(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Remove old logo if exists
+    if (logoUrl) {
+      const oldPath = logoUrl.split('/branding/')[1]
+      if (oldPath) await supabase.storage.from('branding').remove([oldPath])
+    }
+
+    const ext = file.name.split('.').pop()
+    const filePath = `${user.id}/logo-${Date.now()}.${ext}`
+    const { error: uploadError } = await supabase.storage.from('branding').upload(filePath, file)
+
+    if (uploadError) {
+      setErrorMessage(uploadError.message)
+      setUploadingLogo(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('branding').getPublicUrl(filePath)
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ logo_url: publicUrl })
+      .eq('id', user.id)
+
+    if (updateError) {
+      setErrorMessage(updateError.message)
+    } else {
+      setLogoUrl(publicUrl)
+      setSuccessMessage('Logo uploaded — your portals will now show your logo')
+      setTimeout(() => setSuccessMessage(''), 4000)
+    }
+    setUploadingLogo(false)
+  }
+
+  const handleRemoveLogo = async () => {
+    setUploadingLogo(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    if (logoUrl) {
+      const oldPath = logoUrl.split('/branding/')[1]
+      if (oldPath) await supabase.storage.from('branding').remove([oldPath])
+    }
+
+    await supabase.from('profiles').update({ logo_url: null }).eq('id', user.id)
+    setLogoUrl(null)
+    setSuccessMessage('Logo removed — portals will show the default VoxaBase logo')
+    setTimeout(() => setSuccessMessage(''), 4000)
+    setUploadingLogo(false)
   }
 
   const handleChangeEmail = async () => {
@@ -202,7 +276,7 @@ function SettingsContent() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="font-semibold text-white">Custom branding</h2>
-              <p className="text-gray-500 text-xs mt-0.5">Set your portal accent color</p>
+              <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every client portal</p>
             </div>
             {!isPro && (
               <a href="/pricing" className="text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-3 py-1.5 rounded-full font-semibold hover:bg-[#8b3cf7]/20 transition-colors">
@@ -215,7 +289,17 @@ function SettingsContent() {
             <div className="flex flex-col gap-4">
               {/* Preview */}
               <div className="bg-[#090909] border border-[#1e1e24] rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide font-semibold">Preview</p>
+                <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide font-semibold">Portal preview</p>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1e1e24]">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Your logo" className="h-7 w-auto max-w-[140px] object-contain" />
+                  ) : (
+                    <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto opacity-50" />
+                  )}
+                  <span style={{ color: brandColor }} className="text-[10px] font-semibold uppercase tracking-wide">
+                    Delivered by you
+                  </span>
+                </div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <button style={{ background: brandColor }} className="px-4 py-2 rounded-lg text-white text-xs font-semibold">
                     Pay Invoice
@@ -227,6 +311,40 @@ function SettingsContent() {
                     ↓ Download
                   </span>
                 </div>
+              </div>
+
+              {/* Logo upload */}
+              <div>
+                <p className="text-xs text-gray-500 mb-3">Your logo</p>
+                {logoUrl ? (
+                  <div className="flex items-center gap-4 bg-[#090909] border border-[#1e1e24] rounded-lg p-4">
+                    <img src={logoUrl} alt="Your logo" className="h-10 w-auto max-w-[160px] object-contain" />
+                    <div className="flex-1" />
+                    <label className="text-xs text-gray-400 hover:text-white border border-[#1e1e24] hover:border-[#3a3a4a] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                      Replace
+                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
+                    </label>
+                    <button onClick={handleRemoveLogo} disabled={uploadingLogo}
+                      className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-3 py-1.5 rounded-lg transition-colors">
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center gap-2 bg-[#090909] border border-dashed border-[#1e1e24] hover:border-[#8b3cf7]/40 rounded-lg p-6 cursor-pointer transition-colors">
+                    {uploadingLogo ? (
+                      <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+                        <span className="text-xs text-gray-400 font-medium">Click to upload your logo</span>
+                        <span className="text-xs text-gray-600">PNG, JPG, or SVG · max 2MB</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
+                  </label>
+                )}
               </div>
 
               {/* Preset colors */}
