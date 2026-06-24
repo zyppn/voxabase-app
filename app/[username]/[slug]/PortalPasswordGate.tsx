@@ -109,7 +109,7 @@ export default function PortalPasswordGate({
 
       <div className="max-w-2xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <p className="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-2">
+          <p className="text-xs uppercase tracking-widest font-semibold mb-2" style={{ color: brandColor }}>
             Delivered by {displayName}
           </p>
           <div className="flex items-start justify-between gap-4">
@@ -118,7 +118,8 @@ export default function PortalPasswordGate({
               {portalDescription && <p className="text-gray-400 text-sm">{portalDescription}</p>}
             </div>
             {isReady && fileCount > 0 ? (
-              <span className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-400/30 bg-green-400/10 text-green-400 uppercase tracking-wide">
+              <span className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide"
+                style={{ color: brandColor, background: `${brandColor}15`, border: `1px solid ${brandColor}50` }}>
                 Ready to download
               </span>
             ) : (
@@ -150,7 +151,7 @@ export default function PortalPasswordGate({
               <p className="text-gray-600 text-sm">No files uploaded yet</p>
             </div>
           ) : (
-            <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={5} />
+            <FilesList files={files} supabaseUrl={supabaseUrl} showLimit={5} brandColor={brandColor} />
           )}
         </div>
 
@@ -173,7 +174,7 @@ export default function PortalPasswordGate({
                 </div>
               </div>
               {!invoicePaid ? (
-                <PayInvoiceButton portalId={portalId} portalName={portalName} amount={invoiceAmount} username={username} slug={slug} />
+                <PayInvoiceButton portalId={portalId} portalName={portalName} amount={invoiceAmount} username={username} slug={slug} brandColor={brandColor} />
               ) : (
                 <div className="w-full bg-green-400/10 border border-green-400/20 text-green-400 font-semibold py-4 rounded-xl text-center text-sm flex items-center justify-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
