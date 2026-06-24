@@ -120,7 +120,7 @@ export default function PortalPasswordGate({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-80"
         style={{ background: `radial-gradient(ellipse 60% 100% at 50% 0%, ${brandColor}18 0%, transparent 70%)` }} />
 
-      <div className="relative border-b border-[#1c1c22] px-8 py-5 flex items-center justify-between backdrop-blur-sm">
+      <div className="relative px-8 py-5 flex items-center justify-between backdrop-blur-sm">
         {ownerIsPro ? (
           <div className="flex items-center gap-2.5">
             {(brandDisplay === 'both' || brandDisplay === 'logo') && (
