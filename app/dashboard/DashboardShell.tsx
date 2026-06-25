@@ -109,9 +109,9 @@ export default function DashboardShell({
   return (
     <div className="min-h-screen bg-[#08080a] text-white flex">
       {/* ── Sidebar ── */}
-      <aside className={`hidden lg:flex flex-col border-r border-[#16161a] fixed inset-y-0 left-0 py-5 transition-all duration-200 ${railW} ${collapsed ? 'px-2' : 'px-4'}`}>
+      <aside className={`hidden lg:flex flex-col border-r border-[#16161a] fixed inset-y-0 left-0 py-5 px-3 transition-all duration-200 ${railW}`}>
         {/* Header: logo + collapse toggle */}
-        <div className={`flex items-center mb-7 ${collapsed ? 'justify-center' : 'justify-between px-2'}`}>
+        <div className={`flex items-center mb-7 h-8 ${collapsed ? 'justify-center' : 'justify-between px-1'}`}>
           {!collapsed && <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />}
           <button onClick={toggleCollapse} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-[#101013] transition-colors">
@@ -124,21 +124,19 @@ export default function DashboardShell({
         <nav className="flex flex-col gap-1">
           {/* New Portal — nav-style */}
           <a href="/dashboard/new" title="New Portal"
-            className={`flex items-center rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#101013] transition-colors ${collapsed ? 'justify-center py-2.5' : 'gap-2.5 px-3 py-2'}`}>
-            <svg className="w-4 h-4 text-[#8b3cf7] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            {!collapsed && <span className="font-medium">New Portal</span>}
+            className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#101013] transition-colors overflow-hidden">
+            <svg className="w-5 h-5 text-[#8b3cf7] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            <span className={`font-medium whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
           </a>
 
           <div className={`h-px bg-[#16161a] my-1.5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
 
           {navItems.map(item => (
             <button key={item.key} onClick={() => setFilter(item.key)} title={item.label}
-              className={`flex items-center rounded-lg text-sm transition-colors ${collapsed ? 'justify-center py-2.5' : 'justify-between px-3 py-2'} ${filter === item.key ? 'bg-[#16161a] text-white' : 'text-gray-500 hover:text-gray-300 hover:bg-[#101013]'}`}>
-              <span className={`flex items-center ${collapsed ? '' : 'gap-2.5'}`}>
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">{item.icon}</svg>
-                {!collapsed && item.label}
-              </span>
-              {!collapsed && <span className="text-xs text-gray-600">{item.count}</span>}
+              className={`flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm transition-colors overflow-hidden ${filter === item.key ? 'bg-[#16161a] text-white' : 'text-gray-500 hover:text-gray-300 hover:bg-[#101013]'}`}>
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">{item.icon}</svg>
+              <span className={`whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.label}</span>
+              <span className={`text-xs text-gray-600 ml-auto whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.count}</span>
             </button>
           ))}
         </nav>
@@ -188,19 +186,15 @@ export default function DashboardShell({
             </div>
 
             <button onClick={() => setMenuOpen(o => !o)} title={collapsed ? displayLabel : undefined}
-              className={`w-full flex items-center rounded-xl transition-colors ${collapsed ? 'justify-center p-1.5' : 'gap-3 px-2.5 py-2'} ${menuOpen ? 'bg-[#16161a]' : 'hover:bg-[#101013]'}`}>
+              className={`w-full flex items-center gap-3 px-1.5 py-1.5 rounded-xl overflow-hidden transition-colors ${menuOpen ? 'bg-[#16161a]' : 'hover:bg-[#101013]'}`}>
               <div className="w-8 h-8 rounded-full bg-[#8b3cf7] flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-bold">{initials}</span>
               </div>
-              {!collapsed && (
-                <>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p className="text-sm text-white font-medium truncate leading-tight">{displayLabel}</p>
-                    <p className="text-[11px] text-gray-600 truncate leading-tight">{email}</p>
-                  </div>
-                  <svg className={`w-4 h-4 text-gray-600 transition-transform ${menuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-                </>
-              )}
+              <div className={`min-w-0 flex-1 text-left whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+                <p className="text-sm text-white font-medium truncate leading-tight">{displayLabel}</p>
+                <p className="text-[11px] text-gray-600 truncate leading-tight">{email}</p>
+              </div>
+              <svg className={`w-4 h-4 text-gray-600 flex-shrink-0 transition-all duration-150 ${menuOpen ? 'rotate-180' : ''} ${collapsed ? 'opacity-0' : 'opacity-100'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
             </button>
           </div>
         </div>
