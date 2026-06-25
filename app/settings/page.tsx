@@ -289,8 +289,8 @@ function SettingsContent() {
           </div>
         )}
 
-        {/* Two-column grid — equal height */}
-        <div className="grid lg:grid-cols-2 gap-5 items-stretch">
+        {/* Two-column grid */}
+        <div className="grid lg:grid-cols-2 gap-5 items-start">
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
@@ -339,56 +339,11 @@ function SettingsContent() {
                 </button>
               </div>
             </div>
-
-            {/* Membership / Plan & Billing — grows to fill column */}
-            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 flex-1 flex flex-col justify-center">
-              <div className="flex items-center gap-4 mb-5">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#8b3cf7]/10 border border-[#8b3cf7]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
-                  <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#8b3cf7]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-bold text-white">{planLabel} plan</p>
-                    {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#8b3cf7]/10 text-[#8b3cf7]'}`}>Active</span>}
-                  </div>
-                  {plan === 'free' ? (
-                    <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for more</p>
-                  ) : subscriptionPeriodEnd ? (
-                    <p className="text-gray-500 text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
-                  ) : (
-                    <p className="text-gray-500 text-sm mt-0.5">Active subscription — billed monthly</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                {plan === 'free' ? (
-                  <a href="/pricing" className="flex-1 text-center bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
-                ) : (
-                  <>
-                    <button onClick={handleManageBilling} disabled={managingBilling}
-                      className="flex-1 bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
-                      {managingBilling ? 'Opening...' : 'Manage billing'}
-                    </button>
-                    {plan !== 'agency' && (
-                      <a href="/pricing" className="text-sm text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-4 py-2.5 rounded-lg whitespace-nowrap">Upgrade to Agency</a>
-                    )}
-                  </>
-                )}
-              </div>
-              {plan !== 'free' && (
-                <p className="text-xs text-gray-600 mt-4 pt-4 border-t border-[#16161a]">
-                  Auto-renews monthly. Cancel anytime through Manage billing — your plan stays active until the period ends.
-                </p>
-              )}
-            </div>
           </div>
 
           {/* ── Right column: Custom branding ── */}
-          <div className="flex flex-col">
-          <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden flex-1">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-white">Custom branding</h2>
                 <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every portal</p>
@@ -401,7 +356,7 @@ function SettingsContent() {
             {/* The full branding UI — dimmed + overlaid for free users */}
             <div className={!isPro ? 'pointer-events-none select-none opacity-30 blur-[1px]' : ''}>
               {/* Live preview */}
-              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-4 mb-5">
+              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-3.5 mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     {(brandDisplay === 'both' || brandDisplay === 'logo') && (
@@ -426,9 +381,9 @@ function SettingsContent() {
               </div>
 
               {/* Logo */}
-              <p className="text-xs text-gray-500 mb-2 font-medium">Logo</p>
+              <p className="text-xs text-gray-500 mb-1.5 font-medium">Logo</p>
               {logoUrl ? (
-                <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-3 mb-5">
+                <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-2.5 mb-4">
                   <img src={logoUrl} alt="Logo" className="h-8 w-auto max-w-[120px] object-contain" />
                   <div className="flex-1" />
                   <label className="text-xs text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-2.5 py-1.5 rounded-lg cursor-pointer">
@@ -439,7 +394,7 @@ function SettingsContent() {
                     className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center gap-1.5 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg p-5 cursor-pointer mb-5">
+                <label className="flex flex-col items-center justify-center gap-1.5 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg p-4 cursor-pointer mb-4">
                   {uploadingLogo ? (
                     <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
                   ) : (
@@ -456,8 +411,8 @@ function SettingsContent() {
               )}
 
               {/* Display toggle (segmented) */}
-              <p className="text-xs text-gray-500 mb-2 font-medium">Show on portals</p>
-              <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-5">
+              <p className="text-xs text-gray-500 mb-1.5 font-medium">Show on portals</p>
+              <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-4">
                 {[
                   { value: 'both', label: 'Logo + Name' },
                   { value: 'logo', label: 'Logo only' },
@@ -471,8 +426,8 @@ function SettingsContent() {
               </div>
 
               {/* Color — circles */}
-              <p className="text-xs text-gray-500 mb-2.5 font-medium">Accent color</p>
-              <div className="flex items-center gap-2.5 flex-wrap mb-4">
+              <p className="text-xs text-gray-500 mb-2 font-medium">Accent color</p>
+              <div className="flex items-center gap-2.5 flex-wrap mb-3">
                 {PRESET_COLORS.map((color) => (
                   <button key={color.value} onClick={() => setBrandColor(color.value)} title={color.label}
                     className="w-8 h-8 rounded-full transition-transform hover:scale-110 flex items-center justify-center"
@@ -491,7 +446,7 @@ function SettingsContent() {
                   <svg className="w-3.5 h-3.5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 </label>
               </div>
-              <div className="flex items-center gap-2 mb-5">
+              <div className="flex items-center gap-2 mb-4">
                 <span className="text-xs text-gray-600">Hex</span>
                 <input type="text" value={brandColor}
                   onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
@@ -518,7 +473,52 @@ function SettingsContent() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── Membership / Plan & Billing — full width ── */}
+        <div className="mt-5 bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#8b3cf7]/10 border border-[#8b3cf7]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
+                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#8b3cf7]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-bold text-white">{planLabel} plan</p>
+                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#8b3cf7]/10 text-[#8b3cf7]'}`}>Active</span>}
+                </div>
+                {plan === 'free' ? (
+                  <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
+                ) : subscriptionPeriodEnd ? (
+                  <p className="text-gray-500 text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
+                ) : (
+                  <p className="text-gray-500 text-sm mt-0.5">Active subscription — billed monthly</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              {plan === 'free' ? (
+                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
+              ) : (
+                <>
+                  {plan !== 'agency' && (
+                    <a href="/pricing" className="text-sm text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-4 py-2.5 rounded-lg">Upgrade to Agency</a>
+                  )}
+                  <button onClick={handleManageBilling} disabled={managingBilling}
+                    className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+                    {managingBilling ? 'Opening...' : 'Manage billing'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
+          {plan !== 'free' && (
+            <p className="text-xs text-gray-600 mt-4 pt-4 border-t border-[#16161a]">
+              Subscriptions auto-renew monthly. Cancel anytime through Manage billing — your plan stays active until the end of the current period.
+            </p>
+          )}
         </div>
 
       </div>
