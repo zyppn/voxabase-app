@@ -25,12 +25,14 @@ export default function AppShell({
   activeFilter, onFilterClick, children,
 }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try { return localStorage.getItem('vb_sidebar_collapsed') === '1' } catch { return false }
+  })
+  const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    try { if (localStorage.getItem('vb_sidebar_collapsed') === '1') setCollapsed(true) } catch {}
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -66,11 +68,14 @@ export default function AppShell({
 
   const railW = collapsed ? 'w-16' : 'w-60'
   const mainML = collapsed ? 'lg:ml-16' : 'lg:ml-60'
+  const animate = mounted ? 'transition-all duration-200' : ''
+  const labelAnim = mounted ? 'transition-opacity duration-150' : ''
+  const storageAnim = mounted ? 'transition-all duration-200' : ''
 
   return (
     <div className="min-h-screen bg-[#08080a] text-white flex">
       {/* ── Sidebar ── */}
-      <aside className={`hidden lg:flex flex-col border-r border-[#16161a] fixed inset-y-0 left-0 py-5 px-3 transition-all duration-200 ${railW}`}>
+      <aside className={`hidden lg:flex flex-col border-r border-[#16161a] fixed inset-y-0 left-0 py-5 px-3 ${animate} ${railW}`}>
         {/* Header: logo + collapse toggle */}
         <div className={`flex items-center mb-7 h-8 ${collapsed ? 'justify-center' : 'justify-between px-1'}`}>
           {!collapsed && <a href="/dashboard"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>}
@@ -87,7 +92,7 @@ export default function AppShell({
           <a href="/dashboard/new" title="New Portal"
             className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#101013] overflow-hidden">
             <svg className="w-5 h-5 text-[#8b3cf7] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            <span className={`font-medium whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
+            <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
           </a>
 
           <div className={`h-px bg-[#16161a] my-1.5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
@@ -96,15 +101,15 @@ export default function AppShell({
             <button key={item.key} onClick={() => onFilterClick(item.key)} title={item.label}
               className={`flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm overflow-hidden ${activeFilter === item.key ? 'bg-[#16161a] text-white' : 'text-gray-500 hover:text-gray-300 hover:bg-[#101013]'}`}>
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">{item.icon}</svg>
-              <span className={`whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.label}</span>
-              <span className={`text-xs text-gray-600 ml-auto whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.count}</span>
+              <span className={`whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.label}</span>
+              <span className={`text-xs text-gray-600 ml-auto whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.count}</span>
             </button>
           ))}
         </nav>
 
         <div className="mt-auto">
           {/* Storage */}
-          <div className={`px-3 overflow-hidden transition-all duration-200 ${collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-32 opacity-100 mb-4'}`}>
+          <div className={`px-3 overflow-hidden ${storageAnim} ${collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-32 opacity-100 mb-4'}`}>
             <div className="flex items-center justify-between mb-1.5 whitespace-nowrap">
               <span className="text-[11px] text-gray-600 uppercase tracking-wide font-semibold">Storage</span>
               <span className="text-[11px] text-gray-500">{formatBytes(usedBytes)} / {limitLabel}</span>
@@ -149,18 +154,18 @@ export default function AppShell({
               <div className="w-8 h-8 rounded-full bg-[#8b3cf7] flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-bold">{initials}</span>
               </div>
-              <div className={`min-w-0 flex-1 text-left whitespace-nowrap transition-opacity duration-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+              <div className={`min-w-0 flex-1 text-left whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
                 <p className="text-sm text-white font-medium truncate leading-tight">{displayLabel}</p>
                 <p className="text-[11px] text-gray-600 truncate leading-tight">{email}</p>
               </div>
-              <svg className={`w-4 h-4 text-gray-600 flex-shrink-0 transition-all duration-150 ${menuOpen ? 'rotate-180' : ''} ${collapsed ? 'opacity-0' : 'opacity-100'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+              <svg className={`w-4 h-4 text-gray-600 flex-shrink-0 ${labelAnim} ${menuOpen ? 'rotate-180' : ''} ${collapsed ? 'opacity-0' : 'opacity-100'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
             </button>
           </div>
         </div>
       </aside>
 
       {/* ── Main ── */}
-      <div className={`flex-1 min-w-0 transition-all duration-200 ${mainML}`}>
+      <div className={`flex-1 min-w-0 ${animate} ${mainML}`}>
         {/* Mobile top bar */}
         <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-[#16161a] sticky top-0 bg-[#08080a]/85 backdrop-blur-sm z-20">
           <a href="/dashboard"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
