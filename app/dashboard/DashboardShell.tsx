@@ -142,19 +142,17 @@ export default function DashboardShell({
         </nav>
 
         <div className="mt-auto">
-          {/* Storage — only when expanded */}
-          {!collapsed && (
-            <div className="px-3 mb-4">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] text-gray-600 uppercase tracking-wide font-semibold">Storage</span>
-                <span className="text-[11px] text-gray-500">{formatBytes(usedBytes)} / {limitLabel}</span>
-              </div>
-              <div className="w-full bg-[#1e1e24] rounded-full h-1">
-                <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-[#8b3cf7]'}`} style={{ width: `${storagePercent}%` }} />
-              </div>
-              {plan === 'free' && <a href="/pricing" className="text-[11px] text-[#8b3cf7] hover:underline font-semibold mt-1.5 inline-block">Upgrade plan</a>}
+          {/* Storage — fades + collapses height, never crams */}
+          <div className={`px-3 overflow-hidden transition-all duration-200 ${collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-32 opacity-100 mb-4'}`}>
+            <div className="flex items-center justify-between mb-1.5 whitespace-nowrap">
+              <span className="text-[11px] text-gray-600 uppercase tracking-wide font-semibold">Storage</span>
+              <span className="text-[11px] text-gray-500">{formatBytes(usedBytes)} / {limitLabel}</span>
             </div>
-          )}
+            <div className="w-full bg-[#1e1e24] rounded-full h-1">
+              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-[#8b3cf7]'}`} style={{ width: `${storagePercent}%` }} />
+            </div>
+            {plan === 'free' && <a href="/pricing" className="text-[11px] text-[#8b3cf7] hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
+          </div>
 
           {/* Profile menu */}
           <div className="relative" ref={menuRef}>
