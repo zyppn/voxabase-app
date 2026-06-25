@@ -372,12 +372,15 @@ function SettingsContent() {
                       <span className="text-sm font-bold text-white">{businessName || fullName || 'Your brand'}</span>
                     )}
                   </div>
-                  <span style={{ color: brandColor }} className="text-[10px] font-semibold uppercase tracking-wide">Delivered by you</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: brandColor }} />
+                    <span className="text-[11px] text-gray-500 font-medium">Ready</span>
+                  </div>
                 </div>
 
                 {/* Sample project + file row — mirrors the real portal */}
                 <div className="pt-3">
-                  <p className="text-xs uppercase tracking-[0.12em] font-semibold mb-2" style={{ color: brandColor }}>Project files</p>
+                  <p className="text-xs uppercase tracking-[0.12em] font-semibold mb-2" style={{ color: brandColor }}>Delivered by you</p>
                   <div className="flex items-center justify-between gap-2 bg-[#0b0b0e] border border-[#1c1c22] rounded-lg px-3 py-2.5 mb-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-md flex items-center justify-center text-[9px] font-bold flex-shrink-0"
@@ -385,7 +388,7 @@ function SettingsContent() {
                         PDF
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-white truncate">Final_Delivery.pdf</p>
+                        <p className="text-xs font-medium text-white truncate">Example.pdf</p>
                         <p className="text-[10px] text-gray-600">2.4 MB</p>
                       </div>
                     </div>
@@ -398,10 +401,12 @@ function SettingsContent() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button style={{ background: brandColor }} className="flex-1 py-2 rounded-lg text-white text-xs font-semibold">Pay Invoice — $2,400</button>
-                  <span style={{ color: brandColor, borderColor: `${brandColor}55` }} className="text-[11px] font-semibold border px-2.5 py-1.5 rounded-full whitespace-nowrap">Ready</span>
-                </div>
+                <button style={{ background: brandColor }} className="w-full py-2.5 rounded-lg text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                  Pay Invoice
+                </button>
               </div>
 
               {/* Logo */}
