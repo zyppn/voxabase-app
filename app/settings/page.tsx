@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import AppShell from '../dashboard/AppShell'
 
 const PRESET_COLORS = [
   { label: 'VoxaBase Purple', value: '#8b3cf7' },
@@ -34,6 +35,15 @@ function SettingsContent() {
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [loading, setLoading] = useState(true)
+  const [sidebar, setSidebar] = useState<{
+    counts: { all: number; active: number; completed: number }
+    usedBytes: number
+    plan: string
+    displayLabel: string
+    email: string
+    initials: string
+    stripeConnected: boolean
+  } | null>(null)
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,7 +58,7 @@ function SettingsContent() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, business_name, username, plan, subscription_period_end, brand_color, logo_url, brand_display')
+        .select('full_name, business_name, username, plan, subscription_period_end, brand_color, logo_url, brand_display, stripe_onboarding_complete')
         .eq('id', user.id)
         .single()
 
@@ -62,6 +72,34 @@ function SettingsContent() {
         setLogoUrl(profile.logo_url || null)
         setBrandDisplay(profile.brand_display || 'both')
       }
+
+      // Sidebar data
+      const { data: allPortals } = await supabase
+        .from('portals')
+        .select('invoice_amount, invoice_paid')
+        .eq('user_id', user.id)
+      const all = allPortals || []
+      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+      const label = profile?.business_name || profile?.full_name || 'Your'
+      const init = (() => {
+        const base = profile?.business_name || profile?.full_name
+        if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
+        return (user.email?.[0] || 'U').toUpperCase()
+      })()
+      setSidebar({
+        counts: {
+          all: all.length,
+          active: all.filter(p => !p.invoice_paid || !p.invoice_amount).length,
+          completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
+        },
+        usedBytes: storageData || 0,
+        plan: profile?.plan || 'free',
+        displayLabel: label,
+        email: user.email || '',
+        initials: init,
+        stripeConnected: profile?.stripe_onboarding_complete === true,
+      })
+
       setLoading(false)
     }
     load()
@@ -208,26 +246,35 @@ function SettingsContent() {
   }
 
   if (loading) return (
-    <main className="min-h-screen bg-[#090909] flex items-center justify-center">
+    <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
     </main>
   )
 
   return (
-    <main className="min-h-screen bg-[#090909] text-white">
-      <nav className="border-b border-[#1e1e24] px-8 py-4 flex items-center justify-between sticky top-0 bg-[#090909]/80 backdrop-blur-sm z-10">
-        <img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" />
-        <a href="/dashboard" className="text-gray-400 text-sm hover:text-white transition-colors flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to dashboard
-        </a>
-      </nav>
+    <AppShell
+      counts={sidebar?.counts || { all: 0, active: 0, completed: 0 }}
+      usedBytes={sidebar?.usedBytes || 0}
+      plan={sidebar?.plan || plan}
+      displayLabel={sidebar?.displayLabel || 'Your'}
+      email={sidebar?.email || ''}
+      initials={sidebar?.initials || 'U'}
+      stripeConnected={sidebar?.stripeConnected || false}
+      activeFilter={null}
+      onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
+    >
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
+        <div className="max-w-2xl mx-auto">
+          {/* Back button — clean arrow */}
+          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
+            <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to dashboard
+          </a>
 
-      <div className="max-w-2xl mx-auto px-8 py-10">
-        <h1 className="text-2xl font-bold mb-1">Account settings</h1>
-        <p className="text-gray-400 text-sm mb-8">Manage your profile and account details</p>
+          <h1 className="text-2xl font-bold mb-1 tracking-tight">Account settings</h1>
+          <p className="text-gray-400 text-sm mb-8">Manage your profile and account details</p>
 
         {successMessage && (
           <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
@@ -244,24 +291,24 @@ function SettingsContent() {
         )}
 
         {/* Profile */}
-        <div className="bg-[#111114] border border-[#1e1e24] rounded-xl p-6 mb-5">
+        <div className="bg-[#101013] border border-[#16161a] rounded-xl p-6 mb-5">
           <h2 className="font-semibold text-white mb-5">Profile</h2>
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-sm text-gray-400 mb-1.5 block">Full name</label>
               <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
                 placeholder="Your full name" />
             </div>
             <div>
               <label className="text-sm text-gray-400 mb-1.5 block">Business name <span className="text-gray-600">(optional)</span></label>
               <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
                 placeholder="Your studio or business name" />
             </div>
             <div>
               <label className="text-sm text-gray-400 mb-1.5 block">Username <span className="text-gray-600">(cannot be changed)</span></label>
-              <div className="flex items-center bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
+              <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
                 <span className="text-gray-600 text-sm">voxabase.com/</span>
                 <span className="text-gray-400 text-sm">{username}</span>
               </div>
@@ -274,7 +321,7 @@ function SettingsContent() {
         </div>
 
         {/* Custom Branding */}
-        <div className={`bg-[#111114] border rounded-xl p-6 mb-5 ${isPro ? 'border-[#1e1e24]' : 'border-[#1e1e24] opacity-60'}`}>
+        <div className={`bg-[#101013] border rounded-xl p-6 mb-5 ${isPro ? 'border-[#16161a]' : 'border-[#16161a] opacity-60'}`}>
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="font-semibold text-white">Custom branding</h2>
@@ -290,9 +337,9 @@ function SettingsContent() {
           {isPro ? (
             <div className="flex flex-col gap-4">
               {/* Preview */}
-              <div className="bg-[#090909] border border-[#1e1e24] rounded-lg p-4">
+              <div className="bg-[#08080a] border border-[#1c1c22] rounded-lg p-4">
                 <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide font-semibold">Portal preview</p>
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1e1e24]">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#16161a]">
                   <div className="flex items-center gap-2.5">
                     {(brandDisplay === 'both' || brandDisplay === 'logo') && (
                       logoUrl ? (
@@ -328,10 +375,10 @@ function SettingsContent() {
               <div>
                 <p className="text-xs text-gray-500 mb-3">Your logo</p>
                 {logoUrl ? (
-                  <div className="flex items-center gap-4 bg-[#090909] border border-[#1e1e24] rounded-lg p-4">
+                  <div className="flex items-center gap-4 bg-[#08080a] border border-[#1c1c22] rounded-lg p-4">
                     <img src={logoUrl} alt="Your logo" className="h-10 w-auto max-w-[160px] object-contain" />
                     <div className="flex-1" />
-                    <label className="text-xs text-gray-400 hover:text-white border border-[#1e1e24] hover:border-[#3a3a4a] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                    <label className="text-xs text-gray-400 hover:text-white border border-[#16161a] hover:border-[#3a3a4a] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
                       Replace
                       <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
                     </label>
@@ -341,7 +388,7 @@ function SettingsContent() {
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center gap-2 bg-[#090909] border border-dashed border-[#1e1e24] hover:border-[#8b3cf7]/40 rounded-lg p-6 cursor-pointer transition-colors">
+                  <label className="flex flex-col items-center justify-center gap-2 bg-[#08080a] border border-dashed border-[#16161a] hover:border-[#8b3cf7]/40 rounded-lg p-6 cursor-pointer transition-colors">
                     {uploadingLogo ? (
                       <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
                     ) : (
@@ -373,7 +420,7 @@ function SettingsContent() {
                       className={`text-xs font-semibold py-2.5 rounded-lg border transition-colors ${
                         brandDisplay === opt.value
                           ? 'border-[#8b3cf7] bg-[#1a0d30] text-white'
-                          : 'border-[#1e1e24] text-gray-400 hover:text-white hover:border-[#3a3a4a]'
+                          : 'border-[#16161a] text-gray-400 hover:text-white hover:border-[#3a3a4a]'
                       }`}
                     >
                       {opt.label}
@@ -411,7 +458,7 @@ function SettingsContent() {
                     type="color"
                     value={brandColor}
                     onChange={(e) => setBrandColor(e.target.value)}
-                    className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border border-[#1e1e24] p-0.5"
+                    className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border border-[#16161a] p-0.5"
                   />
                   <input
                     type="text"
@@ -420,7 +467,7 @@ function SettingsContent() {
                       const val = e.target.value
                       if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) setBrandColor(val)
                     }}
-                    className="flex-1 bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#8b3cf7] text-sm font-mono"
+                    className="flex-1 bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#8b3cf7] text-sm font-mono"
                     placeholder="#8b3cf7"
                   />
                 </div>
@@ -444,13 +491,13 @@ function SettingsContent() {
         </div>
 
         {/* Email */}
-        <div className="bg-[#111114] border border-[#1e1e24] rounded-xl p-6 mb-5">
+        <div className="bg-[#101013] border border-[#16161a] rounded-xl p-6 mb-5">
           <h2 className="font-semibold text-white mb-5">Email address</h2>
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-sm text-gray-400 mb-1.5 block">Email</label>
               <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm" />
+                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm" />
               <p className="text-xs text-gray-600 mt-1">You will receive a confirmation email at the new address</p>
             </div>
             <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email}
@@ -461,7 +508,7 @@ function SettingsContent() {
         </div>
 
         {/* Plan & Billing */}
-        <div className="bg-[#111114] border border-[#1e1e24] rounded-xl p-6 mb-5">
+        <div className="bg-[#101013] border border-[#16161a] rounded-xl p-6 mb-5">
           <h2 className="font-semibold text-white mb-5">Plan & Billing</h2>
           <div className="flex items-start justify-between mb-5">
             <div>
@@ -494,20 +541,21 @@ function SettingsContent() {
             </div>
           </div>
           {plan !== 'free' && (
-            <div className="bg-[#090909] border border-[#1e1e24] rounded-lg p-4 text-xs text-gray-500">
+            <div className="bg-[#0d0d10] border border-[#16161a] rounded-lg p-4 text-xs text-gray-500">
               Subscriptions auto-renew monthly. Cancel anytime through Manage billing — your plan stays active until the end of the current period.
             </div>
           )}
         </div>
+        </div>
       </div>
-    </main>
+    </AppShell>
   )
 }
 
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#090909] flex items-center justify-center">
+      <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
       </main>
     }>
