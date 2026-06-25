@@ -356,8 +356,8 @@ function SettingsContent() {
             {/* The full branding UI — dimmed + overlaid for free users */}
             <div className={!isPro ? 'pointer-events-none select-none opacity-30 blur-[1px]' : ''}>
               {/* Live preview */}
-              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-3.5 mb-4">
-                <div className="flex items-center justify-between">
+              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-4 mb-5">
+                <div className="flex items-center justify-between pb-3 border-b border-[#16161a]">
                   <div className="flex items-center gap-2.5">
                     {(brandDisplay === 'both' || brandDisplay === 'logo') && (
                       logoUrl ? (
@@ -374,9 +374,33 @@ function SettingsContent() {
                   </div>
                   <span style={{ color: brandColor }} className="text-[10px] font-semibold uppercase tracking-wide">Delivered by you</span>
                 </div>
-                <div className="flex items-center gap-2 mt-3">
-                  <button style={{ background: brandColor }} className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold">Pay Invoice</button>
-                  <span style={{ color: brandColor, borderColor: `${brandColor}55` }} className="text-[11px] font-semibold border px-2.5 py-1 rounded-full">Ready</span>
+
+                {/* Sample project + file row — mirrors the real portal */}
+                <div className="pt-3">
+                  <p className="text-xs uppercase tracking-[0.12em] font-semibold mb-2" style={{ color: brandColor }}>Project files</p>
+                  <div className="flex items-center justify-between gap-2 bg-[#0b0b0e] border border-[#1c1c22] rounded-lg px-3 py-2.5 mb-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-md flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                        style={{ background: `${brandColor}1f`, color: brandColor }}>
+                        PDF
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-white truncate">Final_Delivery.pdf</p>
+                        <p className="text-[10px] text-gray-600">2.4 MB</p>
+                      </div>
+                    </div>
+                    <span className="flex items-center gap-1 text-[11px] font-semibold flex-shrink-0" style={{ color: brandColor }}>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button style={{ background: brandColor }} className="flex-1 py-2 rounded-lg text-white text-xs font-semibold">Pay Invoice — $2,400</button>
+                  <span style={{ color: brandColor, borderColor: `${brandColor}55` }} className="text-[11px] font-semibold border px-2.5 py-1.5 rounded-full whitespace-nowrap">Ready</span>
                 </div>
               </div>
 
