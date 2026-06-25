@@ -410,7 +410,7 @@ function SettingsContent() {
               </div>
 
               {/* Logo */}
-              <p className="text-xs text-gray-500 mb-1.5 font-medium">Logo</p>
+              <p className="text-xs text-gray-500 mb-1.5 font-medium">Logo <span className="text-gray-600 font-normal">· PNG, JPG, or SVG · max 2MB</span></p>
               {logoUrl ? (
                 <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-2.5 mb-4">
                   <img src={logoUrl} alt="Logo" className="h-8 w-auto max-w-[120px] object-contain" />
@@ -423,16 +423,15 @@ function SettingsContent() {
                     className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center gap-1.5 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg p-4 cursor-pointer mb-4">
+                <label className="flex items-center justify-center gap-2 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg py-3 cursor-pointer mb-4">
                   {uploadingLogo ? (
                     <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                       </svg>
                       <span className="text-xs text-gray-400 font-medium">Upload your logo</span>
-                      <span className="text-[11px] text-gray-600">PNG, JPG, or SVG · max 2MB</span>
                     </>
                   )}
                   <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
