@@ -289,8 +289,8 @@ function SettingsContent() {
           </div>
         )}
 
-        {/* Two-column grid */}
-        <div className="grid lg:grid-cols-2 gap-5 items-start">
+        {/* Two-column grid — equal height */}
+        <div className="grid lg:grid-cols-2 gap-5 items-stretch">
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
@@ -340,8 +340,8 @@ function SettingsContent() {
               </div>
             </div>
 
-            {/* Membership / Plan & Billing */}
-            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+            {/* Membership / Plan & Billing — grows to fill column */}
+            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 flex-1 flex flex-col justify-center">
               <div className="flex items-center gap-4 mb-5">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#8b3cf7]/10 border border-[#8b3cf7]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
                   <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#8b3cf7]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -386,7 +386,8 @@ function SettingsContent() {
           </div>
 
           {/* ── Right column: Custom branding ── */}
-          <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden">
+          <div className="flex flex-col">
+          <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden flex-1">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="font-semibold text-white">Custom branding</h2>
@@ -516,6 +517,7 @@ function SettingsContent() {
                 <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
               </div>
             )}
+          </div>
           </div>
         </div>
 
