@@ -264,20 +264,19 @@ function SettingsContent() {
       onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
-        <div className="max-w-2xl mx-auto">
-          {/* Back button — clean arrow */}
-          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
-            <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to dashboard
-          </a>
+        {/* Back button */}
+        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
+          <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to dashboard
+        </a>
 
-          <h1 className="text-2xl font-bold mb-1 tracking-tight">Account settings</h1>
-          <p className="text-gray-400 text-sm mb-8">Manage your profile and account details</p>
+        <h1 className="text-2xl font-bold mb-1 tracking-tight">Account settings</h1>
+        <p className="text-gray-400 text-sm mb-7">Manage your profile, branding, and billing</p>
 
         {successMessage && (
-          <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
+          <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
             <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
@@ -285,267 +284,239 @@ function SettingsContent() {
           </div>
         )}
         {errorMessage && (
-          <div className="bg-red-400/10 border border-red-400/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-6">
+          <div className="bg-red-400/10 border border-red-400/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-5">
             {errorMessage}
           </div>
         )}
 
-        {/* Profile */}
-        <div className="bg-[#101013] border border-[#16161a] rounded-xl p-6 mb-5">
-          <h2 className="font-semibold text-white mb-5">Profile</h2>
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Full name</label>
-              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
-                placeholder="Your full name" />
-            </div>
-            <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Business name <span className="text-gray-600">(optional)</span></label>
-              <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
-                placeholder="Your studio or business name" />
-            </div>
-            <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Username <span className="text-gray-600">(cannot be changed)</span></label>
-              <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
-                <span className="text-gray-600 text-sm">voxabase.com/</span>
-                <span className="text-gray-400 text-sm">{username}</span>
+        {/* Two-column grid */}
+        <div className="grid lg:grid-cols-2 gap-5 items-start">
+          {/* ── Left column ── */}
+          <div className="flex flex-col gap-5">
+            {/* Profile */}
+            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+              <h2 className="font-semibold text-white mb-5">Profile</h2>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-sm text-gray-400 mb-1.5 block">Full name</label>
+                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                    placeholder="Your full name" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 mb-1.5 block">Business name <span className="text-gray-600">(optional)</span></label>
+                  <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                    placeholder="Your studio or business name" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 mb-1.5 block">Username <span className="text-gray-600">(cannot be changed)</span></label>
+                  <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
+                    <span className="text-gray-600 text-sm">voxabase.com/</span>
+                    <span className="text-gray-400 text-sm">{username}</span>
+                  </div>
+                </div>
+                <button onClick={handleSaveProfile} disabled={saving}
+                  className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm mt-1">
+                  {saving ? 'Saving...' : 'Save changes'}
+                </button>
               </div>
             </div>
-            <button onClick={handleSaveProfile} disabled={saving}
-              className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm mt-1">
-              {saving ? 'Saving...' : 'Save changes'}
-            </button>
-          </div>
-        </div>
 
-        {/* Custom Branding */}
-        <div className={`bg-[#101013] border rounded-xl p-6 mb-5 ${isPro ? 'border-[#16161a]' : 'border-[#16161a] opacity-60'}`}>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="font-semibold text-white">Custom branding</h2>
-              <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every client portal</p>
+            {/* Email */}
+            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+              <h2 className="font-semibold text-white mb-5">Email address</h2>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-sm text-gray-400 mb-1.5 block">Email</label>
+                  <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm" />
+                  <p className="text-xs text-gray-600 mt-1.5">You'll receive a confirmation email at the new address</p>
+                </div>
+                <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email}
+                  className="w-full bg-[#08080a] border border-[#1c1c22] hover:border-[#2a2a33] text-white font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-[#1c1c22] text-sm">
+                  {changingEmail ? 'Sending...' : 'Update email'}
+                </button>
+              </div>
             </div>
-            {!isPro && (
-              <a href="/pricing" className="text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-3 py-1.5 rounded-full font-semibold hover:bg-[#8b3cf7]/20 transition-colors">
-                Pro feature — Upgrade
-              </a>
-            )}
           </div>
 
-          {isPro ? (
-            <div className="flex flex-col gap-4">
-              {/* Preview */}
-              <div className="bg-[#08080a] border border-[#1c1c22] rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide font-semibold">Portal preview</p>
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#16161a]">
+          {/* ── Right column: Custom branding ── */}
+          <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="font-semibold text-white">Custom branding</h2>
+                <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every portal</p>
+              </div>
+              {!isPro && (
+                <span className="text-[11px] bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2.5 py-1 rounded-full font-semibold">Pro</span>
+              )}
+            </div>
+
+            {/* The full branding UI — dimmed + overlaid for free users */}
+            <div className={!isPro ? 'pointer-events-none select-none opacity-30 blur-[1px]' : ''}>
+              {/* Live preview */}
+              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-4 mb-5">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     {(brandDisplay === 'both' || brandDisplay === 'logo') && (
                       logoUrl ? (
-                        <img src={logoUrl} alt="Your logo" className="h-7 w-auto max-w-[120px] object-contain" />
+                        <img src={logoUrl} alt="Logo" className="max-h-7 w-auto max-w-[120px] object-contain" />
                       ) : (
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: brandColor }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
                           <span className="text-white text-xs font-bold">{(businessName || fullName || 'V').charAt(0).toUpperCase()}</span>
                         </div>
                       )
                     )}
                     {(brandDisplay === 'both' || brandDisplay === 'name') && (
-                      <span className="text-sm font-bold text-white">{businessName || fullName || username || 'Your brand'}</span>
+                      <span className="text-sm font-bold text-white">{businessName || fullName || 'Your brand'}</span>
                     )}
                   </div>
-                  <span style={{ color: brandColor }} className="text-[10px] font-semibold uppercase tracking-wide">
-                    Delivered by {businessName || fullName || 'you'}
-                  </span>
+                  <span style={{ color: brandColor }} className="text-[10px] font-semibold uppercase tracking-wide">Delivered by you</span>
                 </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <button style={{ background: brandColor }} className="px-4 py-2 rounded-lg text-white text-xs font-semibold">
-                    Pay Invoice
-                  </button>
-                  <span style={{ color: brandColor, borderColor: `${brandColor}50` }} className="text-xs font-semibold border px-3 py-1 rounded-full">
-                    Ready to download
-                  </span>
-                  <span style={{ color: brandColor }} className="text-xs font-semibold flex items-center gap-1">
-                    ↓ Download
-                  </span>
+                <div className="flex items-center gap-2 mt-3">
+                  <button style={{ background: brandColor }} className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold">Pay Invoice</button>
+                  <span style={{ color: brandColor, borderColor: `${brandColor}55` }} className="text-[11px] font-semibold border px-2.5 py-1 rounded-full">Ready</span>
                 </div>
               </div>
 
-              {/* Logo upload */}
-              <div>
-                <p className="text-xs text-gray-500 mb-3">Your logo</p>
-                {logoUrl ? (
-                  <div className="flex items-center gap-4 bg-[#08080a] border border-[#1c1c22] rounded-lg p-4">
-                    <img src={logoUrl} alt="Your logo" className="h-10 w-auto max-w-[160px] object-contain" />
-                    <div className="flex-1" />
-                    <label className="text-xs text-gray-400 hover:text-white border border-[#16161a] hover:border-[#3a3a4a] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                      Replace
-                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
-                    </label>
-                    <button onClick={handleRemoveLogo} disabled={uploadingLogo}
-                      className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-3 py-1.5 rounded-lg transition-colors">
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center gap-2 bg-[#08080a] border border-dashed border-[#16161a] hover:border-[#8b3cf7]/40 rounded-lg p-6 cursor-pointer transition-colors">
-                    {uploadingLogo ? (
-                      <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
-                        <span className="text-xs text-gray-400 font-medium">Click to upload your logo</span>
-                        <span className="text-xs text-gray-600">PNG, JPG, or SVG · max 2MB</span>
-                      </>
-                    )}
+              {/* Logo */}
+              <p className="text-xs text-gray-500 mb-2 font-medium">Logo</p>
+              {logoUrl ? (
+                <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-3 mb-5">
+                  <img src={logoUrl} alt="Logo" className="h-8 w-auto max-w-[120px] object-contain" />
+                  <div className="flex-1" />
+                  <label className="text-xs text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-2.5 py-1.5 rounded-lg cursor-pointer">
+                    Replace
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
                   </label>
-                )}
+                  <button onClick={handleRemoveLogo} disabled={uploadingLogo}
+                    className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center gap-1.5 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg p-5 cursor-pointer mb-5">
+                  {uploadingLogo ? (
+                    <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                      </svg>
+                      <span className="text-xs text-gray-400 font-medium">Upload your logo</span>
+                      <span className="text-[11px] text-gray-600">PNG, JPG, or SVG · max 2MB</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
+                </label>
+              )}
+
+              {/* Display toggle (segmented) */}
+              <p className="text-xs text-gray-500 mb-2 font-medium">Show on portals</p>
+              <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-5">
+                {[
+                  { value: 'both', label: 'Logo + Name' },
+                  { value: 'logo', label: 'Logo only' },
+                  { value: 'name', label: 'Name only' },
+                ].map(opt => (
+                  <button key={opt.value} onClick={() => setBrandDisplay(opt.value)}
+                    className={`text-xs font-semibold py-2 rounded-md transition-colors ${brandDisplay === opt.value ? 'bg-[#8b3cf7] text-white' : 'text-gray-400 hover:text-white'}`}>
+                    {opt.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Header display toggle */}
-              <div>
-                <p className="text-xs text-gray-500 mb-3">Portal header shows</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: 'both', label: 'Logo + name' },
-                    { value: 'logo', label: 'Logo only' },
-                    { value: 'name', label: 'Name only' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setBrandDisplay(opt.value)}
-                      className={`text-xs font-semibold py-2.5 rounded-lg border transition-colors ${
-                        brandDisplay === opt.value
-                          ? 'border-[#8b3cf7] bg-[#1a0d30] text-white'
-                          : 'border-[#16161a] text-gray-400 hover:text-white hover:border-[#3a3a4a]'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-600 mt-2">
-                  {brandDisplay === 'name' && !businessName && !fullName
-                    ? 'Add a business name in your profile above for this option'
-                    : 'Choose what appears in the top-left of your client portals'}
-                </p>
+              {/* Color — circles */}
+              <p className="text-xs text-gray-500 mb-2.5 font-medium">Accent color</p>
+              <div className="flex items-center gap-2.5 flex-wrap mb-4">
+                {PRESET_COLORS.map((color) => (
+                  <button key={color.value} onClick={() => setBrandColor(color.value)} title={color.label}
+                    className="w-8 h-8 rounded-full transition-transform hover:scale-110 flex items-center justify-center"
+                    style={{ background: color.value, boxShadow: brandColor.toLowerCase() === color.value.toLowerCase() ? `0 0 0 2px #08080a, 0 0 0 4px ${color.value}` : 'none' }}>
+                    {brandColor.toLowerCase() === color.value.toLowerCase() && (
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    )}
+                  </button>
+                ))}
+                {/* Custom color picker as a circle */}
+                <label className="w-8 h-8 rounded-full cursor-pointer relative overflow-hidden border border-[#2a2a33] flex items-center justify-center"
+                  style={{ background: 'conic-gradient(from 0deg, #f43f5e, #f59e0b, #10b981, #06b6d4, #3b82f6, #8b3cf7, #f43f5e)' }}
+                  title="Custom color">
+                  <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer" />
+                  <svg className="w-3.5 h-3.5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                </label>
               </div>
-
-              {/* Preset colors */}
-              <div>
-                <p className="text-xs text-gray-500 mb-3">Choose a color</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => setBrandColor(color.value)}
-                      title={color.label}
-                      className={`h-10 rounded-lg transition-all border-2 ${brandColor === color.value ? 'border-white scale-105' : 'border-transparent hover:scale-105'}`}
-                      style={{ background: color.value }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom hex */}
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block">Custom color</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={brandColor}
-                    onChange={(e) => setBrandColor(e.target.value)}
-                    className="w-12 h-10 rounded-lg cursor-pointer bg-transparent border border-[#16161a] p-0.5"
-                  />
-                  <input
-                    type="text"
-                    value={brandColor}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) setBrandColor(val)
-                    }}
-                    className="flex-1 bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#8b3cf7] text-sm font-mono"
-                    placeholder="#8b3cf7"
-                  />
-                </div>
+              <div className="flex items-center gap-2 mb-5">
+                <span className="text-xs text-gray-600">Hex</span>
+                <input type="text" value={brandColor}
+                  onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
+                  className="w-28 bg-[#08080a] border border-[#1c1c22] rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#8b3cf7] text-xs font-mono" />
               </div>
 
               <button onClick={handleSaveBranding} disabled={savingBrand}
-                className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm">
+                className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
                 {savingBrand ? 'Saving...' : 'Save branding'}
               </button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-4 gap-2 pointer-events-none">
-                {PRESET_COLORS.map((color) => (
-                  <div key={color.value} className="h-10 rounded-lg" style={{ background: color.value }} />
-                ))}
-              </div>
-              <p className="text-xs text-gray-600">Upgrade to Pro to customize your portal accent color</p>
-            </div>
-          )}
-        </div>
 
-        {/* Email */}
-        <div className="bg-[#101013] border border-[#16161a] rounded-xl p-6 mb-5">
-          <h2 className="font-semibold text-white mb-5">Email address</h2>
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Email</label>
-              <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm" />
-              <p className="text-xs text-gray-600 mt-1">You will receive a confirmation email at the new address</p>
-            </div>
-            <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email}
-              className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm">
-              {changingEmail ? 'Sending...' : 'Update email'}
-            </button>
+            {/* Free overlay */}
+            {!isPro && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 bg-[#101013]/40 backdrop-blur-[2px]">
+                <div className="w-12 h-12 rounded-2xl bg-[#1a0d30] border border-[#8b3cf7]/30 flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                </div>
+                <p className="text-white font-semibold mb-1">Custom branding is a Pro feature</p>
+                <p className="text-gray-400 text-sm mb-4 max-w-xs">Add your logo and accent color so clients see your brand, not ours.</p>
+                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Plan & Billing */}
-        <div className="bg-[#101013] border border-[#16161a] rounded-xl p-6 mb-5">
-          <h2 className="font-semibold text-white mb-5">Plan & Billing</h2>
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <p className={`text-lg font-bold ${planColor}`}>{planLabel} plan</p>
-              {subscriptionPeriodEnd && plan !== 'free' && (
-                <p className="text-gray-500 text-xs mt-1">Renews on {formatDate(subscriptionPeriodEnd)}</p>
-              )}
-              {plan === 'free' && (
-                <p className="text-gray-500 text-xs mt-1">Free forever — upgrade for more features</p>
-              )}
+        {/* ── Membership / Plan & Billing — full width ── */}
+        <div className="mt-5 bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#8b3cf7]/10 border border-[#8b3cf7]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
+                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#8b3cf7]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-bold text-white">{planLabel} plan</p>
+                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#8b3cf7]/10 text-[#8b3cf7]'}`}>Active</span>}
+                </div>
+                {subscriptionPeriodEnd && plan !== 'free' ? (
+                  <p className="text-gray-500 text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
+                ) : (
+                  <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col gap-2 items-end">
+            <div className="flex items-center gap-2.5 flex-shrink-0">
               {plan === 'free' ? (
-                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors">
-                  Upgrade plan
-                </a>
+                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
               ) : (
                 <>
+                  {plan !== 'agency' && (
+                    <a href="/pricing" className="text-sm text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-4 py-2.5 rounded-lg">Upgrade to Agency</a>
+                  )}
                   <button onClick={handleManageBilling} disabled={managingBilling}
-                    className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors disabled:opacity-50">
+                    className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
                     {managingBilling ? 'Opening...' : 'Manage billing'}
                   </button>
-                  {plan !== 'agency' && (
-                    <a href="/pricing" className="text-xs text-gray-400 hover:text-white transition-colors">
-                      Upgrade to Agency →
-                    </a>
-                  )}
                 </>
               )}
             </div>
           </div>
           {plan !== 'free' && (
-            <div className="bg-[#0d0d10] border border-[#16161a] rounded-lg p-4 text-xs text-gray-500">
+            <p className="text-xs text-gray-600 mt-4 pt-4 border-t border-[#16161a]">
               Subscriptions auto-renew monthly. Cancel anytime through Manage billing — your plan stays active until the end of the current period.
-            </div>
+            </p>
           )}
-        </div>
         </div>
       </div>
     </AppShell>
