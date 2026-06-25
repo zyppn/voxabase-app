@@ -146,7 +146,6 @@ function SettingsContent() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file
     if (!file.type.startsWith('image/')) {
       setErrorMessage('Please upload an image file (PNG, JPG, or SVG)')
       return
@@ -163,7 +162,6 @@ function SettingsContent() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Remove old logo if exists
     if (logoUrl) {
       const oldPath = logoUrl.split('/branding/')[1]
       if (oldPath) await supabase.storage.from('branding').remove([oldPath])
@@ -238,7 +236,6 @@ function SettingsContent() {
   }
 
   const planLabel = plan === 'pro' ? 'Pro' : plan === 'agency' ? 'Agency' : 'Free'
-  const planColor = plan === 'free' ? 'text-gray-400' : plan === 'agency' ? 'text-yellow-400' : 'text-[#8b3cf7]'
   const isPro = plan === 'pro' || plan === 'agency'
 
   const formatDate = (dateStr: string) => {
@@ -263,7 +260,7 @@ function SettingsContent() {
       activeFilter={null}
       onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
     >
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-9">
         {/* Back button */}
         <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -290,9 +287,9 @@ function SettingsContent() {
         )}
 
         {/* Two-column grid */}
-        <div className="grid lg:grid-cols-2 gap-5 items-start">
+        <div className="grid lg:grid-cols-2 gap-6 items-start">
           {/* ── Left column ── */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-6">
             {/* Profile */}
             <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6">
               <h2 className="font-semibold text-white mb-5">Profile</h2>
@@ -353,7 +350,6 @@ function SettingsContent() {
               )}
             </div>
 
-            {/* The full branding UI — dimmed + overlaid for free users */}
             <div className={!isPro ? 'pointer-events-none select-none opacity-30 blur-[1px]' : ''}>
               {/* Live preview */}
               <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-3.5 mb-4">
@@ -410,7 +406,7 @@ function SettingsContent() {
                 </label>
               )}
 
-              {/* Display toggle (segmented) */}
+              {/* Display toggle */}
               <p className="text-xs text-gray-500 mb-1.5 font-medium">Show on portals</p>
               <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-4">
                 {[
@@ -425,7 +421,7 @@ function SettingsContent() {
                 ))}
               </div>
 
-              {/* Color — circles */}
+              {/* Color */}
               <p className="text-xs text-gray-500 mb-2 font-medium">Accent color</p>
               <div className="flex items-center gap-2.5 flex-wrap mb-3">
                 {PRESET_COLORS.map((color) => (
@@ -437,7 +433,6 @@ function SettingsContent() {
                     )}
                   </button>
                 ))}
-                {/* Custom color picker as a circle */}
                 <label className="w-8 h-8 rounded-full cursor-pointer relative overflow-hidden border border-[#2a2a33] flex items-center justify-center"
                   style={{ background: 'conic-gradient(from 0deg, #f43f5e, #f59e0b, #10b981, #06b6d4, #3b82f6, #8b3cf7, #f43f5e)' }}
                   title="Custom color">
@@ -476,7 +471,7 @@ function SettingsContent() {
         </div>
 
         {/* ── Membership / Plan & Billing — full width ── */}
-        <div className="mt-5 bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+        <div className="mt-6 bg-[#101013] border border-[#16161a] rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#8b3cf7]/10 border border-[#8b3cf7]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
