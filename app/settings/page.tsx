@@ -343,7 +343,7 @@ function SettingsContent() {
 
           {/* ── Right column: Custom branding ── */}
           <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-white">Custom branding</h2>
                 <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every portal</p>
@@ -356,7 +356,7 @@ function SettingsContent() {
             {/* The full branding UI — dimmed + overlaid for free users */}
             <div className={!isPro ? 'pointer-events-none select-none opacity-30 blur-[1px]' : ''}>
               {/* Live preview */}
-              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-4 mb-5">
+              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-3.5 mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     {(brandDisplay === 'both' || brandDisplay === 'logo') && (
@@ -381,9 +381,9 @@ function SettingsContent() {
               </div>
 
               {/* Logo */}
-              <p className="text-xs text-gray-500 mb-2 font-medium">Logo</p>
+              <p className="text-xs text-gray-500 mb-1.5 font-medium">Logo</p>
               {logoUrl ? (
-                <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-3 mb-5">
+                <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-2.5 mb-4">
                   <img src={logoUrl} alt="Logo" className="h-8 w-auto max-w-[120px] object-contain" />
                   <div className="flex-1" />
                   <label className="text-xs text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-2.5 py-1.5 rounded-lg cursor-pointer">
@@ -394,7 +394,7 @@ function SettingsContent() {
                     className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center gap-1.5 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg p-5 cursor-pointer mb-5">
+                <label className="flex flex-col items-center justify-center gap-1.5 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg p-4 cursor-pointer mb-4">
                   {uploadingLogo ? (
                     <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
                   ) : (
@@ -411,8 +411,8 @@ function SettingsContent() {
               )}
 
               {/* Display toggle (segmented) */}
-              <p className="text-xs text-gray-500 mb-2 font-medium">Show on portals</p>
-              <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-5">
+              <p className="text-xs text-gray-500 mb-1.5 font-medium">Show on portals</p>
+              <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-4">
                 {[
                   { value: 'both', label: 'Logo + Name' },
                   { value: 'logo', label: 'Logo only' },
@@ -426,8 +426,8 @@ function SettingsContent() {
               </div>
 
               {/* Color — circles */}
-              <p className="text-xs text-gray-500 mb-2.5 font-medium">Accent color</p>
-              <div className="flex items-center gap-2.5 flex-wrap mb-4">
+              <p className="text-xs text-gray-500 mb-2 font-medium">Accent color</p>
+              <div className="flex items-center gap-2.5 flex-wrap mb-3">
                 {PRESET_COLORS.map((color) => (
                   <button key={color.value} onClick={() => setBrandColor(color.value)} title={color.label}
                     className="w-8 h-8 rounded-full transition-transform hover:scale-110 flex items-center justify-center"
@@ -446,7 +446,7 @@ function SettingsContent() {
                   <svg className="w-3.5 h-3.5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 </label>
               </div>
-              <div className="flex items-center gap-2 mb-5">
+              <div className="flex items-center gap-2 mb-4">
                 <span className="text-xs text-gray-600">Hex</span>
                 <input type="text" value={brandColor}
                   onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
@@ -489,10 +489,12 @@ function SettingsContent() {
                   <p className="text-lg font-bold text-white">{planLabel} plan</p>
                   {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#8b3cf7]/10 text-[#8b3cf7]'}`}>Active</span>}
                 </div>
-                {subscriptionPeriodEnd && plan !== 'free' ? (
+                {plan === 'free' ? (
+                  <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
+                ) : subscriptionPeriodEnd ? (
                   <p className="text-gray-500 text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
                 ) : (
-                  <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
+                  <p className="text-gray-500 text-sm mt-0.5">Active subscription — billed monthly</p>
                 )}
               </div>
             </div>
@@ -518,6 +520,7 @@ function SettingsContent() {
             </p>
           )}
         </div>
+
       </div>
     </AppShell>
   )
