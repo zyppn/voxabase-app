@@ -262,6 +262,16 @@ function PricingContent() {
     </div>
   )
 
+  // Until we know whether the user is logged in, show a neutral loader —
+  // this prevents the logged-out layout flashing before the shell loads.
+  if (!authChecked) {
+    return (
+      <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+      </main>
+    )
+  }
+
   // Logged-in users get the full app shell; visitors see a clean standalone page.
   if (sidebar) {
     return (
