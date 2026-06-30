@@ -252,11 +252,11 @@ export default function SignupPage() {
             {loading ? 'Creating account...' : 'Create account'}
           </button>
 
-          <p className="text-center text-gray-600 text-xs leading-relaxed max-w-xs mx-auto">
+          <p className="text-center text-gray-600 text-[11px] leading-relaxed whitespace-nowrap">
             By creating an account, you agree to our{' '}
-            <Link href="/terms" className="text-gray-400 hover:text-white underline whitespace-nowrap">Terms of Service</Link>{' '}
+            <Link href="/terms" className="text-gray-400 hover:text-white underline">Terms of Service</Link>{' '}
             and{' '}
-            <Link href="/privacy" className="text-gray-400 hover:text-white underline whitespace-nowrap">Privacy&nbsp;Policy</Link>.
+            <Link href="/privacy" className="text-gray-400 hover:text-white underline">Privacy Policy</Link>.
           </p>
 
           <p className="text-center text-gray-500 text-sm">
