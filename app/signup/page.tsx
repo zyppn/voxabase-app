@@ -170,7 +170,7 @@ export default function SignupPage() {
               />
               {checkingUsername && <span className="text-gray-600 text-xs ml-2">checking...</span>}
               {!checkingUsername && usernameAvailable === true && <span className="text-green-400 text-xs font-semibold ml-2">Available</span>}
-              {!checkingUsername && usernameAvailable === false && <span className="text-red-400 text-xs font-semibold ml-2">Unavailable</span>}
+              {!checkingUsername && usernameAvailable === false && <span className="text-red-400 text-xs font-semibold ml-2">Taken</span>}
             </div>
             <p className="text-xs text-gray-600 mt-1">Lowercase letters, numbers, and hyphens only. Cannot be changed.</p>
           </div>
@@ -251,6 +251,13 @@ export default function SignupPage() {
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
+
+          <p className="text-center text-gray-600 text-xs leading-relaxed">
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="text-gray-400 hover:text-white underline">Terms of Service</Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="text-gray-400 hover:text-white underline">Privacy Policy</Link>.
+          </p>
 
           <p className="text-center text-gray-500 text-sm">
             Already have an account?{' '}
