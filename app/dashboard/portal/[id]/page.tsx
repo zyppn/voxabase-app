@@ -153,6 +153,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     agency: 268_435_456_000,   // 250GB
   }
 
+  // Per-file upload ceiling. Bump this when the Storage limit is raised.
+  const MAX_FILE_MB = 50
+  const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
+
   // Turn a Supabase Storage upload error into a clear, user-facing message.
   const describeUploadError = (err: unknown, fileName: string, fileSize: number): string => {
     const raw = (err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : String(err)).toLowerCase()
@@ -160,10 +164,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const mb = (fileSize / 1048576).toFixed(0)
     const isSize = status === '413' || raw.includes('maximum allowed size') || raw.includes('payload too large') || raw.includes('exceeded')
     if (isSize) {
-      return `"${fileName}" (${mb} MB) is larger than the current upload limit for your project. Increase the file size limit in Supabase Storage settings (and on the deliverables bucket), then try again.`
+      return `"${fileName}" is ${mb} MB. File size cannot exceed ${MAX_FILE_MB} MB.`
     }
     if (raw.includes('mime') || raw.includes('not allowed')) {
-      return `"${fileName}" was rejected because its file type is not allowed for the deliverables bucket.`
+      return `"${fileName}" could not be uploaded — that file type is not supported.`
     }
     return `"${fileName}" failed to upload: ${(err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message) : 'unknown error'}.`
   }
@@ -194,6 +198,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     let orderCounter = maxOrder + 1
     const failures: string[] = []
     for (const file of Array.from(fileList)) {
+      // Block oversized files up front so the user gets an instant, clean message.
+      if (file.size > MAX_FILE_BYTES) {
+        failures.push(`"${file.name}" is ${(file.size / 1048576).toFixed(0)} MB. File size cannot exceed ${MAX_FILE_MB} MB.`)
+        continue
+      }
       const filePath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
       const { error: upErr } = await supabase.storage.from('deliverables').upload(filePath, file)
       if (upErr) {
@@ -233,10 +242,18 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const file = e.target.files[0]
     const existingFile = files.find(f => f.id === replacingId)
     if (!existingFile) return
+    // Guard before removing the old file, so an oversized replacement can't
+    // leave the portal with a missing file.
+    if (file.size > MAX_FILE_BYTES) {
+      setUploadError(`"${file.name}" is ${(file.size / 1048576).toFixed(0)} MB. File size cannot exceed ${MAX_FILE_MB} MB.`)
+      setReplacingId(null)
+      if (replaceInputRef.current) replaceInputRef.current.value = ''
+      return
+    }
+    setUploadError(null)
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    setUploadError(null)
     await supabase.storage.from('deliverables').remove([existingFile.file_path])
     const newPath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
     const { error: upErr } = await supabase.storage.from('deliverables').upload(newPath, file)
