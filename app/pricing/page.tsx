@@ -7,6 +7,7 @@ import AppShell from '../dashboard/AppShell'
 
 function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
   const [currentPlan, setCurrentPlan] = useState('free')
   const [authChecked, setAuthChecked] = useState(false)
   const [sidebar, setSidebar] = useState<{
@@ -93,8 +94,6 @@ function PricingContent() {
     {
       key: 'free',
       name: 'Starter',
-      price: '$0',
-      period: 'Free forever',
       features: [
         '3 active client portals',
         '1 GB file storage',
@@ -102,13 +101,13 @@ function PricingContent() {
         'File activity tracking',
         'Stripe payment collection',
       ],
-      priceId: null,
+      monthly: { price: '$0', suffix: '', note: 'Free forever', priceId: null as string | null | undefined },
+      annual:  { price: '$0', suffix: '', note: 'Free forever', priceId: null as string | null | undefined },
     },
     {
       key: 'pro',
       name: 'Pro',
-      price: '$15',
-      period: '/mo · Billed monthly',
+      featured: true,
       features: [
         'Unlimited client portals',
         '25 GB file storage',
@@ -117,14 +116,12 @@ function PricingContent() {
         'Custom branding & colors',
         'Priority support',
       ],
-      priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-      featured: true,
+      monthly: { price: '$15', suffix: '/mo', note: 'Billed monthly', priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID },
+      annual:  { price: '$12', suffix: '/mo', note: 'Billed annually · $144/yr', priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID },
     },
     {
       key: 'agency',
       name: 'Agency',
-      price: '$49',
-      period: '/mo · Billed monthly',
       features: [
         'Everything in Pro',
         '250 GB file storage',
@@ -133,12 +130,14 @@ function PricingContent() {
         'Client approval workflows',
         'Dedicated support',
       ],
-      priceId: process.env.NEXT_PUBLIC_STRIPE_AGENCY_PRICE_ID,
+      monthly: { price: '$49', suffix: '/mo', note: 'Billed monthly', priceId: process.env.NEXT_PUBLIC_STRIPE_AGENCY_PRICE_ID },
+      annual:  { price: '$39', suffix: '/mo', note: 'Billed annually · $468/yr', priceId: process.env.NEXT_PUBLIC_STRIPE_AGENCY_ANNUAL_PRICE_ID },
     },
   ]
 
-  const renderButton = (plan: typeof plans[0]) => {
+  const renderButton = (plan: typeof plans[number]) => {
     const isCurrent = currentPlan === plan.key
+    const pid = plan[billing].priceId
 
     if (isCurrent) {
       return (
@@ -185,11 +184,11 @@ function PricingContent() {
     // Free user upgrading
     return (
       <button
-        onClick={() => plan.priceId && handleUpgrade(plan.priceId, plan.key)}
-        disabled={loading === plan.key}
+        onClick={() => pid && handleUpgrade(pid, plan.key)}
+        disabled={loading === plan.key || !pid}
         className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-[#8b3cf7] hover:bg-[#9d55f8] text-white shadow-lg shadow-purple-900/30' : 'bg-[#16161a] hover:bg-[#1f1f26] text-white'}`}
       >
-        {loading === plan.key ? 'Redirecting...' : plan.key === 'pro' ? 'Upgrade to Pro' : 'Upgrade to Agency'}
+        {loading === plan.key ? 'Redirecting...' : !pid ? 'Unavailable' : plan.key === 'pro' ? 'Upgrade to Pro' : 'Upgrade to Agency'}
       </button>
     )
   }
@@ -217,6 +216,26 @@ function PricingContent() {
         <p className="text-gray-400">Free to start. Upgrade when your client list grows.</p>
       </div>
 
+      <div className="flex justify-center mb-10">
+        <div className="inline-flex items-center bg-[#101013] border border-[#16161a] rounded-full p-1">
+          <button
+            onClick={() => setBilling('monthly')}
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${billing === 'monthly' ? 'bg-[#8b3cf7] text-white' : 'text-gray-400 hover:text-white'}`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBilling('annual')}
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === 'annual' ? 'bg-[#8b3cf7] text-white' : 'text-gray-400 hover:text-white'}`}
+          >
+            Annual
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-[#8b3cf7]/15 text-[#a974f5]'}`}>
+              SAVE 20%
+            </span>
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {plans.map((plan) => (
           <div
@@ -234,10 +253,11 @@ function PricingContent() {
               </span>
             )}
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">{plan.name}</h2>
-            <div className="mb-1">
-              <span className="text-4xl font-bold text-white">{plan.price}</span>
-              <span className="text-gray-500 text-sm">{plan.period}</span>
+            <div className="mb-0.5">
+              <span className="text-4xl font-bold text-white">{plan[billing].price}</span>
+              <span className="text-gray-500 text-sm">{plan[billing].suffix}</span>
             </div>
+            <p className="text-xs text-gray-600 h-4">{plan[billing].note}</p>
             <div className="h-px bg-[#16161a] my-5" />
             <ul className="flex flex-col gap-3 mb-8 flex-1">
               {plan.features.map((feature) => (
