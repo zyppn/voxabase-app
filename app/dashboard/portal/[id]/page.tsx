@@ -33,6 +33,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [files, setFiles] = useState<FileRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [replacingId, setReplacingId] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -152,11 +153,27 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     agency: 268_435_456_000,   // 250GB
   }
 
+  // Turn a Supabase Storage upload error into a clear, user-facing message.
+  const describeUploadError = (err: unknown, fileName: string, fileSize: number): string => {
+    const raw = (err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : String(err)).toLowerCase()
+    const status = (err && typeof err === 'object' && 'statusCode' in err) ? String((err as { statusCode: unknown }).statusCode) : ''
+    const mb = (fileSize / 1048576).toFixed(0)
+    const isSize = status === '413' || raw.includes('maximum allowed size') || raw.includes('payload too large') || raw.includes('exceeded')
+    if (isSize) {
+      return `"${fileName}" (${mb} MB) is larger than the current upload limit for your project. Increase the file size limit in Supabase Storage settings (and on the deliverables bucket), then try again.`
+    }
+    if (raw.includes('mime') || raw.includes('not allowed')) {
+      return `"${fileName}" was rejected because its file type is not allowed for the deliverables bucket.`
+    }
+    return `"${fileName}" failed to upload: ${(err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message) : 'unknown error'}.`
+  }
+
   const uploadFiles = async (fileList: FileList) => {
     if (!portal) return
+    setUploadError(null)
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setUploading(false); return }
 
     // Check storage limit
     const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
@@ -175,21 +192,25 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
 
     const maxOrder = files.length > 0 ? Math.max(...files.map(f => f.sort_order || 0)) : 0
     let orderCounter = maxOrder + 1
+    const failures: string[] = []
     for (const file of Array.from(fileList)) {
       const filePath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
-      const { error: uploadError } = await supabase.storage.from('deliverables').upload(filePath, file)
-      if (!uploadError) {
-        await supabase.from('files').insert({
-          portal_id: portal.id,
-          user_id: user.id,
-          name: file.name,
-          file_path: filePath,
-          file_size: file.size,
-          file_type: file.type,
-          sort_order: orderCounter++,
-        })
+      const { error: upErr } = await supabase.storage.from('deliverables').upload(filePath, file)
+      if (upErr) {
+        failures.push(describeUploadError(upErr, file.name, file.size))
+        continue
       }
+      await supabase.from('files').insert({
+        portal_id: portal.id,
+        user_id: user.id,
+        name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        file_type: file.type,
+        sort_order: orderCounter++,
+      })
     }
+    if (failures.length) setUploadError(failures.join(' '))
     const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', user.id).order('sort_order', { ascending: true })
     setFiles(filesData || [])
     setUploading(false)
@@ -215,13 +236,16 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    setUploadError(null)
     await supabase.storage.from('deliverables').remove([existingFile.file_path])
     const newPath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
-    const { error: uploadError } = await supabase.storage.from('deliverables').upload(newPath, file)
-    if (!uploadError) {
+    const { error: upErr } = await supabase.storage.from('deliverables').upload(newPath, file)
+    if (!upErr) {
       await supabase.from('files').update({ name: file.name, file_path: newPath, file_size: file.size, file_type: file.type }).eq('id', replacingId)
       const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', user.id).order('sort_order', { ascending: true })
       setFiles(filesData || [])
+    } else {
+      setUploadError(describeUploadError(upErr, file.name, file.size))
     }
     setReplacingId(null)
     setUploading(false)
@@ -448,6 +472,18 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
             <input ref={replaceInputRef} type="file" onChange={handleReplace} className="hidden" />
           </div>
+
+          {uploadError && (
+            <div className="mx-6 mt-4 flex items-start gap-2 text-sm text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5">
+              <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008M10.34 3.94l-7.5 12.99A1.5 1.5 0 004.14 20.25h15.72a1.5 1.5 0 001.3-2.32l-7.5-12.99a1.5 1.5 0 00-2.6 0z" />
+              </svg>
+              <span className="flex-1">{uploadError}</span>
+              <button onClick={() => setUploadError(null)} className="text-red-400/70 hover:text-red-300 flex-shrink-0" aria-label="Dismiss">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          )}
 
           <div
             onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
