@@ -31,47 +31,58 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     let cancelled = false
 
-    // Hash / implicit flow: fires PASSWORD_RECOVERY (or SIGNED_IN) once the
-    // token in the URL fragment is processed by the client.
+    // The reset link points at /auth/callback, which exchanges the PKCE code
+    // server-side and sets the auth cookies, then redirects here. So by the
+    // time this page loads the session already exists in cookies and the
+    // browser client just needs to read it. We also keep direct-link
+    // fallbacks (code / token_hash / hash) in case a link skips the callback.
+    const markReady = () => { if (!cancelled) { setSessionReady(true); setError('') } }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        if (!cancelled) { setSessionReady(true); setError('') }
+        markReady()
       }
     })
 
+    const url = new URL(window.location.href)
+    const exchangeFailed = url.searchParams.get('error') === 'exchange_failed'
+    const code = url.searchParams.get('code')
+    const token_hash = url.searchParams.get('token_hash')
+    const type = url.searchParams.get('type')
+
     const establish = async () => {
-      // If a session already exists (client auto-detected the token), we're done.
-      const { data: { session: existing } } = await supabase.auth.getSession()
-      if (existing) { if (!cancelled) setSessionReady(true); return }
+      if (exchangeFailed) {
+        if (!cancelled) setError('This reset link has expired or was already used. Please request a new one.')
+        return
+      }
 
-      const url = new URL(window.location.href)
-      const code = url.searchParams.get('code')
-      const token_hash = url.searchParams.get('token_hash')
-      const type = url.searchParams.get('type')
+      // Primary path: session already established by /auth/callback. Retry a
+      // few times to allow the cookie-backed session to hydrate on the client.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) { markReady(); return }
+        await new Promise((r) => setTimeout(r, 300))
+      }
 
+      // Fallbacks for links that did not go through the server callback.
       try {
-        // PKCE flow (@supabase/ssr default): ?code=... -> exchange for a session
         if (code) {
           const { error: exErr } = await supabase.auth.exchangeCodeForSession(code)
-          if (!exErr) { if (!cancelled) setSessionReady(true); return }
-          // The code may have already been consumed by auto-detect; re-check.
+          if (!exErr) { markReady(); return }
           const { data: { session: after } } = await supabase.auth.getSession()
-          if (after) { if (!cancelled) setSessionReady(true); return }
-          if (!cancelled) setError('This reset link has expired or was already used. Please request a new one.')
-          return
-        }
-
-        // token_hash flow: ?token_hash=...&type=recovery -> verify it
-        if (token_hash && type) {
+          if (after) { markReady(); return }
+        } else if (token_hash && type) {
           const { error: otpErr } = await supabase.auth.verifyOtp({ token_hash, type: type as any })
-          if (!otpErr) { if (!cancelled) setSessionReady(true); return }
-          if (!cancelled) setError('This reset link has expired or was already used. Please request a new one.')
+          if (!otpErr) { markReady(); return }
+        } else {
+          // Hash (#access_token) link — the listener above will handle it.
           return
         }
-        // Otherwise it's a hash (#access_token) link — the listener above handles it.
       } catch {
-        if (!cancelled) setError('Could not verify the reset link. Please request a new one.')
+        /* fall through to error below */
       }
+
+      if (!cancelled) setError('This reset link has expired or was already used. Please request a new one.')
     }
 
     establish()
