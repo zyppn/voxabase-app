@@ -29,21 +29,54 @@ export default function ResetPasswordPage() {
   const strength = getPasswordStrength(password)
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event which fires when
-    // Supabase processes the token from the URL hash
+    let cancelled = false
+
+    // Hash / implicit flow: fires PASSWORD_RECOVERY (or SIGNED_IN) once the
+    // token in the URL fragment is processed by the client.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && session) {
-        setSessionReady(true)
-        setError('')
+      if (session && (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        if (!cancelled) { setSessionReady(true); setError('') }
       }
     })
 
-    // Also check if already in a valid session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
-    })
+    const establish = async () => {
+      // If a session already exists (client auto-detected the token), we're done.
+      const { data: { session: existing } } = await supabase.auth.getSession()
+      if (existing) { if (!cancelled) setSessionReady(true); return }
 
-    return () => subscription.unsubscribe()
+      const url = new URL(window.location.href)
+      const code = url.searchParams.get('code')
+      const token_hash = url.searchParams.get('token_hash')
+      const type = url.searchParams.get('type')
+
+      try {
+        // PKCE flow (@supabase/ssr default): ?code=... -> exchange for a session
+        if (code) {
+          const { error: exErr } = await supabase.auth.exchangeCodeForSession(code)
+          if (!exErr) { if (!cancelled) setSessionReady(true); return }
+          // The code may have already been consumed by auto-detect; re-check.
+          const { data: { session: after } } = await supabase.auth.getSession()
+          if (after) { if (!cancelled) setSessionReady(true); return }
+          if (!cancelled) setError('This reset link has expired or was already used. Please request a new one.')
+          return
+        }
+
+        // token_hash flow: ?token_hash=...&type=recovery -> verify it
+        if (token_hash && type) {
+          const { error: otpErr } = await supabase.auth.verifyOtp({ token_hash, type: type as any })
+          if (!otpErr) { if (!cancelled) setSessionReady(true); return }
+          if (!cancelled) setError('This reset link has expired or was already used. Please request a new one.')
+          return
+        }
+        // Otherwise it's a hash (#access_token) link — the listener above handles it.
+      } catch {
+        if (!cancelled) setError('Could not verify the reset link. Please request a new one.')
+      }
+    }
+
+    establish()
+
+    return () => { cancelled = true; subscription.unsubscribe() }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
