@@ -39,7 +39,7 @@ export default function PaymentSuccessContent() {
         {username && slug && (
           <Link
             href={`/${username}/${slug}`}
-            className="inline-flex items-center gap-2 bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+            className="inline-flex items-center gap-2 bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
           >
             Back to portal
           </Link>

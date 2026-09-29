@@ -41,7 +41,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
   const ownerIsPro = ownerPlan === 'pro' || ownerPlan === 'agency'
   // Branding is a Pro feature. Free owners' saved color/logo stay in the DB
   // but are NOT applied — portals fall back to the default purple + no logo.
-  const brandColor = ownerIsPro ? (profile?.brand_color || '#8b3cf7') : '#8b3cf7'
+  const brandColor = ownerIsPro ? (profile?.brand_color || '#7656b9') : '#7656b9'
   const logoUrl = ownerIsPro ? (profile?.logo_url || null) : null
   const brandDisplay = profile?.brand_display || 'both'
   const brandInitial = (displayName || 'V').charAt(0).toUpperCase()

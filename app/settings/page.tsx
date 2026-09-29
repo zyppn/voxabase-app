@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 
 const PRESET_COLORS = [
-  { label: 'VoxaBase Purple', value: '#8b3cf7' },
+  { label: 'VoxaBase Purple', value: '#7656b9' },
   { label: 'Ocean Blue', value: '#3b82f6' },
   { label: 'Emerald', value: '#10b981' },
   { label: 'Rose', value: '#f43f5e' },
@@ -23,7 +23,7 @@ function SettingsContent() {
   const [newEmail, setNewEmail] = useState('')
   const [plan, setPlan] = useState('free')
   const [username, setUsername] = useState('')
-  const [brandColor, setBrandColor] = useState('#8b3cf7')
+  const [brandColor, setBrandColor] = useState('#7656b9')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [brandDisplay, setBrandDisplay] = useState('both')
@@ -68,7 +68,7 @@ function SettingsContent() {
         setUsername(profile.username || '')
         setPlan(profile.plan || 'free')
         setSubscriptionPeriodEnd(profile.subscription_period_end || null)
-        setBrandColor(profile.brand_color || '#8b3cf7')
+        setBrandColor(profile.brand_color || '#7656b9')
         setLogoUrl(profile.logo_url || null)
         setBrandDisplay(profile.brand_display || 'both')
       }
@@ -238,7 +238,7 @@ function SettingsContent() {
   }
 
   const planLabel = plan === 'pro' ? 'Pro' : plan === 'agency' ? 'Agency' : 'Free'
-  const planColor = plan === 'free' ? 'text-gray-400' : plan === 'agency' ? 'text-yellow-400' : 'text-[#8b3cf7]'
+  const planColor = plan === 'free' ? 'text-gray-400' : plan === 'agency' ? 'text-yellow-400' : 'text-[#ac9dd9]'
   const isPro = plan === 'pro' || plan === 'agency'
 
   const formatDate = (dateStr: string) => {
@@ -247,7 +247,7 @@ function SettingsContent() {
 
   if (loading) return (
     <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
     </main>
   )
 
@@ -300,13 +300,13 @@ function SettingsContent() {
                 <div>
                   <label className="text-sm text-gray-400 mb-1.5 block">Full name</label>
                   <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
                     placeholder="Your full name" />
                 </div>
                 <div>
                   <label className="text-sm text-gray-400 mb-1.5 block">Business name <span className="text-gray-600">(optional)</span></label>
                   <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
                     placeholder="Your studio or business name" />
                 </div>
                 <div>
@@ -317,7 +317,7 @@ function SettingsContent() {
                   </div>
                 </div>
                 <button onClick={handleSaveProfile} disabled={saving}
-                  className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm mt-1">
+                  className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm mt-1">
                   {saving ? 'Saving...' : 'Save changes'}
                 </button>
               </div>
@@ -330,7 +330,7 @@ function SettingsContent() {
                 <div>
                   <label className="text-sm text-gray-400 mb-1.5 block">Email</label>
                   <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm" />
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm" />
                   <p className="text-xs text-gray-600 mt-1.5">You'll receive a confirmation email at the new address</p>
                 </div>
                 <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email}
@@ -349,7 +349,7 @@ function SettingsContent() {
                 <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every portal</p>
               </div>
               {!isPro && (
-                <span className="text-[11px] bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2.5 py-1 rounded-full font-semibold">Pro</span>
+                <span className="text-[11px] bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2.5 py-1 rounded-full font-semibold">Pro</span>
               )}
             </div>
 
@@ -423,9 +423,9 @@ function SettingsContent() {
                     className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#8b3cf7]/40 rounded-lg py-3 cursor-pointer mb-4">
+                <label className="flex items-center justify-center gap-2 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#7656b9]/40 rounded-lg py-3 cursor-pointer mb-4">
                   {uploadingLogo ? (
-                    <div className="w-5 h-5 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -447,7 +447,7 @@ function SettingsContent() {
                   { value: 'name', label: 'Name only' },
                 ].map(opt => (
                   <button key={opt.value} onClick={() => setBrandDisplay(opt.value)}
-                    className={`text-xs font-semibold py-2 rounded-md transition-colors ${brandDisplay === opt.value ? 'bg-[#8b3cf7] text-white' : 'text-gray-400 hover:text-white'}`}>
+                    className={`text-xs font-semibold py-2 rounded-md transition-colors ${brandDisplay === opt.value ? 'bg-[#7656b9] text-white' : 'text-gray-400 hover:text-white'}`}>
                     {opt.label}
                   </button>
                 ))}
@@ -478,11 +478,11 @@ function SettingsContent() {
                 <span className="text-xs text-gray-600">Hex</span>
                 <input type="text" value={brandColor}
                   onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
-                  className="w-28 bg-[#08080a] border border-[#1c1c22] rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#8b3cf7] text-xs font-mono" />
+                  className="w-28 bg-[#08080a] border border-[#1c1c22] rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#7656b9] text-xs font-mono" />
               </div>
 
               <button onClick={handleSaveBranding} disabled={savingBrand}
-                className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+                className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
                 {savingBrand ? 'Saving...' : 'Save branding'}
               </button>
             </div>
@@ -490,14 +490,14 @@ function SettingsContent() {
             {/* Free overlay */}
             {!isPro && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 bg-[#101013]/40 backdrop-blur-[2px]">
-                <div className="w-12 h-12 rounded-2xl bg-[#1a0d30] border border-[#8b3cf7]/30 flex items-center justify-center mb-3">
-                  <svg className="w-6 h-6 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <div className="w-12 h-12 rounded-2xl bg-[#1c142e] border border-[#7656b9]/30 flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                   </svg>
                 </div>
                 <p className="text-white font-semibold mb-1">Custom branding is a Pro feature</p>
                 <p className="text-gray-400 text-sm mb-4 max-w-xs">Add your logo and accent color so clients see your brand, not ours.</p>
-                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
+                <a href="/pricing" className="bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
               </div>
             )}
           </div>
@@ -507,15 +507,15 @@ function SettingsContent() {
         <div className="mt-5 bg-[#101013] border border-[#16161a] rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#8b3cf7]/10 border border-[#8b3cf7]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
-                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#8b3cf7]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#7656b9]/10 border border-[#7656b9]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
+                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#ac9dd9]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                 </svg>
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <p className="text-lg font-bold text-white">{planLabel} plan</p>
-                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#8b3cf7]/10 text-[#8b3cf7]'}`}>Active</span>}
+                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#7656b9]/10 text-[#ac9dd9]'}`}>Active</span>}
                 </div>
                 {plan === 'free' ? (
                   <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
@@ -528,14 +528,14 @@ function SettingsContent() {
             </div>
             <div className="flex items-center gap-2.5 flex-shrink-0">
               {plan === 'free' ? (
-                <a href="/pricing" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
+                <a href="/pricing" className="bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
               ) : (
                 <>
                   {plan !== 'agency' && (
                     <a href="/pricing" className="text-sm text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-4 py-2.5 rounded-lg">Upgrade to Agency</a>
                   )}
                   <button onClick={handleManageBilling} disabled={managingBilling}
-                    className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+                    className="bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
                     {managingBilling ? 'Opening...' : 'Manage billing'}
                   </button>
                 </>
@@ -558,7 +558,7 @@ export default function SettingsPage() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
       </main>
     }>
       <SettingsContent />

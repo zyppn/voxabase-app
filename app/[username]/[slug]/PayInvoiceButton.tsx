@@ -10,7 +10,7 @@ interface PayInvoiceButtonProps {
   brandColor?: string
 }
 
-export default function PayInvoiceButton({ portalId, portalName, amount, username, slug, brandColor = '#8b3cf7' }: PayInvoiceButtonProps) {
+export default function PayInvoiceButton({ portalId, portalName, amount, username, slug, brandColor = '#7656b9' }: PayInvoiceButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

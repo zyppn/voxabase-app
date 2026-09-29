@@ -115,11 +115,6 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="min-h-screen bg-[#090909] flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.04]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpolygon points='30,2 58,17 58,47 30,62 2,47 2,17' fill='none' stroke='%238b3cf7' stroke-width='1'/%3E%3C/svg%3E")`,
-        backgroundSize: '60px 52px'
-      }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10 pointer-events-none" style={{background: 'radial-gradient(circle, #8b3cf7, transparent 70%)'}} />
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
@@ -144,7 +139,7 @@ export default function ResetPasswordPage() {
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
                 {error.includes('link from your email') && (
-                  <Link href="/forgot-password" className="block mt-1 text-[#8b3cf7] hover:underline">
+                  <Link href="/forgot-password" className="block mt-1 text-[#ac9dd9] hover:underline">
                     Request a new reset link
                   </Link>
                 )}
@@ -165,7 +160,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
                 placeholder="8+ characters"
               />
               {password.length > 0 && (
@@ -189,7 +184,7 @@ export default function ResetPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className={`w-full bg-[#090909] border rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm ${
+                className={`w-full bg-[#090909] border rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm ${
                   confirmPassword.length > 0
                     ? password === confirmPassword ? 'border-green-500' : 'border-red-500'
                     : 'border-[#1e1e24]'
@@ -204,13 +199,13 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !sessionReady || password !== confirmPassword || password.length < 8 || strength.score < 2}
-              className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-purple-900/30 mt-1"
+              className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
             >
               {loading ? 'Updating...' : 'Update password'}
             </button>
 
             <p className="text-center text-gray-500 text-sm">
-              <Link href="/login" className="text-[#8b3cf7] hover:underline">Back to sign in</Link>
+              <Link href="/login" className="text-[#ac9dd9] hover:underline">Back to sign in</Link>
             </p>
           </form>
         )}

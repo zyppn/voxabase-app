@@ -37,7 +37,7 @@ interface Props {
 export default function PortalPasswordGate({
   portalId, portalPassword, displayName, portalName, portalDescription,
   files, supabaseUrl, isReady, fileCount, invoiceAmount, invoicePaid,
-  username, slug, brandColor = '#8b3cf7', logoUrl = null, brandDisplay = 'both', displayInitial = 'V', ownerIsPro = false
+  username, slug, brandColor = '#7656b9', logoUrl = null, brandDisplay = 'both', displayInitial = 'V', ownerIsPro = false
 }: Props) {
   const [unlocked, setUnlocked] = useState(false)
   const [input, setInput] = useState('')

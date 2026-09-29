@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       </nav>
 
       <article className="max-w-2xl mx-auto px-6 py-14 legal">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#8b3cf7] font-semibold mb-3">Legal</p>
+        <p className="text-xs uppercase tracking-[0.12em] text-[#ac9dd9] font-semibold mb-3">Legal</p>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Privacy Policy</h1>
         <p className="text-gray-500 text-sm mb-10">Last updated {LAST_UPDATED}</p>
 
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
         </p>
 
         <div className="mt-12 pt-6 border-t border-[#16161a] flex items-center justify-between text-sm">
-          <Link href="/terms" className="text-[#8b3cf7] hover:underline">Terms of Service →</Link>
+          <Link href="/terms" className="text-[#ac9dd9] hover:underline">Terms of Service →</Link>
           <a href="https://voxabase.com" className="text-gray-500 hover:text-white">Back to home</a>
         </div>
       </article>
@@ -128,8 +128,8 @@ export default function PrivacyPage() {
         .legal p { margin-bottom: 1rem; }
         .legal ul { margin: 0 0 1.25rem; padding-left: 1.1rem; list-style: disc; }
         .legal li { margin-bottom: 0.5rem; }
-        .legal a { color: #a974f5; text-decoration: underline; text-underline-offset: 2px; }
-        .legal a:hover { color: #c4a0ff; }
+        .legal a { color: #ac9dd9; text-decoration: underline; text-underline-offset: 2px; }
+        .legal a:hover { color: #d1c5f7; }
         .legal strong { color: #e6e6ea; font-weight: 600; }
       `}</style>
     </main>

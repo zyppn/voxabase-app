@@ -54,7 +54,7 @@ function FileRow({ file, supabaseUrl, brandColor }: { file: FileRecord; supabase
   )
 }
 
-export default function FilesList({ files, supabaseUrl, showLimit = 6, brandColor = '#8b3cf7' }: FilesListProps) {
+export default function FilesList({ files, supabaseUrl, showLimit = 6, brandColor = '#7656b9' }: FilesListProps) {
   const [showAll, setShowAll] = useState(false)
   const visibleFiles = showAll ? files : files.slice(0, showLimit)
   const hiddenCount = files.length - showLimit

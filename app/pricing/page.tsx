@@ -186,7 +186,7 @@ function PricingContent() {
       <button
         onClick={() => pid && handleUpgrade(pid, plan.key)}
         disabled={loading === plan.key || !pid}
-        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-[#8b3cf7] hover:bg-[#9d55f8] text-white shadow-lg shadow-purple-900/30' : 'bg-[#16161a] hover:bg-[#1f1f26] text-white'}`}
+        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-[#7656b9] hover:bg-[#805ec5] text-white shadow-lg shadow-black/30' : 'bg-[#16161a] hover:bg-[#1f1f26] text-white'}`}
       >
         {loading === plan.key ? 'Redirecting...' : !pid ? 'Unavailable' : plan.key === 'pro' ? 'Upgrade to Pro' : 'Upgrade to Agency'}
       </button>
@@ -220,16 +220,16 @@ function PricingContent() {
         <div className="inline-flex items-center bg-[#101013] border border-[#16161a] rounded-full p-1">
           <button
             onClick={() => setBilling('monthly')}
-            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${billing === 'monthly' ? 'bg-[#8b3cf7] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${billing === 'monthly' ? 'bg-[#7656b9] text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Monthly
           </button>
           <button
             onClick={() => setBilling('annual')}
-            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === 'annual' ? 'bg-[#8b3cf7] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === 'annual' ? 'bg-[#7656b9] text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Annual
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-[#8b3cf7]/15 text-[#a974f5]'}`}>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-[#7656b9]/15 text-[#ac9dd9]'}`}>
               SAVE 20%
             </span>
           </button>
@@ -240,10 +240,10 @@ function PricingContent() {
         {plans.map((plan) => (
           <div
             key={plan.key}
-            className={`rounded-2xl p-6 flex flex-col ${plan.featured ? 'bg-[#1a0d30] border-2 border-[#8b3cf7]' : 'bg-[#101013] border border-[#16161a]'}`}
+            className={`rounded-2xl p-6 flex flex-col ${plan.featured ? 'bg-[#1c142e] border-2 border-[#7656b9]' : 'bg-[#101013] border border-[#16161a]'}`}
           >
             {plan.featured && (
-              <span className="text-xs font-bold bg-[#8b3cf7] text-white px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
+              <span className="text-xs font-bold bg-[#7656b9] text-white px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
                 Most popular
               </span>
             )}
@@ -262,8 +262,8 @@ function PricingContent() {
             <ul className="flex flex-col gap-3 mb-8 flex-1">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-2.5 text-sm text-gray-300">
-                  <div className="w-4 h-4 rounded-full bg-[#8b3cf7]/15 border border-[#8b3cf7]/35 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-2.5 h-2.5 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <div className="w-4 h-4 rounded-full bg-[#7656b9]/15 border border-[#7656b9]/35 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-2.5 h-2.5 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -287,7 +287,7 @@ function PricingContent() {
   if (!authChecked) {
     return (
       <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
       </main>
     )
   }
@@ -315,7 +315,7 @@ function PricingContent() {
     <main className="min-h-screen bg-[#08080a] text-white">
       <nav className="border-b border-[#16161a] px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 bg-[#08080a]/85 backdrop-blur-sm z-10">
         <a href="https://voxabase.com"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
-        <a href="/signup" className="bg-[#8b3cf7] hover:bg-[#9d55f8] text-white text-sm font-semibold px-4 py-2 rounded-lg">Get started</a>
+        <a href="/signup" className="bg-[#7656b9] hover:bg-[#805ec5] text-white text-sm font-semibold px-4 py-2 rounded-lg">Get started</a>
       </nav>
       {pricingBody}
     </main>
@@ -326,7 +326,7 @@ export default function PricingPage() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
       </main>
     }>
       <PricingContent />

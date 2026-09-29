@@ -126,7 +126,7 @@ export default function NewPortalPage() {
 
   if (profileLoading) return (
     <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
     </main>
   )
 
@@ -160,7 +160,7 @@ export default function NewPortalPage() {
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
                 {error.includes('Upgrade') && (
-                  <a href="/pricing" className="block mt-1 text-[#8b3cf7] hover:underline font-semibold">Upgrade to Pro →</a>
+                  <a href="/pricing" className="block mt-1 text-[#ac9dd9] hover:underline font-semibold">Upgrade to Pro →</a>
                 )}
               </div>
             )}
@@ -172,7 +172,7 @@ export default function NewPortalPage() {
                 value={name}
                 onChange={handleNameChange}
                 required
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
                 placeholder="e.g. Nike Campaign, Sarah Johnson"
               />
             </div>
@@ -184,19 +184,19 @@ export default function NewPortalPage() {
                   <button
                     type="button"
                     onClick={() => setUseCustomSlug(!useCustomSlug)}
-                    className="text-xs text-[#8b3cf7] hover:underline font-semibold"
+                    className="text-xs text-[#ac9dd9] hover:underline font-semibold"
                   >
                     {useCustomSlug ? 'Use random URL instead' : 'Set custom URL'}
                   </button>
                 )}
                 {!isPro && (
-                  <span className="text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Free plan</span>
+                  <span className="text-xs bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2 py-0.5 rounded-full">Free plan</span>
                 )}
               </div>
 
               {isPro && useCustomSlug ? (
                 <>
-                  <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 focus-within:border-[#8b3cf7]">
+                  <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 focus-within:border-[#7656b9]">
                     <span className="text-gray-600 text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
                     <input
                       type="text"
@@ -219,7 +219,7 @@ export default function NewPortalPage() {
                   )}
                   {!isPro && (
                     <p className="text-xs text-gray-600 mt-1">
-                      Custom slugs available on <span className="text-[#8b3cf7]">Pro plan</span>
+                      Custom slugs available on <span className="text-[#ac9dd9]">Pro plan</span>
                     </p>
                   )}
                 </>
@@ -232,14 +232,14 @@ export default function NewPortalPage() {
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
                 placeholder="A short note your client will see"
               />
             </div>
 
             <div>
               <label className="text-sm text-gray-400 mb-1.5 block">Invoice amount <span className="text-gray-600">(optional)</span></label>
-              <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 focus-within:border-[#8b3cf7]">
+              <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 focus-within:border-[#7656b9]">
                 <span className="text-gray-600 text-sm mr-1">$</span>
                 <input
                   type="number"
@@ -256,7 +256,7 @@ export default function NewPortalPage() {
             <div>
               <label className="text-sm text-gray-400 mb-1.5 block">
                 Portal password <span className="text-gray-600">(optional)</span>
-                {!isPro && <span className="ml-2 text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Pro</span>}
+                {!isPro && <span className="ml-2 text-xs bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2 py-0.5 rounded-full">Pro</span>}
               </label>
               {isPro ? (
                 <>
@@ -264,7 +264,7 @@ export default function NewPortalPage() {
                     type="text"
                     value={portalPassword}
                     onChange={(e) => setPortalPassword(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#8b3cf7] text-sm"
+                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
                     placeholder="Leave blank for no password"
                   />
                   <p className="text-xs text-gray-600 mt-1">Clients must enter this password to view the portal</p>
@@ -282,7 +282,7 @@ export default function NewPortalPage() {
             <button
               type="submit"
               disabled={loading || !name}
-              className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 text-sm"
+              className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 text-sm"
             >
               {loading ? 'Creating...' : 'Create portal'}
             </button>

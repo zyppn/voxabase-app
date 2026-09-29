@@ -91,7 +91,7 @@ export default function AppShell({
           {/* New Portal */}
           <a href="/dashboard/new" title="New Portal"
             className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#101013] overflow-hidden">
-            <svg className="w-5 h-5 text-[#8b3cf7] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            <svg className="w-5 h-5 text-[#ac9dd9] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
             <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
           </a>
 
@@ -115,9 +115,9 @@ export default function AppShell({
               <span className="text-[11px] text-gray-500">{formatBytes(usedBytes)} / {limitLabel}</span>
             </div>
             <div className="w-full bg-[#1e1e24] rounded-full h-1">
-              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-[#8b3cf7]'}`} style={{ width: `${storagePercent}%` }} />
+              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-[#7656b9]'}`} style={{ width: `${storagePercent}%` }} />
             </div>
-            {plan === 'free' && <a href="/pricing" className="text-[11px] text-[#8b3cf7] hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
+            {plan === 'free' && <a href="/pricing" className="text-[11px] text-[#ac9dd9] hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
           </div>
 
           {/* Profile menu */}
@@ -155,7 +155,7 @@ export default function AppShell({
 
             <button onClick={() => setMenuOpen(o => !o)} title={collapsed ? displayLabel : undefined}
               className={`w-full flex items-center gap-3 px-1.5 py-1.5 rounded-xl overflow-hidden ${menuOpen ? 'bg-[#16161a]' : 'hover:bg-[#101013]'}`}>
-              <div className="w-8 h-8 rounded-full bg-[#8b3cf7] flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#7656b9] flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-bold">{initials}</span>
               </div>
               <div className={`min-w-0 flex-1 text-left whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>

@@ -106,7 +106,7 @@ export default function StripeSetupContent() {
   if (status === 'loading') {
     return (
       <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#8b3cf7] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
       </main>
     )
   }
@@ -164,7 +164,7 @@ export default function StripeSetupContent() {
               <div className="flex flex-col gap-3">
                 <a
                   href="/dashboard"
-                  className="w-full inline-flex items-center justify-center bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold px-6 py-3 rounded-lg text-sm"
+                  className="w-full inline-flex items-center justify-center bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-6 py-3 rounded-lg text-sm"
                 >
                   Go to dashboard
                 </a>
@@ -183,8 +183,8 @@ export default function StripeSetupContent() {
             </div>
           ) : (
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#1a0d30] border border-[#8b3cf7]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-[#1c142e] border border-[#7656b9]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
               </div>
@@ -200,8 +200,8 @@ export default function StripeSetupContent() {
                   'VoxaBase never touches your funds',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">
-                    <div className="w-5 h-5 rounded-full bg-[#8b3cf7]/10 border border-[#8b3cf7]/30 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <div className="w-5 h-5 rounded-full bg-[#7656b9]/10 border border-[#7656b9]/30 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
@@ -212,7 +212,7 @@ export default function StripeSetupContent() {
               <button
                 onClick={handleConnect}
                 disabled={loading}
-                className="w-full bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
+                className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
               >
                 {loading ? (
                   <>

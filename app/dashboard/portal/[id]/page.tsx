@@ -395,7 +395,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">{portal.name}</h1>
             {portal.description && <p className="text-gray-400 text-sm mb-3">{portal.description}</p>}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-[#8b3cf7] font-mono bg-[#1a0d30] border border-[#8b3cf7]/20 px-3 py-1 rounded-full truncate max-w-xs">
+              <span className="text-xs text-[#ac9dd9] font-mono bg-[#1c142e] border border-[#7656b9]/20 px-3 py-1 rounded-full truncate max-w-xs">
                 {portalUrl}
               </span>
               <button
@@ -483,7 +483,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               {files.length > 1 && <p className="text-xs text-gray-600 mt-0.5">Drag to reorder</p>}
             </div>
             <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-              className="text-xs font-semibold bg-[#8b3cf7] hover:bg-[#9d55f8] text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
+              className="text-xs font-semibold bg-[#7656b9] hover:bg-[#805ec5] text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
               {uploading ? 'Uploading...' : '+ Upload files'}
             </button>
             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
@@ -506,12 +506,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
             onDragLeave={() => setIsDragOver(false)}
             onDrop={handleDropZone}
-            className={`${isDragOver ? 'bg-[#1a0d30]/40' : ''}`}
+            className={`${isDragOver ? 'bg-[#1c142e]/40' : ''}`}
           >
             {files.length === 0 ? (
-              <div className="px-6 py-16 text-center cursor-pointer hover:bg-[#1a0d30]/10" onClick={() => fileInputRef.current?.click()}>
-                <div className="w-12 h-12 bg-[#1a0d30] border border-[#8b3cf7]/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-[#8b3cf7]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className="px-6 py-16 text-center cursor-pointer hover:bg-[#1c142e]/10" onClick={() => fileInputRef.current?.click()}>
+                <div className="w-12 h-12 bg-[#1c142e] border border-[#7656b9]/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                   </svg>
                 </div>
@@ -526,7 +526,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     onDragOver={(e) => handleDragOver(e, file.id)}
                     onDrop={(e) => handleDrop(e, file.id)}
                     onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
-                    className={`bg-[#0b0b0e] border rounded-xl px-4 py-3 flex items-center justify-between group cursor-grab active:cursor-grabbing ${draggingId === file.id ? 'opacity-40' : ''} ${dragOverId === file.id && draggingId !== file.id ? 'border-[#8b3cf7]/60' : 'border-[#1c1c22] hover:border-[#26262e]'}`}
+                    className={`bg-[#0b0b0e] border rounded-xl px-4 py-3 flex items-center justify-between group cursor-grab active:cursor-grabbing ${draggingId === file.id ? 'opacity-40' : ''} ${dragOverId === file.id && draggingId !== file.id ? 'border-[#7656b9]/60' : 'border-[#1c1c22] hover:border-[#26262e]'}`}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="text-gray-600 group-hover:text-gray-400 flex-shrink-0">
@@ -534,7 +534,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
                         </svg>
                       </div>
-                      <div className="w-9 h-9 bg-[#1a0d30] border border-[#8b3cf7]/20 rounded-lg flex items-center justify-center text-[10px] font-bold text-[#8b3cf7] flex-shrink-0">
+                      <div className="w-9 h-9 bg-[#1c142e] border border-[#7656b9]/20 rounded-lg flex items-center justify-center text-[10px] font-bold text-[#ac9dd9] flex-shrink-0">
                         {file.file_type?.split('/')[1]?.toUpperCase().slice(0, 4) || 'FILE'}
                       </div>
                       <div className="min-w-0">
@@ -549,7 +549,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                         View
                       </a>
                       <button onClick={() => { setReplacingId(file.id); replaceInputRef.current?.click() }}
-                        className="text-xs text-gray-400 hover:text-[#8b3cf7] px-2.5 py-1.5 rounded-lg border border-[#1f1f26] hover:border-[#8b3cf7]/40">
+                        className="text-xs text-gray-400 hover:text-[#ac9dd9] px-2.5 py-1.5 rounded-lg border border-[#1f1f26] hover:border-[#7656b9]/40">
                         Replace
                       </button>
                       <button onClick={() => setDeleteFileId(file.id)}
@@ -560,7 +560,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   </div>
                 ))}
                 <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                  className="text-xs text-gray-500 hover:text-[#8b3cf7] text-left px-1 py-1.5">
+                  className="text-xs text-gray-500 hover:text-[#ac9dd9] text-left px-1 py-1.5">
                   {uploading ? 'Uploading...' : '+ Add more files'}
                 </button>
               </div>
@@ -609,12 +609,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <div>
                 <label className="text-sm text-gray-400 mb-1.5 block">Portal name</label>
                 <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8b3cf7] text-sm" />
+                  className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#7656b9] text-sm" />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1.5 block">Description <span className="text-gray-600">(optional)</span></label>
                 <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8b3cf7] text-sm"
+                  className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#7656b9] text-sm"
                   placeholder="Optional note for your client" />
               </div>
               <div>
@@ -622,7 +622,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   Invoice amount <span className="text-gray-600">(optional)</span>
                   {portal.invoice_paid && <span className="ml-2 text-xs text-yellow-400">Locked — invoice already paid</span>}
                 </label>
-                <div className={`flex items-center bg-[#08080a] border rounded-lg px-4 py-3 focus-within:border-[#8b3cf7] ${portal.invoice_paid ? 'border-[#3a3a4a] opacity-50' : 'border-[#1c1c22]'}`}>
+                <div className={`flex items-center bg-[#08080a] border rounded-lg px-4 py-3 focus-within:border-[#7656b9] ${portal.invoice_paid ? 'border-[#3a3a4a] opacity-50' : 'border-[#1c1c22]'}`}>
                   <span className="text-gray-600 text-sm mr-1">$</span>
                   <input type="number" value={editInvoice} onChange={(e) => setEditInvoice(e.target.value)}
                     disabled={portal.invoice_paid}
@@ -633,12 +633,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <div>
                 <label className="text-sm text-gray-400 mb-1.5 block">
                   Portal password <span className="text-gray-600">(optional)</span>
-                  {!isPro && <span className="ml-2 text-xs bg-[#1a0d30] text-[#8b3cf7] border border-[#8b3cf7]/30 px-2 py-0.5 rounded-full">Pro</span>}
+                  {!isPro && <span className="ml-2 text-xs bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2 py-0.5 rounded-full">Pro</span>}
                 </label>
                 {isPro ? (
                   <>
                     <input type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
-                      className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#8b3cf7] text-sm"
+                      className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#7656b9] text-sm"
                       placeholder="Leave blank to remove password" />
                     <p className="text-xs text-gray-600 mt-1">Clients must enter this password to view the portal</p>
                   </>
@@ -654,7 +654,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowEditModal(false)} className="flex-1 border border-[#1c1c22] text-gray-400 hover:text-white py-2.5 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleEditSave} disabled={saving} className="flex-1 bg-[#8b3cf7] hover:bg-[#9d55f8] text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+              <button onClick={handleEditSave} disabled={saving} className="flex-1 bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save changes'}
               </button>
             </div>
