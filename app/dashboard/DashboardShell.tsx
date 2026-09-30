@@ -294,7 +294,7 @@ export default function DashboardShell({
                     <button type="button" onClick={() => toggleStar(portal.id)}
                       aria-pressed={!!starred[portal.id]} aria-label={starred[portal.id] ? `Unstar ${portal.name}` : `Star ${portal.name}`}
                       title={starred[portal.id] ? 'Unstar' : 'Star to keep at the top'}
-                      className={`relative z-10 -mx-1 flex h-8 w-7 items-center justify-center rounded-md transition-colors ${starred[portal.id] ? 'text-amber-300' : 'text-rule-3 hover:text-muted md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100'}`}>
+                      className={`relative z-10 -mx-1 flex h-8 w-7 items-center justify-center rounded-md transition-colors ${starred[portal.id] ? 'text-paper' : 'text-rule-3 hover:text-muted md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100'}`}>
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill={starred[portal.id] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinejoin="round" d="M11.48 3.5a.56.56 0 011.04 0l2.13 5.11 5.52.44c.5.04.7.66.32.98l-4.2 3.6 1.28 5.38a.56.56 0 01-.84.61L12 16.73l-4.73 2.89a.56.56 0 01-.84-.61l1.28-5.38-4.2-3.6a.56.56 0 01.32-.98l5.52-.44 2.13-5.11z" /></svg>
                     </button>
                     <div className="flex items-center gap-3 min-w-0">
