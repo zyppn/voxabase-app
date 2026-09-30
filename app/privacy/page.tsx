@@ -6,7 +6,7 @@ export const metadata = {
   description: 'How Voxabase collects, uses, and protects your information.',
 }
 
-const LAST_UPDATED = 'June 29, 2026'
+const LAST_UPDATED = 'September 30, 2026'
 
 export default function PrivacyPage() {
   return (
@@ -33,6 +33,9 @@ export default function PrivacyPage() {
           <li><strong>Content you upload</strong> — files, project names, descriptions, invoice amounts, and any branding (logo, colors) you add to your portals.</li>
           <li><strong>Payment information</strong> — when you subscribe or your clients pay an invoice, payment is processed by Stripe. We do not store card numbers. Stripe provides us limited details such as subscription status and the last four digits of a card.</li>
           <li><strong>Usage information</strong> — basic technical data such as portal views, IP address, browser type, and timestamps, used to operate and secure the Service.</li>
+          <li><strong>Team information</strong> — if you use teams, the email addresses of people you invite, their names, and when they were last active in the app (to show who is online to the rest of the team).</li>
+          <li><strong>Client responses</strong> — when clients approve a delivery or request changes, the note and the optional name they enter.</li>
+          <li><strong>Custom domains</strong> — the domain you connect, which we share with Vercel so it can route traffic and issue a security certificate.</li>
           <li><strong>Communications</strong> — if you email us, we keep the message and your contact details to respond.</li>
         </ul>
 
@@ -64,6 +67,14 @@ export default function PrivacyPage() {
           States, so your information may be transferred to and processed there.
         </p>
 
+        <h2>Who can see what</h2>
+        <p>
+          Your portals are private to your account. A portal&rsquo;s link shows its files and invoice to anyone who has
+          the link, unless you protect it with a password, in which case nothing inside it is shown until the password
+          is entered. If you are on a team, the team owner and teammates can see the portals shared with that team, and
+          each other&rsquo;s names, emails and online status. Personal portals are never visible to a team.
+        </p>
+
         <h2>How long we keep information</h2>
         <p>
           We keep your information for as long as your account is active. If you delete your account or specific
@@ -82,8 +93,9 @@ export default function PrivacyPage() {
 
         <h2>Security</h2>
         <p>
-          We use industry-standard measures to protect your information, including encryption in transit, hashed
-          passwords, and access controls. No method of transmission or storage is completely secure, so we cannot
+          We use industry-standard measures to protect your information, including encryption in transit and at
+          rest, hashed passwords, optional two-step verification, private file storage with short-lived download
+          links, and access rules enforced by our database. No method of transmission or storage is completely secure, so we cannot
           guarantee absolute security, but we work to protect your data and to notify you of significant incidents
           where required by law.
         </p>

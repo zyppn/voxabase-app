@@ -236,13 +236,15 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
 
   // Turn a Supabase Storage upload error into a clear, user-facing message.
+  const tooLarge = (fileName: string, fileSize: number) =>
+    `“${fileName}” is ${(fileSize / 1048576).toFixed(0)} MB, over the ${MAX_FILE_MB} MB limit per file. Try exporting a smaller version, or split it into parts.`
+
   const describeUploadError = (err: unknown, fileName: string, fileSize: number): string => {
     const raw = (err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : String(err)).toLowerCase()
     const status = (err && typeof err === 'object' && 'statusCode' in err) ? String((err as { statusCode: unknown }).statusCode) : ''
-    const mb = (fileSize / 1048576).toFixed(0)
     const isSize = status === '413' || raw.includes('maximum allowed size') || raw.includes('payload too large') || raw.includes('exceeded')
     if (isSize) {
-      return `"${fileName}" is ${mb} MB. File size cannot exceed ${MAX_FILE_MB} MB.`
+      return tooLarge(fileName, fileSize)
     }
     if (raw.includes('mime') || raw.includes('not allowed')) {
       return `"${fileName}" could not be uploaded — that file type is not supported.`
@@ -278,7 +280,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     for (const file of Array.from(fileList)) {
       // Block oversized files up front so the user gets an instant, clean message.
       if (file.size > MAX_FILE_BYTES) {
-        failures.push(`"${file.name}" is ${(file.size / 1048576).toFixed(0)} MB. File size cannot exceed ${MAX_FILE_MB} MB.`)
+        failures.push(tooLarge(file.name, file.size))
         continue
       }
       const filePath = `${portal.user_id}/${portal.id}/${Date.now()}-${file.name}`
@@ -323,7 +325,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     // Guard before removing the old file, so an oversized replacement can't
     // leave the portal with a missing file.
     if (file.size > MAX_FILE_BYTES) {
-      setUploadError(`"${file.name}" is ${(file.size / 1048576).toFixed(0)} MB. File size cannot exceed ${MAX_FILE_MB} MB.`)
+      setUploadError(tooLarge(file.name, file.size))
       setReplacingId(null)
       if (replaceInputRef.current) replaceInputRef.current.value = ''
       return
@@ -634,7 +636,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   </svg>
                 </div>
                 <p className="text-muted text-sm font-medium">Click or drag files here to upload</p>
-                <p className="text-faint text-xs mt-1">PDFs, images, videos, zips — any file type</p>
+                <p className="text-faint text-xs mt-1">PDFs, images, videos, zips, any file type · up to {MAX_FILE_MB} MB each</p>
               </div>
             ) : (
               <div className="divide-y divide-rule">
@@ -679,7 +681,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 ))}
                 <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
                   className="w-full text-sm text-faint hover:text-paper hover:bg-ink-3/40 text-left px-4 sm:px-6 py-3.5">
-                  {uploading ? 'Uploading...' : '+ Add more files (or drop them here)'}
+                  {uploading ? 'Uploading...' : `+ Add more files (or drop them here) · up to ${MAX_FILE_MB} MB each`}
                 </button>
               </div>
             )}

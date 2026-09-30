@@ -6,7 +6,7 @@ export const metadata = {
   description: 'The terms that govern your use of Voxabase.',
 }
 
-const LAST_UPDATED = 'June 29, 2026'
+const LAST_UPDATED = 'September 30, 2026'
 
 export default function TermsPage() {
   return (
@@ -46,10 +46,26 @@ export default function TermsPage() {
         <h2>Plans, billing, and payments</h2>
         <ul>
           <li>The Service offers a free plan and paid subscription plans (Pro and Agency). Current pricing is shown on our pricing page.</li>
-          <li>Paid plans are billed in advance on a recurring monthly basis through our payment processor, Stripe.</li>
+          <li>Paid plans are billed in advance on a recurring monthly or annual basis through our payment processor, Stripe.</li>
           <li>Upgrades take effect immediately and are prorated. You can cancel at any time; your plan remains active until the end of the current billing period, and we do not provide partial refunds except where required by law.</li>
           <li>When your clients pay invoices through your portal, those payments are processed by Stripe and routed to your connected Stripe account. Voxabase is not a party to the transaction between you and your client and does not hold your funds.</li>
+          <li>On the free plan, Voxabase keeps a fee of 2% of each client payment made through your portals. There is no Voxabase fee on Pro or Agency. Stripe&rsquo;s own processing fees apply on every plan.</li>
+          <li>Each plan includes a set amount of file storage and a maximum size per file, shown in the Service. Uploads over those limits may be refused.</li>
           <li>You are responsible for any taxes related to your use of the Service and to payments you collect from your clients.</li>
+        </ul>
+
+        <h2>Teams (Agency plan)</h2>
+        <ul>
+          <li>An Agency account owner can invite teammates. Teammates can see and work on portals the owner shares with the team; they cannot see the owner&rsquo;s personal portals, billing, or payment settings.</li>
+          <li>The account owner is responsible for the people they invite and for what they do in the team workspace, and can remove them at any time.</li>
+          <li>When a teammate moves one of their own portals into a team, that portal, its files and any unpaid invoice transfer to the team owner&rsquo;s account. Its link changes and future payments go to the owner&rsquo;s connected Stripe account.</li>
+          <li>If the owner&rsquo;s Agency plan ends, teammates lose access to the team workspace.</li>
+        </ul>
+
+        <h2>Custom domains and client approvals</h2>
+        <ul>
+          <li>You may connect only domains you own or are authorized to use. We may disconnect a domain that is misused or that someone else can show they control.</li>
+          <li>Client approvals and change requests are a convenience record of your client&rsquo;s response. They are not a signature or a contract, and we make no guarantee about who submitted them.</li>
         </ul>
 
         <h2>Your content and ownership</h2>

@@ -144,7 +144,7 @@ export default function StripeSetupContent() {
                 {[
                   'Clients pay invoices on your portals',
                   'Funds go directly to your bank account',
-                  'Voxabase collects a small platform fee',
+                  sidebar?.plan === 'pro' || sidebar?.plan === 'agency' ? 'No Voxabase fee on your plan, only Stripe’s' : 'Voxabase keeps 2% (0% on Pro and Agency)',
                   'You never need to chase payments again',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">

@@ -101,11 +101,11 @@ function PricingContent() {
       key: 'free',
       name: 'Starter',
       features: [
-        '3 active client portals',
+        '3 client portals',
         '1 GB file storage',
         'Shareable portal links',
         'File activity tracking',
-        'Stripe payment collection',
+        'Stripe payments (2% Voxabase fee)',
       ],
       monthly: { price: '$0', suffix: '', note: 'Free forever', priceId: null as string | null | undefined },
       annual:  { price: '$0', suffix: '', note: 'Free forever', priceId: null as string | null | undefined },
@@ -117,7 +117,7 @@ function PricingContent() {
       features: [
         'Unlimited client portals',
         '25 GB file storage',
-        'Stripe payment collection',
+        'Stripe payments, 0% Voxabase fee',
         'Password-protected portals',
         'Custom branding & colors',
         'Priority support',

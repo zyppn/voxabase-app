@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete')
+      .select('stripe_account_id, stripe_onboarding_complete, plan')
       .eq('id', portal.user_id)
       .single()
     if (!profile?.stripe_account_id || !profile?.stripe_onboarding_complete) {
@@ -57,8 +57,9 @@ export async function POST(request: Request) {
     }
 
     const cents = Math.round(amount * 100)
-    // Platform fee: 2% of the transaction
-    const platformFeeAmount = Math.round(cents * 0.02)
+    // Voxabase's fee: 2% on the Free plan, none on Pro or Agency
+    const onPaidPlan = profile.plan === 'pro' || profile.plan === 'agency'
+    const platformFeeAmount = onPaidPlan ? 0 : Math.round(cents * 0.02)
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       success_url: `${base}/payment-success?portal_id=${portal.id}&username=${encodeURIComponent(portal.owner_username)}&slug=${encodeURIComponent(portal.slug)}`,
       cancel_url: `${base}${portalPath}`,
       payment_intent_data: {
-        application_fee_amount: platformFeeAmount,
+        ...(platformFeeAmount > 0 ? { application_fee_amount: platformFeeAmount } : {}),
         transfer_data: {
           destination: profile.stripe_account_id,
         },
