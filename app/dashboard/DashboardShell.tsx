@@ -16,6 +16,8 @@ interface Portal {
   invoice_paid: boolean
   created_at?: string | null
   starred?: boolean | null
+  files_ready?: boolean | null
+  password_protected?: boolean | null
   approval_required?: boolean | null
   approval_status?: 'approved' | 'changes_requested' | null
 }
@@ -276,8 +278,9 @@ export default function DashboardShell({
           </div>
         ) : (
           <div className="border border-rule rounded-xl overflow-hidden">
-            <div className="hidden md:grid grid-cols-[1fr_90px_130px_110px_110px] gap-4 pl-14 pr-4 py-2.5 bg-ink border-b border-rule text-[11px]">
-              {sortHead('name', 'Portal')}
+            <div className="hidden md:grid grid-cols-[20px_1fr_90px_130px_110px_110px] gap-4 pl-3 pr-4 py-2.5 bg-ink border-b border-rule text-[11px]">
+              <span aria-hidden="true" />
+              <span className="pl-11">{sortHead('name', 'Name')}</span>
               {sortHead('created', 'Created')}
               {sortHead('views', 'Views')}
               {sortHead('amount', 'Amount', true)}
@@ -307,14 +310,19 @@ export default function DashboardShell({
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-paper text-sm truncate">{portal.name}</h3>
-                        <p className="text-faint text-xs mt-0.5 truncate">
-                          /{portal.owner_username || username}/{portal.slug}
-                          {portal.approval_required && portal.approval_status && (
-                            <span className={portal.approval_status === 'approved' ? 'text-green-400' : 'text-amber-400'}>
-                              {' · '}{portal.approval_status === 'approved' ? 'Approved' : 'Changes requested'}
-                            </span>
-                          )}
-                        </p>
+{(() => {
+                          // Second line only when there's something worth knowing
+                          const notes: { text: string; cls: string }[] = []
+                          if (portal.approval_required && portal.approval_status) notes.push(portal.approval_status === 'approved'
+                            ? { text: 'Approved', cls: 'text-green-400' } : { text: 'Changes requested', cls: 'text-amber-400' })
+                          if (!portal.files_ready) notes.push({ text: 'Files not live yet', cls: 'text-faint' })
+                          if (portal.password_protected) notes.push({ text: 'Password protected', cls: 'text-faint' })
+                          return notes.length > 0 && (
+                            <p className="text-xs mt-0.5 truncate">
+                              {notes.map((n, i) => <span key={n.text} className={n.cls}>{i > 0 && <span className="text-faint"> · </span>}{n.text}</span>)}
+                            </p>
+                          )
+                        })()}
                       </div>
                     </div>
                     <div className="hidden md:block text-xs text-muted">{fmtDate(portal.created_at)}</div>
