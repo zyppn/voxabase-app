@@ -341,14 +341,15 @@ function SettingsContent() {
                     className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
                   <p className="text-xs text-faint mt-1.5">You'll receive a confirmation email at the new address</p>
                 </div>
-                {newEmail !== email && (
-                  <div>
-                    <label htmlFor="email-password" className="text-sm text-muted mb-1.5 block">Current password</label>
-                    <input id="email-password" type="password" autoComplete="current-password" value={emailPassword}
-                      onChange={(e) => setEmailPassword(e.target.value)} placeholder="Confirm it's you"
-                      className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
-                  </div>
-                )}
+                <div>
+                  <label htmlFor="email-password" className="text-sm text-muted mb-1.5 block">
+                    Current password {newEmail === email && <span className="text-faint">(needed to change your email)</span>}
+                  </label>
+                  <input id="email-password" type="password" autoComplete="current-password" value={emailPassword}
+                    onChange={(e) => setEmailPassword(e.target.value)} disabled={newEmail === email}
+                    placeholder={newEmail === email ? 'Edit your email above first' : "Confirm it's you"}
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm disabled:opacity-50 disabled:cursor-not-allowed" />
+                </div>
                 <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email || !emailPassword}
                   className="mt-auto w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
                   {changingEmail ? 'Sending...' : 'Update email'}
