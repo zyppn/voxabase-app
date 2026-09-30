@@ -4,6 +4,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import AppShell from '../dashboard/AppShell'
 import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import AppSkeleton from '../dashboard/AppSkeleton'
+import Link from 'next/link'
 
 export default function StripeSetupContent() {
   const searchParams = useSearchParams()
@@ -106,9 +108,7 @@ export default function StripeSetupContent() {
 
   if (status === 'loading') {
     return (
-      <main className="min-h-screen bg-ink flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-      </main>
+      <AppSkeleton variant="centered" />
     )
   }
 
@@ -158,12 +158,12 @@ export default function StripeSetupContent() {
                 ))}
               </div>
               <div className="flex flex-col gap-3">
-                <a
+                <Link
                   href="/dashboard"
                   className="w-full inline-flex items-center justify-center bg-paper hover:bg-white text-ink font-semibold px-6 py-3 rounded-lg text-sm"
                 >
                   Go to dashboard
-                </a>
+                </Link>
                 <button
                   onClick={handleManage}
                   disabled={loading}

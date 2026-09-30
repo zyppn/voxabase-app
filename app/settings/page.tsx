@@ -12,6 +12,8 @@ import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 import { APP_HOST } from '@/lib/appHost'
+import AppSkeleton from '../dashboard/AppSkeleton'
+import Link from 'next/link'
 
 const PRESET_COLORS = [
   { label: 'Voxabase Purple', value: '#865fd9' },
@@ -260,9 +262,7 @@ function SettingsContent() {
   }
 
   if (loading) return (
-    <main className="min-h-screen bg-ink flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-    </main>
+    <AppSkeleton variant="settings" />
   )
 
   return (
@@ -510,7 +510,7 @@ function SettingsContent() {
                 </div>
                 <p className="text-paper font-semibold mb-1">Custom branding is a Pro feature</p>
                 <p className="text-muted text-sm mb-4 max-w-xs">Add your logo and accent color so clients see your brand, not ours.</p>
-                <a href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
+                <Link href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</Link>
               </div>
             )}
           </div>
@@ -553,11 +553,11 @@ function SettingsContent() {
             </div>
             <div className="flex items-center gap-2.5 flex-shrink-0">
               {plan === 'free' ? (
-                <a href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
+                <Link href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</Link>
               ) : (
                 <>
                   {plan !== 'agency' && (
-                    <a href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-4 py-2.5 rounded-lg">Upgrade to Agency</a>
+                    <Link href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-4 py-2.5 rounded-lg">Upgrade to Agency</Link>
                   )}
                   <button onClick={handleManageBilling} disabled={managingBilling}
                     className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
@@ -582,9 +582,7 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-ink flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-      </main>
+      <AppSkeleton variant="settings" />
     }>
       <SettingsContent />
     </Suspense>

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import { joinNext } from '@/lib/joinNext'
 import { APP_HOST } from '@/lib/appHost'
+import { isReservedUsername } from '@/lib/reservedUsernames'
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0
@@ -55,6 +56,7 @@ export default function SignupPage() {
 
   const checkUsername = async (val: string) => {
     if (val.length < 3) { setUsernameAvailable(null); return }
+    if (isReservedUsername(val)) { setUsernameAvailable(false); return }
     setCheckingUsername(true)
     const { data } = await supabase
       .from('profiles')

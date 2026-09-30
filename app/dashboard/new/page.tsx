@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import AppShell from '../AppShell'
 import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 import { APP_HOST } from '@/lib/appHost'
+import AppSkeleton from '../AppSkeleton'
+import Link from 'next/link'
 
 function generateRandomSlug(name: string) {
   const random = Math.random().toString(36).slice(2, 7)
@@ -143,9 +145,7 @@ export default function NewPortalPage() {
   const isPro = plan === 'pro' || plan === 'agency'
 
   if (profileLoading) return (
-    <main className="min-h-screen bg-ink flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-    </main>
+    <AppSkeleton variant="form" />
   )
 
   return (
@@ -173,7 +173,7 @@ export default function NewPortalPage() {
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
                 {error.includes('Upgrade') && (
-                  <a href="/pricing" className="block mt-1 text-accent-text hover:underline font-semibold">Upgrade to Pro →</a>
+                  <Link href="/pricing" className="block mt-1 text-accent-text hover:underline font-semibold">Upgrade to Pro →</Link>
                 )}
               </div>
             )}
@@ -217,7 +217,7 @@ export default function NewPortalPage() {
                   {isPro ? (
                     <button type="button" onClick={() => setUseCustomSlug(true)} className="text-accent-text hover:underline font-medium">Customize link</button>
                   ) : (
-                    <span>· Custom links on <a href="/pricing" className="text-accent-text hover:underline">Pro</a></span>
+                    <span>· Custom links on <Link href="/pricing" className="text-accent-text hover:underline">Pro</Link></span>
                   )}
                 </p>
               )}

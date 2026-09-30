@@ -42,6 +42,7 @@ export default function LegalShell({ title, updated, other, children, kicker = '
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-7 text-[13px] text-faint sm:px-8">
           <p>© 2026 Voxabase. All rights reserved.</p>
           <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Footer">
+            <Link href="/docs" className="hover:text-paper">Help</Link>
             <Link href="/privacy" className="hover:text-paper">Privacy</Link>
             <Link href="/terms" className="hover:text-paper">Terms</Link>
             <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-paper">{CONTACT_EMAIL}</a>

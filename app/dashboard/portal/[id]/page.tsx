@@ -4,7 +4,7 @@ import { fileLabel } from '@/lib/files'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import PortalDetailSkeleton from './PortalDetailSkeleton'
+import AppSkeleton from '../../AppSkeleton'
 import AppShell from '../../AppShell'
 import { hasTeams, loadWorkspace, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 import { APP_HOST } from '@/lib/appHost'
@@ -446,7 +446,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     return new Date(dateStr).toLocaleDateString()
   }
 
-  if (loading) return <PortalDetailSkeleton />
+  if (loading) return <AppSkeleton variant="detail" />
   if (!portal) return null
 
   const portalUrl = liveDomain

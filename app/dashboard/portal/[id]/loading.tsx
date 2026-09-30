@@ -1,4 +1,4 @@
-import PortalDetailSkeleton from './PortalDetailSkeleton'
+import AppSkeleton from '../../AppSkeleton'
 export default function Loading() {
-  return <PortalDetailSkeleton />
+  return <AppSkeleton variant="detail" />
 }

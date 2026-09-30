@@ -1,4 +1,4 @@
-import DashboardSkeleton from './DashboardSkeleton'
+import AppSkeleton from './AppSkeleton'
 export default function Loading() {
-  return <DashboardSkeleton />
+  return <AppSkeleton variant="dashboard" />
 }

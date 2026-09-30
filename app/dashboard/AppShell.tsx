@@ -4,6 +4,7 @@ import { useIdleSignOut } from '@/lib/useIdleSignOut'
 import { createClient } from '@/utils/supabase/client'
 import { hasTeams, seatsFor, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 import { displayName, isOnline } from '@/lib/people'
+import Link from 'next/link'
 
 type Team = { owner_id: string; owner_label: string | null }
 type RosterRow = { member_id: string | null; email: string; status: 'pending' | 'active'; is_owner: boolean; business_name: string | null; full_name: string | null; last_seen_at: string | null }
@@ -150,7 +151,7 @@ export default function AppShell({
       <aside className={`hidden lg:flex flex-col border-r border-rule fixed inset-y-0 left-0 py-5 px-3 ${animate} ${railW}`}>
         {/* Header: logo + collapse toggle */}
         <div className={`flex items-center mb-7 h-8 ${collapsed ? 'justify-center' : 'justify-between px-1'}`}>
-          {!collapsed && <a href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>}
+          {!collapsed && <Link href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></Link>}
           <button onClick={toggleCollapse} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="p-1.5 rounded-lg text-faint hover:text-paper hover:bg-ink-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
@@ -169,11 +170,11 @@ export default function AppShell({
 
         <nav className="flex flex-col gap-1">
           {/* New Portal */}
-          <a href="/dashboard/new" title="New Portal"
+          <Link href="/dashboard/new" title="New Portal"
             className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-paper/85 hover:text-paper hover:bg-ink-2 overflow-hidden">
             <svg className="w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
             <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
-          </a>
+          </Link>
 
           <div className={`h-px bg-ink-3 my-1.5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
 
@@ -192,7 +193,7 @@ export default function AppShell({
           <div className="mt-6 px-1">
             <div className="flex items-center justify-between px-1.5 mb-2">
               <span className="text-[11px] text-faint uppercase tracking-wide font-semibold">Team</span>
-              {isMyTeam && <a href="/settings#team" className="text-[11px] text-faint hover:text-paper">Manage</a>}
+              {isMyTeam && <Link href="/settings#team" className="text-[11px] text-faint hover:text-paper">Manage</Link>}
             </div>
             <div className="flex flex-col gap-0.5">
               {people.map(m => {
@@ -214,12 +215,12 @@ export default function AppShell({
                 )
               })}
               {isMyTeam && roster.filter(r => !r.is_owner).length < seatsFor(myPlan) && (
-                <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
+                <Link href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
                   <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
                   </span>
                   {hasMates ? 'Invite' : 'Invite a teammate'}
-                </a>
+                </Link>
               )}
             </div>
           </div>
@@ -235,7 +236,7 @@ export default function AppShell({
             <div className="w-full bg-ink-3 rounded-full h-1">
               <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-amber-400' : 'bg-paper/70'}`} style={{ width: `${storagePercent}%` }} />
             </div>
-            {plan === 'free' && <a href="/pricing" className="text-[11px] text-accent-text hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
+            {plan === 'free' && <Link href="/pricing" className="text-[11px] text-accent-text hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</Link>}
           </div>
 
           {/* Profile menu */}
@@ -265,19 +266,21 @@ export default function AppShell({
                     <div className="h-px bg-ink-4 my-1 mx-2" />
                   </>
                 )}
-                <a href="/stripe-setup" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
+                <Link href="/stripe-setup" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
                   <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
                   {stripeConnected ? 'Stripe account' : 'Connect Stripe'}
-                </a>
-                <a href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
+                </Link>
+                <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
                   <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   Settings
-                </a>
-                <a href="mailto:support@voxabase.com?subject=Voxabase%20support" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
+                </Link>
+                <Link href="/docs" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
                   <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
-                  Help &amp; support
-                </a>
+                  Help &amp; guides
+                </Link>
                 <div className="h-px bg-ink-4 my-1 mx-2" />
+                {/* Sign out is a full request on purpose: it clears the session on the server */}
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a href="/api/auth/signout" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:bg-red-400/10 hover:text-red-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
                   Sign out
@@ -304,7 +307,7 @@ export default function AppShell({
       <div className={`flex-1 min-w-0 ${animate} ${mainML}`}>
         {/* Mobile top bar */}
         <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-rule sticky top-0 bg-ink/85 backdrop-blur-sm z-20">
-          <a href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
+          <Link href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></Link>
           <div className="flex items-center gap-2">
             {teams.length > 0 && (
               <select aria-label="Workspace" value={currentWs || ''} onChange={(e) => switchWorkspace(e.target.value || null)}
@@ -313,7 +316,9 @@ export default function AppShell({
                 {teams.map(t => <option key={t.owner_id} value={t.owner_id}>{`${t.owner_label || 'Your'} · Team`}</option>)}
               </select>
             )}
-            <a href="/settings" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></a>
+            <Link href="/settings" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></Link>
+            {/* Sign out is a full request on purpose: it clears the session on the server */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/api/auth/signout" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg></a>
           </div>
         </div>
@@ -323,7 +328,7 @@ export default function AppShell({
           <ol className="flex h-12 items-center gap-1.5 px-6 lg:px-10 text-[13px] min-w-0">
             <li className={crumbs.length ? 'flex-none' : 'min-w-0'}>
               {crumbs.length
-                ? <a href="/dashboard" className="text-faint hover:text-paper transition-colors">Portals</a>
+                ? <Link href="/dashboard" className="text-faint hover:text-paper transition-colors">Portals</Link>
                 : <span className="text-paper font-medium" aria-current="page">Portals</span>}
             </li>
             {crumbs.map((c, i) => (

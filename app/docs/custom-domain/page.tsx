@@ -1,15 +1,15 @@
 // Help guide: connecting a custom portal domain (Agency).
 import Link from 'next/link'
-import LegalShell from '../../_components/LegalShell'
+import DocsShell from '../DocsShell'
 
 export const metadata = {
-  title: 'Set up your portal domain · Voxabase',
+  title: 'Set up your portal domain · Voxabase Help',
   description: 'Send clients to portals on your own domain, like files.yourstudio.com.',
 }
 
 export default function CustomDomainGuide() {
   return (
-    <LegalShell kicker="Help · Agency plan" title="Set up your portal domain" intro={<>About 5 minutes, plus a short wait while DNS updates. Stuck?</>}>
+    <DocsShell slug="custom-domain" intro="About 5 minutes, plus a short wait while DNS updates.">
       <p>
         Send clients to portals on your own domain, like <code>files.yourstudio.com/brand-refresh</code>, with no
         Voxabase branding. You keep your domain where it is; you just add one record that points a subdomain at Voxabase.
@@ -71,6 +71,6 @@ export default function CustomDomainGuide() {
         In Settings → Portal domain, click <strong>Remove domain</strong>. Links using it stop working right away,
         and portal links go back to your regular Voxabase address. You can then delete the DNS record at your provider.
       </p>
-    </LegalShell>
+    </DocsShell>
   )
 }

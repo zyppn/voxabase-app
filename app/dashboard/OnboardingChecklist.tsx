@@ -4,6 +4,7 @@
 // data; it can be minimized to a small pill, and disappears when everything is
 // done or the user closes it.
 import { useSyncExternalStore, type ReactNode } from 'react'
+import Link from 'next/link'
 
 const HIDE_KEY = 'vb_onboarding_hidden'
 const MIN_KEY = 'vb_onboarding_minimized'
@@ -113,7 +114,7 @@ export default function OnboardingChecklist({ hasPortal, hasFiles, stripeConnect
                 {isNext && (
                   <>
                     <p className="text-xs text-muted mt-0.5">{s.text}</p>
-                    <a href={s.href} className="inline-block mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-paper hover:bg-white text-ink">{s.cta}</a>
+                    <Link href={s.href} className="inline-block mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-paper hover:bg-white text-ink">{s.cta}</Link>
                   </>
                 )}
               </div>
