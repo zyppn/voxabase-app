@@ -44,5 +44,6 @@ export const config = {
     '/api/billing-portal',
     '/api/subscription/:path*',
     '/api/stripe-connect/:path*',
+    '/api/verify-password',
   ],
 }

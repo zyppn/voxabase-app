@@ -2,6 +2,7 @@
 // Optional two-step verification (TOTP authenticator apps), backed by Supabase MFA.
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { verifyPassword } from '@/lib/verifyPassword'
 
 type Enrolling = { factorId: string; qr: string; secret: string }
 
@@ -15,6 +16,7 @@ export default function TwoStepCard() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [confirmOff, setConfirmOff] = useState(false)
+  const [offPassword, setOffPassword] = useState('')
 
   const load = useCallback(async () => {
     const { data } = await supabase.auth.mfa.listFactors()
@@ -70,6 +72,9 @@ export default function TwoStepCard() {
   const turnOff = async () => {
     if (!factorId) return
     setBusy(true); setError(''); setNotice('')
+    const wrong = await verifyPassword(offPassword)
+    if (wrong) { setBusy(false); setError(wrong); return }
+    setOffPassword('')
     const { error } = await supabase.auth.mfa.unenroll({ factorId })
     setBusy(false); setConfirmOff(false)
     if (error) { setError('Could not turn it off. Sign out, sign back in with your code, and try again.'); return }
@@ -126,12 +131,18 @@ export default function TwoStepCard() {
         confirmOff ? (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-paper">Turn off two-step verification? Your account will only need a password to sign in.</p>
+            <div>
+              <label htmlFor="off-password" className="text-sm text-muted mb-1.5 block">Current password</label>
+              <input id="off-password" type="password" autoComplete="current-password" value={offPassword}
+                onChange={(e) => setOffPassword(e.target.value)} placeholder="Confirm it's you"
+                className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
+            </div>
             <div className="flex gap-2.5">
-              <button type="button" onClick={turnOff} disabled={busy}
+              <button type="button" onClick={turnOff} disabled={busy || !offPassword}
                 className="flex-1 bg-red-500/90 hover:bg-red-500 text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
                 {busy ? 'Turning off...' : 'Yes, turn off'}
               </button>
-              <button type="button" onClick={() => setConfirmOff(false)}
+              <button type="button" onClick={() => { setConfirmOff(false); setOffPassword('') }}
                 className="px-5 border border-rule-2 hover:border-rule-3 text-muted hover:text-paper rounded-lg text-sm">Keep on</button>
             </div>
           </div>

@@ -13,6 +13,13 @@ export default function LoginPage() {
   const [resend, setResend] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const [mfaFactor, setMfaFactor] = useState<string | null>(null)
   const [mfaCode, setMfaCode] = useState('')
+  const [signedOutNote] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    const q = new URLSearchParams(window.location.search)
+    if (q.get('expired') === '1') return 'You were signed out after 7 days without activity. Sign in to continue.'
+    if (q.get('signedout') === 'all') return 'You’ve been signed out of all devices.'
+    return ''
+  })
   const router = useRouter()
   const supabase = createClient()
 
@@ -118,6 +125,9 @@ export default function LoginPage() {
         ) : (
         <form onSubmit={handleLogin} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
           {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
+          {signedOutNote && !error && (
+            <div role="status" className="text-sm bg-accent/10 border border-accent/25 rounded-lg p-3 text-paper">{signedOutNote}</div>
+          )}
           {unconfirmed && (
             <div role="status" className="text-sm bg-accent/10 border border-accent/25 rounded-lg p-3 text-paper">
               <p>Please confirm your email first. We sent a confirmation link to <span className="font-semibold">{email}</span> when you signed up.</p>

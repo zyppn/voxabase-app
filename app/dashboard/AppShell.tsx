@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef, ReactNode } from 'react'
+import { useIdleSignOut } from '@/lib/useIdleSignOut'
 
 interface AppShellProps {
   counts: { all: number; active: number; completed: number }
@@ -31,6 +32,7 @@ export default function AppShell({
   })
   const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  useIdleSignOut()
 
   useEffect(() => { setMounted(true) }, [])
 

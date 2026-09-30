@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import TwoStepCard from './TwoStepCard'
+import SessionsCard from './SessionsCard'
+import { verifyPassword } from '@/lib/verifyPassword'
 import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -33,6 +35,7 @@ function SettingsContent() {
   const [saving, setSaving] = useState(false)
   const [savingBrand, setSavingBrand] = useState(false)
   const [changingEmail, setChangingEmail] = useState(false)
+  const [emailPassword, setEmailPassword] = useState('')
   const [managingBilling, setManagingBilling] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -220,6 +223,9 @@ function SettingsContent() {
     setChangingEmail(true)
     setSuccessMessage('')
     setErrorMessage('')
+    const wrong = await verifyPassword(emailPassword)
+    if (wrong) { setErrorMessage(wrong); setChangingEmail(false); return }
+    setEmailPassword('')
     const { error } = await supabase.auth.updateUser({ email: newEmail })
     if (error) setErrorMessage(error.message)
     else { setSuccessMessage('Confirmation email sent to your new address. Click the link to confirm.'); setTimeout(() => setSuccessMessage(''), 6000) }
@@ -335,7 +341,15 @@ function SettingsContent() {
                     className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
                   <p className="text-xs text-faint mt-1.5">You'll receive a confirmation email at the new address</p>
                 </div>
-                <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email}
+                {newEmail !== email && (
+                  <div>
+                    <label htmlFor="email-password" className="text-sm text-muted mb-1.5 block">Current password</label>
+                    <input id="email-password" type="password" autoComplete="current-password" value={emailPassword}
+                      onChange={(e) => setEmailPassword(e.target.value)} placeholder="Confirm it's you"
+                      className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
+                  </div>
+                )}
+                <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email || !emailPassword}
                   className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
                   {changingEmail ? 'Sending...' : 'Update email'}
                 </button>
@@ -343,6 +357,7 @@ function SettingsContent() {
             </div>
 
             <TwoStepCard />
+            <SessionsCard />
           </div>
 
           {/* ── Right column: Custom branding ── */}
