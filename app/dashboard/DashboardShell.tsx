@@ -11,6 +11,8 @@ interface Portal {
   owner_username: string | null
   invoice_amount: number | null
   invoice_paid: boolean
+  approval_required?: boolean | null
+  approval_status?: 'approved' | 'changes_requested' | null
 }
 
 interface Props {
@@ -225,7 +227,14 @@ export default function DashboardShell({
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-paper text-sm truncate">{portal.name}</h3>
-                        <p className="text-faint text-xs mt-0.5 truncate">/{portal.owner_username || username}/{portal.slug}</p>
+                        <p className="text-faint text-xs mt-0.5 truncate">
+                          /{portal.owner_username || username}/{portal.slug}
+                          {portal.approval_required && portal.approval_status && (
+                            <span className={portal.approval_status === 'approved' ? 'text-green-400' : 'text-amber-400'}>
+                              {' · '}{portal.approval_status === 'approved' ? 'Approved' : 'Changes requested'}
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                     <div className="hidden md:flex items-center gap-1.5 text-xs text-faint">

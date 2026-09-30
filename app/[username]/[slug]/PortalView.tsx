@@ -3,6 +3,7 @@
 import DownloadAllButton from './DownloadAllButton'
 import FilesList, { type PortalFile } from './FilesList'
 import PayInvoiceButton from './PayInvoiceButton'
+import ApprovalPanel from './ApprovalPanel'
 import { brandInk, textOnBrand } from '@/lib/brand'
 
 export interface PortalViewProps {
@@ -22,6 +23,13 @@ export interface PortalViewProps {
   invoicePaid: boolean
   username: string
   slug: string
+  approvalRequired?: boolean
+  approvalStatus?: 'approved' | 'changes_requested' | null
+  approvalNote?: string | null
+  approvalName?: string | null
+  approvalAt?: string | null
+  /** The password the client typed, so approval requests can prove access. */
+  accessPassword?: string
 }
 
 export function PortalBrand({ ownerIsPro, brandDisplay, logoUrl, displayName, brandInitial, brandColor, centered = false }: {
@@ -108,6 +116,20 @@ export default function PortalView(p: PortalViewProps) {
             <FilesList files={p.files} supabaseUrl={p.supabaseUrl} showLimit={4} brandColor={p.brandColor} />
             {fileCount > 1 && <DownloadAllButton portalId={p.portalId} portalName={p.portalName} />}
           </>
+        )}
+
+        {/* Client approval (Agency) */}
+        {p.approvalRequired && p.isReady && fileCount > 0 && (
+          <ApprovalPanel
+            portalId={p.portalId}
+            displayName={p.displayName}
+            brandColor={p.brandColor}
+            initialStatus={p.approvalStatus ?? null}
+            initialNote={p.approvalNote ?? null}
+            initialName={p.approvalName ?? null}
+            initialAt={p.approvalAt ?? null}
+            accessPassword={p.accessPassword}
+          />
         )}
 
         {/* Invoice */}

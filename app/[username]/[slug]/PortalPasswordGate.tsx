@@ -22,6 +22,11 @@ interface Props {
   brandDisplay?: string
   brandInitial?: string
   ownerIsPro?: boolean
+  approvalRequired?: boolean
+  approvalStatus?: 'approved' | 'changes_requested' | null
+  approvalNote?: string | null
+  approvalName?: string | null
+  approvalAt?: string | null
 }
 
 export default function PortalPasswordGate({
@@ -50,6 +55,7 @@ export default function PortalPasswordGate({
         brandDisplay={brandDisplay}
         brandInitial={brandInitial}
         ownerIsPro={ownerIsPro}
+        accessPassword={input}
       />
     )
   }

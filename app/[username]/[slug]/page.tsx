@@ -47,6 +47,14 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const isReady = portal.files_ready
   const isPasswordProtected = !!portal.portal_password
+  // Client approvals are an Agency feature; turning the plan off hides them.
+  const approval = {
+    approvalRequired: !!portal.approval_required && ownerPlan === 'agency',
+    approvalStatus: (portal.approval_status ?? null) as 'approved' | 'changes_requested' | null,
+    approvalNote: portal.approval_note ?? null,
+    approvalName: portal.approval_name ?? null,
+    approvalAt: portal.approval_at ?? null,
+  }
 
   return (
     <main className="min-h-screen bg-ink text-paper">
@@ -71,6 +79,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           brandDisplay={brandDisplay}
           brandInitial={brandInitial}
           ownerIsPro={ownerIsPro}
+          {...approval}
         />
       ) : (
         <PortalView
@@ -90,6 +99,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           invoicePaid={portal.invoice_paid}
           username={username}
           slug={slug}
+          {...approval}
         />
       )}
     </main>

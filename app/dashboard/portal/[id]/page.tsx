@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { fileLabel } from '@/lib/files'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import PortalDetailSkeleton from './PortalDetailSkeleton'
 import AppShell from '../../AppShell'
 
@@ -17,6 +18,11 @@ interface Portal {
   owner_username: string
   files_ready: boolean
   portal_password: string | null
+  approval_required?: boolean | null
+  approval_status?: 'approved' | 'changes_requested' | null
+  approval_note?: string | null
+  approval_name?: string | null
+  approval_at?: string | null
 }
 
 interface FileRecord {
@@ -49,6 +55,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingReady, setTogglingReady] = useState(false)
+  const [savingApproval, setSavingApproval] = useState(false)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -148,6 +155,26 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     await supabase.from('portals').update({ files_ready: newVal }).eq('id', portal.id)
     setPortal({ ...portal, files_ready: newVal })
     setTogglingReady(false)
+  }
+
+  // Client approvals (Agency): turn the review step on/off, or clear a response
+  // so the client sees a fresh review after you've made changes.
+  const handleToggleApproval = async () => {
+    if (!portal) return
+    setSavingApproval(true)
+    const next = !portal.approval_required
+    const { error } = await supabase.from('portals').update({ approval_required: next }).eq('id', portal.id)
+    if (!error) setPortal({ ...portal, approval_required: next })
+    setSavingApproval(false)
+  }
+
+  const handleResetApproval = async () => {
+    if (!portal) return
+    setSavingApproval(true)
+    const cleared = { approval_status: null, approval_note: null, approval_name: null, approval_at: null }
+    const { error } = await supabase.from('portals').update(cleared).eq('id', portal.id)
+    if (!error) setPortal({ ...portal, ...cleared })
+    setSavingApproval(false)
   }
 
   const STORAGE_LIMITS: Record<string, number> = {
@@ -621,6 +648,83 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <span className="text-xs text-faint">Locked after payment</span>
             )}
           </div>
+        </div>
+        {/* Client approval (Agency) */}
+        <div className="bg-ink-2 border border-rule rounded-xl p-6 mt-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="font-semibold text-paper mb-1 flex items-center gap-2">
+                Client approval
+                {userPlan !== 'agency' && <span className="text-[11px] font-semibold text-accent-text border border-accent/30 bg-accent-soft px-2 py-0.5 rounded-full">Agency</span>}
+              </h2>
+              <p className="text-faint text-sm">
+                {userPlan !== 'agency'
+                  ? 'Let clients approve a delivery or request changes, right from the portal.'
+                  : portal.approval_required
+                  ? 'Your client can approve this delivery or request changes once files are live.'
+                  : 'Turn on to ask your client to approve this delivery or request changes.'}
+              </p>
+            </div>
+            {userPlan !== 'agency' ? (
+              <Link href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">See Agency</Link>
+            ) : (
+              <button
+                onClick={handleToggleApproval}
+                disabled={savingApproval}
+                role="switch"
+                aria-checked={!!portal.approval_required}
+                aria-label="Ask client for approval"
+                style={{
+                  position: 'relative', display: 'inline-flex', alignItems: 'center',
+                  width: '48px', height: '28px', borderRadius: '9999px', flexShrink: 0,
+                  cursor: 'pointer', opacity: savingApproval ? 0.6 : 1,
+                  backgroundColor: portal.approval_required ? '#4ade80' : '#4a4557',
+                  border: 'none', transition: 'background-color 0.2s',
+                }}
+              >
+                <span style={{
+                  display: 'inline-block', width: '20px', height: '20px', borderRadius: '9999px',
+                  backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                  transform: portal.approval_required ? 'translateX(24px)' : 'translateX(4px)',
+                  transition: 'transform 0.2s',
+                }} />
+              </button>
+            )}
+          </div>
+
+          {userPlan === 'agency' && portal.approval_required && (
+            <div className="mt-4 border-t border-rule pt-4">
+              {portal.approval_status ? (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="flex items-center gap-2 text-sm text-paper">
+                      <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.approval_status === 'approved' ? 'bg-green-400' : 'bg-amber-400'}`} />
+                      <span className="font-semibold">{portal.approval_status === 'approved' ? 'Approved' : 'Changes requested'}</span>
+                      <span className="text-faint">
+                        {portal.approval_name ? `by ${portal.approval_name}` : 'by your client'}
+                        {portal.approval_at && ` · ${new Date(portal.approval_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
+                      </span>
+                    </p>
+                    <button onClick={handleResetApproval} disabled={savingApproval}
+                      className="text-xs text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3 py-1.5 rounded-lg disabled:opacity-50">
+                      Ask again
+                    </button>
+                  </div>
+                  {portal.approval_status === 'changes_requested' && portal.approval_note && (
+                    <p className="mt-3 whitespace-pre-line rounded-lg border border-rule bg-ink px-3.5 py-3 text-sm text-muted">{portal.approval_note}</p>
+                  )}
+                  {portal.approval_status === 'changes_requested' && (
+                    <p className="mt-2 text-xs text-faint">Made the changes? Update the files, then click Ask again so your client can review the new version.</p>
+                  )}
+                </>
+              ) : (
+                <p className="flex items-center gap-2 text-sm text-muted">
+                  <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-rule-3" />
+                  {portal.files_ready ? 'Waiting for your client to review' : 'Your client can review once files are live'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 
 // Listed on the Agency plan but not built yet: shown with a "Soon" tag
-const COMING_SOON = new Set(['Team member seats', 'White-label portal domain', 'Client approval workflows'])
+const COMING_SOON = new Set(['Team member seats', 'White-label portal domain'])
 
 function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null)
