@@ -29,11 +29,15 @@ export default function TeamCard({ plan }: { plan: string }) {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const [{ data: mine }, { data: onTeams }] = await Promise.all([
+      const [{ data: mine, error: mineError }, { data: onTeams, error: teamsError }] = await Promise.all([
         supabase.from('team_members').select('id, email, status, token, invited_at, joined_at').eq('owner_id', user.id).order('invited_at'),
         supabase.from('team_members').select('id, owner_id, owner_label').eq('member_id', user.id).eq('status', 'active'),
       ])
       if (!active) return
+      if (mineError || teamsError) {
+        console.error('[team] load failed', mineError?.message || teamsError?.message)
+        setError('Couldn’t load your team. Refresh the page, and contact support if it keeps happening.')
+      }
       setRows((mine || []) as Row[])
       setMemberships((onTeams || []) as Membership[])
       setLoaded(true)
@@ -88,7 +92,7 @@ export default function TeamCard({ plan }: { plan: string }) {
   const full = used >= TEAM_SEATS
 
   return (
-    <div className="mt-5 bg-ink-2 border border-rule rounded-xl p-6">
+    <div id="team" className="mt-5 bg-ink-2 border border-rule rounded-xl p-6 scroll-mt-16">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
         <h2 className="font-semibold text-paper flex items-center gap-2">
           Team
@@ -174,7 +178,7 @@ export default function TeamCard({ plan }: { plan: string }) {
         </ul>
       )}
 
-      {loaded && isAgency && rows.length === 0 && (
+      {loaded && isAgency && rows.length === 0 && !error && (
         <p className="text-sm text-faint">No teammates yet.</p>
       )}
 

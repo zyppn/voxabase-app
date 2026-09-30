@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 
 type Team = { owner_id: string; owner_label: string | null }
+type Mate = { id: string; email: string; status: 'pending' | 'active' }
 
 interface AppShellProps {
   counts: { all: number; active: number; completed: number }
@@ -45,17 +46,21 @@ export default function AppShell({
   // Agency teams this person belongs to (for the workspace switcher)
   const [teams, setTeams] = useState<Team[]>([])
   const [currentWs, setCurrentWs] = useState<string | null>(null)
+  // Your own teammates (Agency owners), for the sidebar's Team section
+  const [mates, setMates] = useState<Mate[]>([])
+  const [teamLoaded, setTeamLoaded] = useState(false)
   useEffect(() => {
     let active = true
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user || !active) return
-      const { data } = await supabase
-        .from('team_members')
-        .select('owner_id, owner_label')
-        .eq('member_id', user.id)
-        .eq('status', 'active')
+      const [{ data }, { data: mine }] = await Promise.all([
+        supabase.from('team_members').select('owner_id, owner_label').eq('member_id', user.id).eq('status', 'active'),
+        supabase.from('team_members').select('id, email, status').eq('owner_id', user.id).order('invited_at'),
+      ])
       if (!active) return
+      setMates((mine || []) as Mate[])
+      setTeamLoaded(true)
       const list = (data || []) as Team[]
       setTeams(list)
       const cookie = readWorkspaceCookie()
@@ -149,6 +154,58 @@ export default function AppShell({
             </button>
           ))}
         </nav>
+
+        {/* Team: who's in this workspace */}
+        {!collapsed && teamLoaded && (currentTeam || plan === 'agency') && (
+          <div className="mt-6 px-1">
+            <div className="flex items-center justify-between px-1.5 mb-2">
+              <span className="text-[11px] text-faint uppercase tracking-wide font-semibold">Team</span>
+              {!currentTeam && <a href="/settings#team" className="text-[11px] text-faint hover:text-paper">Manage</a>}
+            </div>
+            {currentTeam ? (
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2.5 px-1.5 py-1.5">
+                  <span className="w-6 h-6 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-[10px] font-bold text-paper flex-shrink-0">{(currentTeam.owner_label || 'T')[0].toUpperCase()}</span>
+                  <span className="text-[13px] text-paper/85 truncate flex-1">{currentTeam.owner_label || 'Team'}</span>
+                  <span className="text-[10px] text-faint">Owner</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-1.5 py-1.5">
+                  <span className="w-6 h-6 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-[10px] font-bold text-paper flex-shrink-0">{(email[0] || 'Y').toUpperCase()}</span>
+                  <span className="text-[13px] text-paper/85 truncate flex-1">{email}</span>
+                  <span className="text-[10px] text-faint">You</span>
+                </div>
+              </div>
+            ) : mates.length === 0 ? (
+              <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-2 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
+                <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
+                </span>
+                Invite a teammate
+              </a>
+            ) : (
+              <div className="flex flex-col gap-0.5">
+                {mates.map(m => (
+                  <div key={m.id} className="flex items-center gap-2.5 px-1.5 py-1.5" title={m.status === 'active' ? m.email : `${m.email} · invite sent`}>
+                    <span className="relative w-6 h-6 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-[10px] font-bold text-paper flex-shrink-0">
+                      {m.email[0].toUpperCase()}
+                      <span aria-hidden="true" className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-ink ${m.status === 'active' ? 'bg-green-400' : 'bg-amber-400'}`} />
+                    </span>
+                    <span className={`text-[13px] truncate flex-1 ${m.status === 'active' ? 'text-paper/85' : 'text-faint'}`}>{m.email}</span>
+                    {m.status === 'pending' && <span className="text-[10px] text-faint">Invited</span>}
+                  </div>
+                ))}
+                {mates.length < 4 && (
+                  <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
+                    <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
+                    </span>
+                    Invite
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mt-auto">
           {/* Storage */}
