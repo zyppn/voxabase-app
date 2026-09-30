@@ -298,7 +298,7 @@ function SettingsContent() {
         )}
 
         {/* Two-column grid */}
-        <div className="grid lg:grid-cols-2 gap-5 items-start">
+        <div className="grid lg:grid-cols-2 gap-5 items-stretch">
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
@@ -331,10 +331,10 @@ function SettingsContent() {
               </div>
             </div>
 
-            {/* Email */}
-            <div className="bg-ink-2 border border-rule rounded-2xl p-6">
+            {/* Email: stretches so both columns end on the same line */}
+            <div className="bg-ink-2 border border-rule rounded-2xl p-6 flex-1 flex flex-col">
               <h2 className="font-semibold text-paper mb-5">Email address</h2>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 flex-1">
                 <div>
                   <label className="text-sm text-muted mb-1.5 block">Email</label>
                   <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
@@ -350,7 +350,7 @@ function SettingsContent() {
                   </div>
                 )}
                 <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email || !emailPassword}
-                  className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
+                  className="mt-auto w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
                   {changingEmail ? 'Sending...' : 'Update email'}
                 </button>
               </div>
