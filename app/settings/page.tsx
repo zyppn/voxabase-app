@@ -356,8 +356,6 @@ function SettingsContent() {
               </div>
             </div>
 
-            <TwoStepCard />
-            <SessionsCard />
           </div>
 
           {/* ── Right column: Custom branding ── */}
@@ -514,6 +512,12 @@ function SettingsContent() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── Security: two cards side by side ── */}
+        <div className="grid lg:grid-cols-2 gap-5 items-stretch mt-5">
+          <TwoStepCard />
+          <SessionsCard />
         </div>
 
         {/* ── Membership / Plan & Billing — full width ── */}

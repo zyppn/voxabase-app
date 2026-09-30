@@ -83,7 +83,7 @@ export default function TwoStepCard() {
   }
 
   return (
-    <div className="bg-ink-2 border border-rule rounded-2xl p-6">
+    <div className="bg-ink-2 border border-rule rounded-2xl p-6 flex flex-col">
       <div className="flex items-center justify-between gap-3 mb-2">
         <h2 className="font-semibold text-paper">Two-step verification</h2>
         {loaded && (
@@ -92,7 +92,7 @@ export default function TwoStepCard() {
           </span>
         )}
       </div>
-      <p className="text-sm text-muted mb-5">
+      <p className="text-sm text-muted mb-5 flex-grow">
         Ask for a 6-digit code from an authenticator app (Google Authenticator, 1Password, Authy) when you sign in.
       </p>
 
