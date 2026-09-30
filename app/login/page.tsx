@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -11,8 +11,48 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [unconfirmed, setUnconfirmed] = useState(false)
   const [resend, setResend] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+  const [mfaFactor, setMfaFactor] = useState<string | null>(null)
+  const [mfaCode, setMfaCode] = useState('')
   const router = useRouter()
   const supabase = createClient()
+
+  // Accounts with two-step verification need a code after the password
+  const needsSecondStep = async () => {
+    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2') {
+      const { data: factors } = await supabase.auth.mfa.listFactors()
+      const id = factors?.totp?.[0]?.id
+      if (id) { setMfaFactor(id); return true }
+    }
+    return false
+  }
+
+  useEffect(() => {
+    // Sent here from a protected page: already signed in, only the code is missing
+    if (new URLSearchParams(window.location.search).get('mfa') !== '1') return
+    let active = true
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(async ({ data }) => {
+      if (!active || !data || data.nextLevel !== 'aal2' || data.currentLevel === 'aal2') return
+      const { data: factors } = await supabase.auth.mfa.listFactors()
+      const id = factors?.totp?.[0]?.id
+      if (active && id) setMfaFactor(id)
+    })
+    return () => { active = false }
+  }, [supabase])
+
+  const handleMfa = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mfaFactor) return
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfaFactor, code: mfaCode.trim() })
+    if (error) {
+      setError('That code didn’t match. Use the newest code from your authenticator app.')
+      setLoading(false)
+    } else {
+      router.push('/dashboard')
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,6 +68,8 @@ export default function LoginPage() {
       } else {
         setError('Invalid email or password. Please try again.')
       }
+      setLoading(false)
+    } else if (await needsSecondStep()) {
       setLoading(false)
     } else {
       router.push('/dashboard')
@@ -54,6 +96,26 @@ export default function LoginPage() {
           <p className="text-muted text-sm">Sign in to your Voxabase account</p>
         </div>
 
+        {mfaFactor ? (
+        <form onSubmit={handleMfa} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
+          {error && <div role="alert" className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
+          <div>
+            <h2 className="text-paper font-semibold mb-1">Enter your verification code</h2>
+            <p className="text-sm text-muted">Open your authenticator app and enter the 6-digit code for Voxabase.</p>
+          </div>
+          <div>
+            <label htmlFor="mfa-code" className="text-sm text-muted mb-1.5 block">6-digit code</label>
+            <input id="mfa-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} autoFocus value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))} placeholder="123456"
+              className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm tracking-[0.3em]" />
+          </div>
+          <button type="submit" disabled={loading || mfaCode.length !== 6}
+            className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm">
+            {loading ? 'Verifying...' : 'Verify and sign in'}
+          </button>
+          <p className="text-center text-faint text-xs">Lost your authenticator? Email <a href="mailto:support@voxabase.com" className="text-accent-text hover:underline">support@voxabase.com</a> from your account email.</p>
+        </form>
+        ) : (
         <form onSubmit={handleLogin} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
           {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
           {unconfirmed && (
@@ -110,6 +172,7 @@ export default function LoginPage() {
             <Link href="/signup" className="text-accent-text hover:underline font-medium">Create one</Link>
           </p>
         </form>
+        )}
       </div>
     </main>
   )

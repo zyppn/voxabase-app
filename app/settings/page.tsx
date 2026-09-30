@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import TwoStepCard from './TwoStepCard'
 import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -340,6 +341,8 @@ function SettingsContent() {
                 </button>
               </div>
             </div>
+
+            <TwoStepCard />
           </div>
 
           {/* ── Right column: Custom branding ── */}
