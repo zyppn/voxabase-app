@@ -43,9 +43,10 @@ function PricingContent() {
       const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
       const { data: allPortals } = await supabase
         .from('portals')
-        .select('invoice_amount, invoice_paid')
+        .select('invoice_amount, invoice_paid, team_shared')
         .eq('user_id', sideWs.ownerId)
-      const all = allPortals || []
+      // Only the current workspace's portals (Team or Personal)
+      const all = (allPortals || []).filter(p => sideWs.shared === null || p.team_shared === sideWs.shared)
       const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
       const label = profile?.business_name || profile?.full_name || 'Your'
       const init = (() => {

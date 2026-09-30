@@ -21,6 +21,8 @@ export default function NewPortalPage() {
   const [username, setUsername] = useState('')
   const [plan, setPlan] = useState('free')
   const [ownerId, setOwnerId] = useState<string | null>(null)
+  // Created in the Team workspace → shared with the team
+  const [inTeam, setInTeam] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [profileLoading, setProfileLoading] = useState(true)
@@ -43,6 +45,7 @@ export default function NewPortalPage() {
       // Portals are created in the current workspace (yours, or your Agency team's)
       const ws = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
       setOwnerId(ws.ownerId)
+      setInTeam(ws.shared === true)
       const profile = ws.owner
       const me = ws.me
       if (profile?.username) setUsername(profile.username)
@@ -51,9 +54,10 @@ export default function NewPortalPage() {
       // Sidebar data
       const { data: allPortals } = await supabase
         .from('portals')
-        .select('invoice_amount, invoice_paid')
+        .select('invoice_amount, invoice_paid, team_shared')
         .eq('user_id', ws.ownerId)
-      const all = allPortals || []
+      // Only the current workspace's portals (Team or Personal)
+      const all = (allPortals || []).filter(p => ws.shared === null || p.team_shared === ws.shared)
       const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: ws.ownerId })
       const label = me?.business_name || me?.full_name || 'Your'
       const init = (() => {
@@ -121,6 +125,7 @@ export default function NewPortalPage() {
       owner_username: username,
       invoice_amount: invoiceAmount ? parseFloat(invoiceAmount) : null,
       password_protected: !!password,
+      team_shared: inTeam,
     }).select('id').single()
     if (error || !created) { setError(error?.message || 'Could not create the portal. Please try again.'); setLoading(false); return }
     // The password goes in a private table only the owner and team can read

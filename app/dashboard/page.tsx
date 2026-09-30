@@ -15,11 +15,10 @@ export default async function DashboardPage() {
   const ws = await loadWorkspace(supabase, user.id, cookieStore.get(WS_COOKIE)?.value)
   const profile = ws.owner
 
-  const { data: portals } = await supabase
-    .from('portals')
-    .select('*')
-    .eq('user_id', ws.ownerId)
-    .order('created_at', { ascending: false })
+  // Team workspace: shared portals. Personal (Agency owner): the rest.
+  let portalQuery = supabase.from('portals').select('*').eq('user_id', ws.ownerId)
+  if (ws.shared !== null) portalQuery = portalQuery.eq('team_shared', ws.shared)
+  const { data: portals } = await portalQuery.order('created_at', { ascending: false })
 
   const portalIds = portals?.map(p => p.id) || []
   const { data: views } = portalIds.length > 0
@@ -66,7 +65,9 @@ export default async function DashboardPage() {
       totalPaid={totalPaid}
       hasFiles={(fileCount || 0) > 0}
       portalHost={liveDomain?.domain ?? null}
-      teamName={ws.isOwner ? null : (profile?.business_name || profile?.full_name || profile?.username || 'Team')}
+      teamName={ws.shared ? (profile?.business_name || profile?.full_name || profile?.username || 'Team') : null}
+      isOwner={ws.isOwner}
+      personalSplit={ws.shared === false}
     />
   )
 }

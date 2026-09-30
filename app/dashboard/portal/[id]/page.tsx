@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PortalDetailSkeleton from './PortalDetailSkeleton'
 import AppShell from '../../AppShell'
-import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import { loadWorkspace, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 
 interface Portal {
   id: string
@@ -20,6 +20,7 @@ interface Portal {
   owner_username: string
   files_ready: boolean
   password_protected: boolean
+  team_shared: boolean
   approval_required?: boolean | null
   approval_status?: 'approved' | 'changes_requested' | null
   approval_note?: string | null
@@ -60,6 +61,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [savingApproval, setSavingApproval] = useState(false)
   // Teammates work in the owner's workspace; only the owner can delete a portal
   const [isOwner, setIsOwner] = useState(true)
+  // Moving between Personal and Team
+  const [myTeams, setMyTeams] = useState<{ owner_id: string; owner_label: string | null; owner_username: string }[]>([])
+  const [moveTarget, setMoveTarget] = useState<{ owner_id: string; owner_label: string | null; owner_username: string } | null>(null)
+  const [moving, setMoving] = useState(false)
+  const [moveError, setMoveError] = useState('')
   // Agency white-label domain, once live: share links use it
   const [liveDomain, setLiveDomain] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
@@ -90,6 +96,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       const profileData = ws.me
       if (ws.owner?.plan) setUserPlan(ws.owner.plan)
       setIsOwner(ws.isOwner)
+      if (ws.isOwner) {
+        const { data: tm } = await supabase.from('team_members').select('owner_id, owner_label, owner_username').eq('member_id', user.id).eq('status', 'active')
+        setMyTeams(tm || [])
+      }
       if (ws.owner?.plan === 'agency') {
         const { data: cd } = await supabase.from('custom_domains').select('domain').eq('owner_id', ws.ownerId).eq('verified', true).maybeSingle()
         setLiveDomain(cd?.domain ?? null)
@@ -129,9 +139,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       // Sidebar data: all portals (counts) + storage
       const { data: allPortals } = await supabase
         .from('portals')
-        .select('invoice_amount, invoice_paid')
+        .select('invoice_amount, invoice_paid, team_shared')
         .eq('user_id', ws.ownerId)
-      const all = allPortals || []
+      // Only the current workspace's portals (Team or Personal)
+      const all = (allPortals || []).filter(p => ws.shared === null || p.team_shared === ws.shared)
       const activeCount = all.filter(p => !p.invoice_paid || !p.invoice_amount).length
       const completedCount = all.filter(p => p.invoice_paid && p.invoice_amount).length
 
@@ -178,6 +189,31 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const { error } = await supabase.from('portals').update({ approval_required: next }).eq('id', portal.id)
     if (!error) setPortal({ ...portal, approval_required: next })
     setSavingApproval(false)
+  }
+
+  // Owner (Agency): flip a portal between Personal and Team. Link and files stay the same.
+  const handleToggleShared = async () => {
+    if (!portal) return
+    setMoving(true); setMoveError('')
+    const next = !portal.team_shared
+    const { error } = await supabase.from('portals').update({ team_shared: next }).eq('id', portal.id)
+    if (error) { setMoving(false); setMoveError('Could not move the portal. Please try again.'); return }
+    setWorkspaceCookie(next ? portal.user_id : null)
+    window.location.assign(`/dashboard/portal/${portal.id}`)
+  }
+
+  // Teammate: move one of your own portals into a Team (it becomes the owner's)
+  const handleMoveToTeam = async () => {
+    if (!portal || !moveTarget) return
+    setMoving(true); setMoveError('')
+    const res = await fetch('/api/portals/move', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portalId: portal.id, toOwnerId: moveTarget.owner_id }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) { setMoving(false); setMoveError(data.error || 'Could not move the portal. Please try again.'); return }
+    setWorkspaceCookie(moveTarget.owner_id)
+    window.location.assign(`/dashboard/portal/${portal.id}`)
   }
 
   const handleResetApproval = async () => {
@@ -453,9 +489,21 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             {moreOpen && (
               <>
                 <button aria-hidden="true" tabIndex={-1} className="fixed inset-0 z-20 cursor-default" onClick={() => setMoreOpen(false)} />
-                <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-48 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
+                <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-56 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
                   <a role="menuitem" href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
                     className="block text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Open client view</a>
+                  {isOwner && userPlan === 'agency' && (
+                    <button role="menuitem" onClick={() => { setMoreOpen(false); handleToggleShared() }} disabled={moving}
+                      className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">
+                      {portal.team_shared ? 'Move to Personal' : 'Move to Team'}
+                    </button>
+                  )}
+                  {isOwner && myTeams.map(t => (
+                    <button key={t.owner_id} role="menuitem" onClick={() => { setMoreOpen(false); setMoveError(''); setMoveTarget(t) }}
+                      className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2 truncate">
+                      Move to {t.owner_label || 'Team'} · Team
+                    </button>
+                  ))}
                   {isOwner && (
                   <button role="menuitem" onClick={() => { setMoreOpen(false); setShowDeleteModal(true) }}
                     className="w-full text-left text-sm text-red-400 hover:bg-red-400/10 rounded-lg px-3 py-2">Delete portal</button>
@@ -806,6 +854,33 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
+      )}
+
+      {/* Move a personal portal into a Team (teammates) */}
+      {moveTarget && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="move-title" className="bg-ink-2 border border-rule-2 rounded-xl p-6 w-full max-w-md">
+            <h2 id="move-title" className="text-lg font-bold text-paper mb-2">Move to {moveTarget.owner_label || 'the team'}?</h2>
+            <p className="text-sm text-muted mb-3">“{portal.name}” will belong to {moveTarget.owner_label || 'the team'} and appear in its Team workspace, where you can keep working on it.</p>
+            <ul className="text-sm text-muted mb-5 flex flex-col gap-1.5 list-disc pl-5">
+              <li>The link changes to <span className="text-paper">voxabase.com/{moveTarget.owner_username}/…</span> and the current link stops working.</li>
+              <li>Invoice payments go to {moveTarget.owner_label || 'the team'}’s Stripe account.</li>
+              <li>You can’t move it back yourself; the team owner can.</li>
+            </ul>
+            {moveError && <p role="alert" className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3 mb-4">{moveError}</p>}
+            <div className="flex gap-2.5">
+              <button onClick={() => setMoveTarget(null)} disabled={moving}
+                className="flex-1 border border-rule-2 hover:border-rule-3 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
+              <button onClick={handleMoveToTeam} disabled={moving}
+                className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+                {moving ? 'Moving…' : 'Move portal'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {moveError && !moveTarget && (
+        <div role="alert" className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 text-red-400 text-sm bg-ink-2 border border-red-400/30 rounded-lg px-4 py-3 shadow-xl">{moveError}</div>
       )}
 
       {/* Delete portal confirmation */}

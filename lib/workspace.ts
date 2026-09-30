@@ -1,5 +1,8 @@
-// Workspaces: everyone has their own, and Agency teammates can also switch into
-// the owner's. The choice lives in a cookie so server and client pages agree.
+// Workspaces. Everyone has a Personal one. An Agency owner also has a Team one,
+// and teammates can switch into their owner's Team. Both of an owner's
+// workspaces hold that owner's portals: shared ones (team_shared) are Team,
+// the rest Personal. The choice lives in a cookie (the Team owner's id, or
+// empty for Personal) so server and client pages agree.
 // Access itself is enforced by the database (see supabase/migrations/*_team_seats.sql);
 // this only decides whose data a page shows.
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -23,6 +26,8 @@ export interface Workspace {
   /** Whose portals, files and plan this page works with. */
   ownerId: string
   isOwner: boolean
+  /** true: Team workspace, false: Personal of an Agency owner, null: no split (not on Agency) */
+  shared: boolean | null
   owner: WorkspaceProfile | null
   me: WorkspaceProfile | null
 }
@@ -45,6 +50,8 @@ export function setWorkspaceCookie(ownerId: string | null) {
  */
 export async function loadWorkspace(supabase: SupabaseClient, userId: string, preferred: string | null | undefined): Promise<Workspace> {
   const { data: me } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', userId).single()
+  const iAmAgency = me?.plan === 'agency'
+  if (preferred === userId && iAmAgency) return { ownerId: userId, isOwner: true, shared: true, owner: me, me }
   if (preferred && preferred !== userId) {
     const { data: membership } = await supabase
       .from('team_members')
@@ -55,8 +62,8 @@ export async function loadWorkspace(supabase: SupabaseClient, userId: string, pr
       .maybeSingle()
     if (membership) {
       const { data: owner } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', preferred).maybeSingle()
-      if (owner && owner.plan === 'agency') return { ownerId: preferred, isOwner: false, owner, me }
+      if (owner && owner.plan === 'agency') return { ownerId: preferred, isOwner: false, shared: true, owner, me }
     }
   }
-  return { ownerId: userId, isOwner: true, owner: me, me }
+  return { ownerId: userId, isOwner: true, shared: iAmAgency ? false : null, owner: me, me }
 }
