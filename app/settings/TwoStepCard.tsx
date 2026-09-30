@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { verifyPassword } from '@/lib/verifyPassword'
+import CodeInput from '@/app/_components/CodeInput'
 
 type Enrolling = { factorId: string; qr: string; secret: string }
 
@@ -52,16 +53,20 @@ export default function TwoStepCard() {
     setCode('')
   }
 
-  const verify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!enrolling) return
+  const confirmCode = async (value: string) => {
+    if (!enrolling || busy) return
     setBusy(true); setError('')
-    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: enrolling.factorId, code: code.trim() })
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: enrolling.factorId, code: value })
     setBusy(false)
-    if (error) { setError('That code didn’t match. Check your app and try the newest code.'); return }
+    if (error) { setError('That code didn’t match. Try the newest one.'); setCode(''); return }
     setEnrolling(null)
     setNotice('Two-step verification is on. You’ll enter a code from your app when you sign in.')
     await load()
+  }
+
+  const verify = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (code.length === 6) confirmCode(code)
   }
 
   const cancel = async () => {
@@ -113,10 +118,10 @@ export default function TwoStepCard() {
             Can’t scan? Enter this key instead: <span className="font-mono text-paper break-all select-all">{enrolling.secret}</span>
           </p>
           <div>
-            <label htmlFor="totp-code" className="text-sm text-muted mb-1.5 block">6-digit code</label>
-            <input id="totp-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="123456"
-              className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm tracking-[0.3em]" />
+            <p className="text-sm text-muted mb-2">6-digit code</p>
+            <CodeInput id="totp-code" label="6-digit code from your authenticator app" value={code}
+              onChange={(v) => { setCode(v); if (error) setError('') }} onComplete={confirmCode}
+              disabled={busy} invalid={!!error} />
           </div>
           <div className="flex gap-2.5">
             <button type="submit" disabled={busy || code.length !== 6}
