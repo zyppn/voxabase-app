@@ -865,7 +865,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             <ul className="text-sm text-muted mb-5 flex flex-col gap-1.5 list-disc pl-5">
               <li>The link changes to <span className="text-paper">voxabase.com/{moveTarget.owner_username}/…</span> and the current link stops working.</li>
               <li>Invoice payments go to {moveTarget.owner_label || 'the team'}’s Stripe account.</li>
-              <li>You can’t move it back yourself; the team owner can.</li>
+              <li>You can’t move it back to your workspace.</li>
             </ul>
             {moveError && <p role="alert" className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3 mb-4">{moveError}</p>}
             <div className="flex gap-2.5">
