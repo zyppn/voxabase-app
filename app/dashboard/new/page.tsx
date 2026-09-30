@@ -155,7 +155,7 @@ export default function NewPortalPage() {
           <h1 className="text-2xl font-bold mb-2 tracking-tight">Create a new portal</h1>
           <p className="text-muted text-sm mb-8">Your client will see this page when you share the link</p>
 
-          <form onSubmit={handleSubmit} className="bg-ink-2 border border-rule rounded-2xl p-8 flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-5">
             {error && (
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
@@ -172,7 +172,7 @@ export default function NewPortalPage() {
                 value={name}
                 onChange={handleNameChange}
                 required
-                className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                 placeholder="e.g. Harbor Coffee — Brand refresh"
               />
             </div>
@@ -216,7 +216,7 @@ export default function NewPortalPage() {
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                 placeholder="A short note your client will see"
               />
             </div>
@@ -248,7 +248,7 @@ export default function NewPortalPage() {
                     type="text"
                     value={portalPassword}
                     onChange={(e) => setPortalPassword(e.target.value)}
-                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Leave blank for no password"
                   />
                   <p className="text-xs text-faint mt-1">Clients must enter this password to view the portal</p>
@@ -266,7 +266,7 @@ export default function NewPortalPage() {
             <button
               type="submit"
               disabled={loading || !name}
-              className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 text-sm"
+              className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 mt-2 text-sm"
             >
               {loading ? 'Creating...' : 'Create portal'}
             </button>

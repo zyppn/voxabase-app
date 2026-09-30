@@ -75,7 +75,7 @@ export default function AppShell({
   const storageAnim = mounted ? 'transition-all duration-200' : ''
 
   return (
-    <div className="min-h-screen bg-ink text-paper flex">
+    <div className="vb-app min-h-screen bg-ink text-paper flex">
       {/* ── Sidebar ── */}
       <aside className={`hidden lg:flex flex-col border-r border-rule fixed inset-y-0 left-0 py-5 px-3 ${animate} ${railW}`}>
         {/* Header: logo + collapse toggle */}
@@ -93,7 +93,7 @@ export default function AppShell({
           {/* New Portal */}
           <a href="/dashboard/new" title="New Portal"
             className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-paper/85 hover:text-paper hover:bg-ink-2 overflow-hidden">
-            <svg className="w-5 h-5 text-accent-text flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            <svg className="w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
             <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
           </a>
 
@@ -117,7 +117,7 @@ export default function AppShell({
               <span className="text-[11px] text-faint">{formatBytes(usedBytes)} / {limitLabel}</span>
             </div>
             <div className="w-full bg-ink-3 rounded-full h-1">
-              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-accent'}`} style={{ width: `${storagePercent}%` }} />
+              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-amber-400' : 'bg-paper/70'}`} style={{ width: `${storagePercent}%` }} />
             </div>
             {plan === 'free' && <a href="/pricing" className="text-[11px] text-accent-text hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
           </div>
@@ -157,7 +157,7 @@ export default function AppShell({
 
             <button onClick={() => setMenuOpen(o => !o)} title={collapsed ? displayLabel : undefined}
               className={`w-full flex items-center gap-3 px-1.5 py-1.5 rounded-xl overflow-hidden ${menuOpen ? 'bg-ink-3' : 'hover:bg-ink-2'}`}>
-              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-ink-3 border border-rule-2 flex items-center justify-center flex-shrink-0">
                 <span className="text-paper text-xs font-bold">{initials}</span>
               </div>
               <div className={`min-w-0 flex-1 text-left whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>

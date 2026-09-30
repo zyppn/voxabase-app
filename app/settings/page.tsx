@@ -246,7 +246,7 @@ function SettingsContent() {
   }
 
   const planLabel = plan === 'pro' ? 'Pro' : plan === 'agency' ? 'Agency' : 'Free'
-  const planColor = plan === 'free' ? 'text-muted' : plan === 'agency' ? 'text-yellow-400' : 'text-accent-text'
+  const planColor = plan === 'free' ? 'text-muted' : 'text-paper'
   const isPro = plan === 'pro' || plan === 'agency'
 
   const formatDate = (dateStr: string) => {
@@ -284,7 +284,7 @@ function SettingsContent() {
         <p className="text-muted text-sm mb-7">Manage your profile, branding, and billing</p>
 
         {successMessage && (
-          <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
+          <div className="bg-ink-2 border border-rule text-paper text-sm rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
             <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
@@ -302,19 +302,19 @@ function SettingsContent() {
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
-            <div className="bg-ink-2 border border-rule rounded-2xl p-6">
+            <div className="bg-ink-2 border border-rule rounded-xl p-6">
               <h2 className="font-semibold text-paper mb-5">Profile</h2>
               <div className="flex flex-col gap-4">
                 <div>
                   <label className="text-sm text-muted mb-1.5 block">Full name</label>
                   <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your full name" />
                 </div>
                 <div>
                   <label className="text-sm text-muted mb-1.5 block">Business name <span className="text-faint">(optional)</span></label>
                   <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your studio or business name" />
                 </div>
                 <div>
@@ -325,20 +325,20 @@ function SettingsContent() {
                   </div>
                 </div>
                 <button onClick={handleSaveProfile} disabled={saving}
-                  className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 text-sm mt-1">
+                  className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm mt-1">
                   {saving ? 'Saving...' : 'Save changes'}
                 </button>
               </div>
             </div>
 
             {/* Email: stretches so both columns end on the same line */}
-            <div className="bg-ink-2 border border-rule rounded-2xl p-6 flex-1 flex flex-col">
+            <div className="bg-ink-2 border border-rule rounded-xl p-6 flex-1 flex flex-col">
               <h2 className="font-semibold text-paper mb-5">Email address</h2>
               <div className="flex flex-col gap-4 flex-1">
                 <div>
                   <label className="text-sm text-muted mb-1.5 block">Email</label>
                   <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
                   <p className="text-xs text-faint mt-1.5">You'll receive a confirmation email at the new address</p>
                 </div>
                 <div>
@@ -348,10 +348,10 @@ function SettingsContent() {
                   <input id="email-password" type="password" autoComplete="current-password" value={emailPassword}
                     onChange={(e) => setEmailPassword(e.target.value)} disabled={newEmail === email}
                     placeholder={newEmail === email ? 'Edit your email above first' : "Confirm it's you"}
-                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm disabled:opacity-50 disabled:cursor-not-allowed" />
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm disabled:opacity-50 disabled:cursor-not-allowed" />
                 </div>
                 <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email || !emailPassword}
-                  className="mt-auto w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
+                  className="mt-auto w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-2.5 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
                   {changingEmail ? 'Sending...' : 'Update email'}
                 </button>
               </div>
@@ -360,14 +360,14 @@ function SettingsContent() {
           </div>
 
           {/* ── Right column: Custom branding ── */}
-          <div className="bg-ink-2 border border-rule rounded-2xl p-6 relative overflow-hidden">
+          <div className="bg-ink-2 border border-rule rounded-xl p-6 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-paper">Custom branding</h2>
                 <p className="text-faint text-xs mt-0.5">Your logo and accent color on every portal</p>
               </div>
               {!isPro && (
-                <span className="text-[11px] bg-accent-soft text-accent-text border border-accent/30 px-2.5 py-1 rounded-full font-semibold">Pro</span>
+                <span className="text-[11px] text-accent-text border border-accent/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
               )}
             </div>
 
@@ -494,7 +494,7 @@ function SettingsContent() {
               </div>
 
               <button onClick={handleSaveBranding} disabled={savingBrand}
-                className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+                className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
                 {savingBrand ? 'Saving...' : 'Save branding'}
               </button>
             </div>
@@ -502,8 +502,8 @@ function SettingsContent() {
             {/* Free overlay */}
             {!isPro && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 bg-ink-2/40 backdrop-blur-[2px]">
-                <div className="w-12 h-12 rounded-2xl bg-accent-soft border border-accent/30 flex items-center justify-center mb-3">
-                  <svg className="w-6 h-6 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <div className="w-12 h-12 rounded-xl bg-ink-2 border border-rule flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                   </svg>
                 </div>
@@ -522,18 +522,18 @@ function SettingsContent() {
         </div>
 
         {/* ── Membership / Plan & Billing — full width ── */}
-        <div className="mt-5 bg-ink-2 border border-rule rounded-2xl p-6">
+        <div className="mt-5 bg-ink-2 border border-rule rounded-xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-accent/10 border border-accent/20' : 'bg-ink-3 border border-rule'}`}>
-                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-accent-text' : 'text-faint'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-ink-3 border border-rule-2`}>
+                <svg className={`w-6 h-6 text-muted`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                 </svg>
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <p className="text-lg font-bold text-paper">{planLabel} plan</p>
-                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-accent/10 text-accent-text'}`}>Active</span>}
+                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border border-rule-2 text-muted`}>Active</span>}
                 </div>
                 {plan === 'free' ? (
                   <p className="text-faint text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>

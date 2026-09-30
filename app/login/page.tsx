@@ -106,7 +106,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
+    <main className="vb-app min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
@@ -117,8 +117,8 @@ export default function LoginPage() {
 
         {mfaFactor ? (
         <form onSubmit={handleMfa} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col items-center text-center">
-          <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/25 flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24" aria-hidden="true">
+          <div className="w-12 h-12 rounded-full bg-ink-3 border border-rule-2 flex items-center justify-center mb-4">
+            <svg className="w-6 h-6 text-muted" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
             </svg>
@@ -132,7 +132,7 @@ export default function LoginPage() {
             {error ? <p className="text-red-400">{error}</p> : loading ? <p className="text-muted">Verifying…</p> : null}
           </div>
           <button type="submit" disabled={loading || mfaCode.length !== 6}
-            className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 mt-2 text-sm">
+            className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-2 text-sm">
             {loading ? 'Verifying...' : 'Verify and sign in'}
           </button>
           <div className="w-full flex items-center justify-between gap-3 mt-5 pt-5 border-t border-rule text-xs">
@@ -144,10 +144,10 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
           {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
           {signedOutNote && !error && (
-            <div role="status" className="text-sm bg-accent/10 border border-accent/25 rounded-lg p-3 text-paper">{signedOutNote}</div>
+            <div role="status" className="text-sm bg-ink-3 border border-rule-2 rounded-lg p-3 text-paper">{signedOutNote}</div>
           )}
           {unconfirmed && (
-            <div role="status" className="text-sm bg-accent/10 border border-accent/25 rounded-lg p-3 text-paper">
+            <div role="status" className="text-sm bg-ink-3 border border-rule-2 rounded-lg p-3 text-paper">
               <p>Please confirm your email first. We sent a confirmation link to <span className="font-semibold">{email}</span> when you signed up.</p>
               {resend === 'sent' ? (
                 <p className="mt-2 text-accent-text">New link sent. Check your inbox (and spam).</p>
@@ -170,7 +170,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
+              className="w-full bg-ink border border-rule rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
               placeholder="you@example.com"
             />
           </div>
@@ -184,14 +184,14 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
+              className="w-full bg-ink border border-rule rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
               placeholder="Your password"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
+            className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>

@@ -144,7 +144,7 @@ export default function StripeSetupContent() {
               <p className="text-muted text-sm mb-8">
                 Your clients can now pay invoices directly to your bank account. Payments arrive within 2 business days.
               </p>
-              <div className="bg-ink-2 border border-green-400/20 rounded-2xl p-5 mb-6 text-left">
+              <div className="bg-ink-2 border border-green-400/20 rounded-xl p-5 mb-6 text-left">
                 {[
                   'Clients pay invoices on your portals',
                   'Funds go directly to your bank account',
@@ -183,8 +183,8 @@ export default function StripeSetupContent() {
             </div>
           ) : (
             <div className="text-center">
-              <div className="w-16 h-16 bg-accent-soft border border-accent/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-ink-3 border border-rule-2 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
               </div>
@@ -192,7 +192,7 @@ export default function StripeSetupContent() {
               <p className="text-muted text-sm mb-8">
                 Connect Stripe so your clients can pay invoices directly to your bank. Takes about 5 minutes.
               </p>
-              <div className="bg-ink-2 border border-rule rounded-2xl p-6 mb-6 text-left">
+              <div className="bg-ink-2 border border-rule rounded-xl p-6 mb-6 text-left">
                 {[
                   'Client payments go directly to your bank',
                   'Stripe handles all payment security',
@@ -200,8 +200,8 @@ export default function StripeSetupContent() {
                   'Voxabase never touches your funds',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">
-                    <div className="w-5 h-5 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-accent-text" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <div className="w-5 h-5 rounded-full bg-ink-3 border border-rule-2 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-muted" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
@@ -212,7 +212,7 @@ export default function StripeSetupContent() {
               <button
                 onClick={handleConnect}
                 disabled={loading}
-                className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
+                className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
               >
                 {loading ? (
                   <>

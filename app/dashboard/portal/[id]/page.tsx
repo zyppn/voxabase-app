@@ -462,9 +462,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         </div>
 
         {/* Files ready toggle */}
-        <div className={`rounded-xl border p-5 mb-4 flex items-center justify-between ${portal.files_ready ? 'bg-green-400/5 border-green-400/20' : 'bg-ink-2 border-rule'}`}>
+        <div className="rounded-xl border border-rule bg-ink-2 p-5 mb-4 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-paper text-sm">{portal.files_ready ? 'Files are live' : 'Files not ready yet'}</p>
+            <p className="font-semibold text-paper text-sm flex items-center gap-2">
+              <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.files_ready ? 'bg-green-400' : 'bg-amber-400'}`} />
+              {portal.files_ready ? 'Files are live' : 'Files not ready yet'}
+            </p>
             <p className="text-xs text-faint mt-0.5">
               {!canToggleReady
                 ? 'Upload at least one file before marking as ready'
@@ -532,8 +535,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
           >
             {files.length === 0 ? (
               <div className="px-6 py-16 text-center cursor-pointer hover:bg-accent-soft/10" onClick={() => fileInputRef.current?.click()}>
-                <div className="w-12 h-12 bg-accent-soft border border-accent/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-ink-3 border border-rule-2 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                   </svg>
                 </div>
@@ -556,7 +559,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
                         </svg>
                       </div>
-                      <div className="w-9 h-9 bg-accent-soft border border-accent/20 rounded-lg flex items-center justify-center text-[10px] font-bold text-accent-text flex-shrink-0">
+                      <div className="w-9 h-9 bg-ink-3 border border-rule-2 rounded-lg flex items-center justify-center text-[10px] font-bold text-accent-text flex-shrink-0">
                         {fileLabel(file)}
                       </div>
                       <div className="min-w-0">
@@ -600,7 +603,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   <span className="text-2xl font-bold text-paper tracking-tight">
                     ${Number(portal.invoice_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${portal.invoice_paid ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted">
+                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.invoice_paid ? 'bg-green-400' : 'bg-amber-400'}`} />
                     {portal.invoice_paid ? 'Paid' : 'Awaiting payment'}
                   </span>
                 </div>
@@ -623,18 +627,18 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       {/* Edit Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-ink-2 border border-rule-2 rounded-2xl p-8 w-full max-w-md">
+          <div className="bg-ink-2 border border-rule-2 rounded-xl p-8 w-full max-w-md">
             <h2 className="text-lg font-bold mb-6">Edit portal</h2>
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-muted mb-1.5 block">Portal name</label>
                 <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper focus:outline-none focus:border-accent text-sm" />
+                  className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm" />
               </div>
               <div>
                 <label className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
                 <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper focus:outline-none focus:border-accent text-sm"
+                  className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm"
                   placeholder="Optional note for your client" />
               </div>
               <div>
@@ -658,7 +662,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 {isPro ? (
                   <>
                     <input type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
-                      className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper focus:outline-none focus:border-accent text-sm"
+                      className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm"
                       placeholder="Leave blank to remove password" />
                     <p className="text-xs text-faint mt-1">Clients must enter this password to view the portal</p>
                   </>
@@ -685,7 +689,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       {/* Delete portal confirmation */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-ink-2 border border-rule-2 rounded-2xl p-8 w-full max-w-md">
+          <div className="bg-ink-2 border border-rule-2 rounded-xl p-8 w-full max-w-md">
             <h2 className="text-lg font-bold mb-2">Delete this portal?</h2>
             <p className="text-muted text-sm mb-6">
               This will permanently delete <span className="text-paper font-medium">{portal.name}</span> and all {files.length} file{files.length !== 1 ? 's' : ''}. This cannot be undone.
@@ -703,7 +707,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       {/* Delete file confirmation */}
       {deleteFileId && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-ink-2 border border-rule-2 rounded-2xl p-8 w-full max-w-md">
+          <div className="bg-ink-2 border border-rule-2 rounded-xl p-8 w-full max-w-md">
             <h2 className="text-lg font-bold mb-2">Delete this file?</h2>
             <p className="text-muted text-sm mb-6">
               <span className="text-paper">{files.find(f => f.id === deleteFileId)?.name}</span> will be permanently removed from this portal.

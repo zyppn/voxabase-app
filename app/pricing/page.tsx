@@ -240,7 +240,7 @@ function PricingContent() {
         {plans.map((plan) => (
           <div
             key={plan.key}
-            className={`rounded-2xl p-6 flex flex-col ${plan.featured ? 'bg-ink-2 border border-rule-2 shadow-[inset_0_2px_0_var(--color-accent-mark)]' : 'bg-ink-2 border border-rule'}`}
+            className={`rounded-xl p-6 flex flex-col ${plan.featured ? 'bg-ink-2 border border-rule-2 shadow-[inset_0_2px_0_var(--color-accent-mark)]' : 'bg-ink-2 border border-rule'}`}
           >
             {plan.featured && (
               <span className="text-[13px] font-semibold text-accent-text self-start mb-4">
@@ -248,7 +248,7 @@ function PricingContent() {
               </span>
             )}
             {currentPlan === plan.key && (
-              <span className="text-xs font-bold bg-green-400/10 text-green-400 border border-green-400/20 px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-paper border border-rule-2 px-2.5 py-1 rounded-full self-start mb-4"><span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-400" />
                 Current plan
               </span>
             )}
@@ -262,8 +262,8 @@ function PricingContent() {
             <ul className="flex flex-col gap-3 mb-8 flex-1">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-2.5 text-sm text-paper/85">
-                  <div className="w-4 h-4 rounded-full bg-accent/15 border border-accent/35 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-2.5 h-2.5 text-accent-text" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <div className="w-4 h-4 rounded-full bg-ink-3 border border-rule-2 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-2.5 h-2.5 text-muted" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>

@@ -18,7 +18,7 @@ export default function SessionsCard() {
   }
 
   return (
-    <div className="bg-ink-2 border border-rule rounded-2xl p-6 flex flex-col">
+    <div className="bg-ink-2 border border-rule rounded-xl p-6 flex flex-col">
       <h2 className="font-semibold text-paper mb-2">Sessions</h2>
       <p className="text-sm text-muted mb-5 flex-grow">
         You’re signed out automatically after {days} days without activity. Left your account open somewhere? Sign out of every device at once.
@@ -29,7 +29,7 @@ export default function SessionsCard() {
           <p className="text-sm text-paper">Sign out of all devices, including this one?</p>
           <div className="flex gap-2.5">
             <button type="button" onClick={signOutEverywhere} disabled={busy}
-              className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+              className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
               {busy ? 'Signing out...' : 'Yes, sign out everywhere'}
             </button>
             <button type="button" onClick={() => setConfirming(false)}
@@ -38,7 +38,7 @@ export default function SessionsCard() {
         </div>
       ) : (
         <button type="button" onClick={() => setConfirming(true)}
-          className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg text-sm">
+          className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-2.5 rounded-lg text-sm">
           Sign out of all devices
         </button>
       )}

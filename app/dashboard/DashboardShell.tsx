@@ -62,8 +62,8 @@ export default function DashboardShell({
   })()
 
   const planBadge =
-    plan === 'agency' ? { label: 'Agency', cls: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' } :
-    plan === 'pro' ? { label: 'Pro', cls: 'bg-accent/10 text-accent-text border-accent/20' } :
+    plan === 'agency' ? { label: 'Agency', cls: 'border-rule-2 text-muted' } :
+    plan === 'pro' ? { label: 'Pro', cls: 'border-accent/30 text-accent-text' } :
     { label: 'Free', cls: 'bg-ink-3 text-faint border-rule' }
 
   const baseList = filter === 'active' ? activePortals : filter === 'completed' ? completedPortals : portals
@@ -101,7 +101,7 @@ export default function DashboardShell({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-paper">Portals</h1>
-            <p className="text-faint text-sm mt-1">Your portals live at <span className="text-accent-text">voxabase.com/{username}/</span></p>
+            <p className="text-faint text-sm mt-1">Your portals live at <span className="text-muted">voxabase.com/{username}/</span></p>
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
@@ -120,10 +120,10 @@ export default function DashboardShell({
           linkShared={Object.values(viewMap).some((v) => v.count > 0)}
           latestPortalId={portals[0]?.id ?? null}
           fallback={!stripeConnected ? (
-          <div className="bg-accent-soft border border-accent/30 rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
+          <div className="bg-ink-2 border border-rule rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+              <div className="w-9 h-9 bg-ink-3 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
               </div>
               <div>
                 <p className="font-semibold text-paper text-sm">Connect Stripe to collect payments</p>
@@ -145,7 +145,7 @@ export default function DashboardShell({
           ].map((stat) => (
             <div key={stat.label} className="bg-ink-2 border border-rule rounded-xl px-5 py-4">
               <p className="text-[13px] text-muted mb-1">{stat.label}</p>
-              <p className={`text-2xl font-bold tracking-tight ${stat.green ? 'text-green-400' : 'text-paper'}`}>{stat.value}</p>
+              <p className={`text-2xl font-bold tracking-tight text-paper`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -186,8 +186,8 @@ export default function DashboardShell({
         {/* Portal list / table */}
         {shown.length === 0 ? (
           <div className="border border-dashed border-rule-2 rounded-xl p-14 text-center">
-            <div className="w-14 h-14 bg-accent-soft border border-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" /></svg>
+            <div className="w-14 h-14 bg-ink-3 border border-rule-2 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" /></svg>
             </div>
             {q ? (
               <>
@@ -220,11 +220,11 @@ export default function DashboardShell({
                   <a key={portal.id} href={`/dashboard/portal/${portal.id}`}
                     className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_140px_120px_110px] gap-4 items-center px-4 py-3 hover:bg-ink">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border ${paid ? 'bg-green-400/5 border-green-400/20' : 'bg-accent-soft border-accent/20'}`}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-ink-3 border border-rule-2">
                         {paid ? (
-                          <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         ) : (
-                          <svg className="w-4 h-4 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" /></svg>
+                          <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" /></svg>
                         )}
                       </div>
                       <div className="min-w-0">
@@ -236,14 +236,15 @@ export default function DashboardShell({
                       <svg className="w-3.5 h-3.5 text-faint flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                       {v ? (<span className="truncate">{v.count}{v.lastViewed && <span className="text-faint"> · {timeAgo(v.lastViewed)}</span>}</span>) : <span className="text-faint">—</span>}
                     </div>
-                    <div className="hidden md:block text-right text-sm font-medium" style={{ color: paid ? '#4ade80' : portal.invoice_amount ? '#eeeae3' : '#8a8595' }}>
+                    <div className="hidden md:block text-right text-sm font-medium" style={{ color: portal.invoice_amount ? '#eeeae3' : '#8a8595' }}>
                       {portal.invoice_amount ? `$${Number(portal.invoice_amount).toLocaleString()}` : '—'}
                     </div>
                     <div className="flex items-center justify-end gap-2.5">
-                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${portal.invoice_paid ? 'bg-green-400/10 text-green-400' : portal.invoice_amount ? 'bg-yellow-400/10 text-yellow-400' : 'bg-ink-3 text-faint'}`}>
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted whitespace-nowrap">
+                        <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.invoice_paid ? 'bg-green-400' : portal.invoice_amount ? 'bg-amber-400' : 'bg-rule-3'}`} />
                         {portal.invoice_paid ? 'Paid' : portal.invoice_amount ? 'Unpaid' : 'No invoice'}
                       </span>
-                      <svg className="w-4 h-4 text-faint group-hover:text-accent-text flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                      <svg className="w-4 h-4 text-faint group-hover:text-muted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                     </div>
                   </a>
                 )

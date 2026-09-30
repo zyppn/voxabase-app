@@ -46,7 +46,7 @@ export default function OnboardingChecklist({ hasPortal, hasFiles, stripeConnect
   }
 
   return (
-    <section aria-labelledby="getting-started" className="bg-ink-2 border border-rule rounded-2xl p-6 mb-7">
+    <section aria-labelledby="getting-started" className="bg-ink-2 border border-rule rounded-xl p-6 mb-7">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <h2 id="getting-started" className="font-semibold text-paper">Get started with Voxabase</h2>
@@ -61,13 +61,13 @@ export default function OnboardingChecklist({ hasPortal, hasFiles, stripeConnect
       </div>
 
       <div className="h-1.5 rounded-full bg-ink-3 overflow-hidden mb-5" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={doneCount} aria-label="Setup progress">
-        <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${(doneCount / steps.length) * 100}%` }} />
+        <div className="h-full bg-paper/80 rounded-full transition-all duration-500" style={{ width: `${(doneCount / steps.length) * 100}%` }} />
       </div>
 
       <ol className="flex flex-col gap-2">
         {steps.map((s, i) => (
-          <li key={s.title} className={`flex items-center gap-4 rounded-xl border px-4 py-3 ${i === next ? 'border-accent/40 bg-accent-soft' : 'border-rule bg-ink'}`}>
-            <span aria-hidden="true" className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-bold ${s.done ? 'bg-green-400/15 text-green-400' : i === next ? 'bg-accent text-white' : 'border border-rule-3 text-faint'}`}>
+          <li key={s.title} className={`flex items-center gap-4 rounded-xl border px-4 py-3 ${i === next ? 'border-rule-3 bg-ink-3/60' : 'border-rule bg-ink'}`}>
+            <span aria-hidden="true" className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-bold ${s.done ? 'bg-green-400/15 text-green-400' : i === next ? 'bg-paper text-ink' : 'border border-rule-3 text-faint'}`}>
               {s.done ? (
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               ) : i + 1}

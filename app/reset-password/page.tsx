@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
+    <main className="vb-app min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                className="w-full bg-ink border border-rule rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                 placeholder="8+ characters"
               />
               {password.length > 0 && (
@@ -199,7 +199,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !sessionReady || password !== confirmPassword || password.length < 8 || strength.score < 2}
-              className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
+              className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
             >
               {loading ? 'Updating...' : 'Update password'}
             </button>

@@ -26,6 +26,8 @@
 }
 
 @layer base {
+  /* The signed-in app and sign-in screens run slightly smaller (15px rem) for a tighter, calmer UI. */
+  html:has(.vb-app) { font-size: 15px; }
   html { color-scheme: dark; background: var(--color-ink); }
   body {
     background: var(--color-ink);

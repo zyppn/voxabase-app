@@ -88,7 +88,7 @@ export default function TwoStepCard() {
   }
 
   return (
-    <div className="bg-ink-2 border border-rule rounded-2xl p-6 flex flex-col">
+    <div className="bg-ink-2 border border-rule rounded-xl p-6 flex flex-col">
       <div className="flex items-center justify-between gap-3 mb-2">
         <h2 className="font-semibold text-paper">Two-step verification</h2>
         {loaded && (
@@ -125,7 +125,7 @@ export default function TwoStepCard() {
           </div>
           <div className="flex gap-2.5">
             <button type="submit" disabled={busy || code.length !== 6}
-              className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+              className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
               {busy ? 'Checking...' : 'Turn on'}
             </button>
             <button type="button" onClick={cancel}
@@ -140,11 +140,11 @@ export default function TwoStepCard() {
               <label htmlFor="off-password" className="text-sm text-muted mb-1.5 block">Current password</label>
               <input id="off-password" type="password" autoComplete="current-password" value={offPassword}
                 onChange={(e) => setOffPassword(e.target.value)} placeholder="Confirm it's you"
-                className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
+                className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
             </div>
             <div className="flex gap-2.5">
               <button type="button" onClick={turnOff} disabled={busy || !offPassword}
-                className="flex-1 bg-red-500/90 hover:bg-red-500 text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+                className="flex-1 bg-red-500/90 hover:bg-red-500 text-white font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
                 {busy ? 'Turning off...' : 'Yes, turn off'}
               </button>
               <button type="button" onClick={() => { setConfirmOff(false); setOffPassword('') }}
@@ -153,13 +153,13 @@ export default function TwoStepCard() {
           </div>
         ) : (
           <button type="button" onClick={() => setConfirmOff(true)}
-            className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg text-sm">
+            className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-2.5 rounded-lg text-sm">
             Turn off
           </button>
         )
       ) : (
         <button type="button" onClick={start} disabled={busy || !loaded}
-          className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+          className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
           {busy ? 'Starting...' : 'Set up two-step verification'}
         </button>
       )}
