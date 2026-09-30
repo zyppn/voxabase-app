@@ -173,56 +173,40 @@ export default function NewPortalPage() {
                 onChange={handleNameChange}
                 required
                 className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
-                placeholder="e.g. Nike Campaign, Sarah Johnson"
+                placeholder="e.g. Harbor Coffee — Brand refresh"
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm text-muted">Portal URL</label>
-                {isPro && (
-                  <button
-                    type="button"
-                    onClick={() => setUseCustomSlug(!useCustomSlug)}
-                    className="text-xs text-accent-text hover:underline font-semibold"
-                  >
-                    {useCustomSlug ? 'Use random URL instead' : 'Set custom URL'}
-                  </button>
-                )}
-                {!isPro && (
-                  <span className="text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Free plan</span>
-                )}
-              </div>
-
+            {/* Link: shown as a quiet preview; Pro users can customize it */}
+            <div className="-mt-1">
               {isPro && useCustomSlug ? (
                 <>
+                  <label htmlFor="custom-slug" className="text-sm text-muted mb-1.5 block">Custom link</label>
                   <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 focus-within:border-accent">
                     <span className="text-faint text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
                     <input
+                      id="custom-slug"
                       type="text"
                       value={customSlug}
                       onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                      className="flex-1 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
-                      placeholder="my-custom-url"
+                      className="flex-1 min-w-0 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
+                      placeholder="brand-refresh"
                     />
                   </div>
-                  <p className="text-xs text-faint mt-1">Lowercase letters, numbers, and hyphens only</p>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <p className="text-xs text-faint">Lowercase letters, numbers, and hyphens</p>
+                    <button type="button" onClick={() => setUseCustomSlug(false)} className="text-xs text-muted hover:text-paper">Use automatic link</button>
+                  </div>
                 </>
               ) : (
-                <>
-                  <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-60 cursor-not-allowed">
-                    <span className="text-faint text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
-                    <span className="text-muted text-sm">{slug || 'auto-generated'}</span>
-                  </div>
-                  {isPro && (
-                    <p className="text-xs text-faint mt-1">Random URL — click "Set custom URL" above to customize</p>
+                <p className="text-xs text-faint flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span>Link: <span className="text-muted">{username ? `voxabase.com/${username}/` : 'voxabase.com/…/'}{slug}</span>{!slug && <span className="italic"> (made from the name)</span>}</span>
+                  {isPro ? (
+                    <button type="button" onClick={() => setUseCustomSlug(true)} className="text-accent-text hover:underline font-medium">Customize link</button>
+                  ) : (
+                    <span>· Custom links on <a href="/pricing" className="text-accent-text hover:underline">Pro</a></span>
                   )}
-                  {!isPro && (
-                    <p className="text-xs text-faint mt-1">
-                      Custom slugs available on <span className="text-accent-text">Pro plan</span>
-                    </p>
-                  )}
-                </>
+                </p>
               )}
             </div>
 

@@ -37,6 +37,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [replacingId, setReplacingId] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [deleteFileId, setDeleteFileId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
@@ -391,54 +393,72 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         </a>
 
         {/* Portal header */}
-        <div className="flex items-start justify-between gap-4 mb-7">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-paper mb-1 tracking-tight">{portal.name}</h1>
-            {portal.description && <p className="text-muted text-sm mb-3">{portal.description}</p>}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-accent-text font-mono bg-accent-soft border border-accent/20 px-3 py-1 rounded-full truncate max-w-xs">
-                {portalUrl}
-              </span>
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-paper tracking-tight">{portal.name}</h1>
+            {portal.description && <p className="text-muted text-sm mt-1">{portal.description}</p>}
+          </div>
+          <div className="relative flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => setShowEditModal(true)}
+              className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">
+              Edit
+            </button>
+            <button onClick={() => setMoreOpen((o) => !o)} aria-label="More actions" aria-haspopup="menu" aria-expanded={moreOpen}
+              className="text-muted hover:text-paper border border-rule-2 hover:border-rule-3 w-10 h-[38px] rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+            </button>
+            {moreOpen && (
+              <>
+                <button aria-hidden="true" tabIndex={-1} className="fixed inset-0 z-20 cursor-default" onClick={() => setMoreOpen(false)} />
+                <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-48 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
+                  <a role="menuitem" href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
+                    className="block text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Open client view</a>
+                  <button role="menuitem" onClick={() => { setMoreOpen(false); setShowDeleteModal(true) }}
+                    className="w-full text-left text-sm text-red-400 hover:bg-red-400/10 rounded-lg px-3 py-2">Delete portal</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Share: the portal's main job */}
+        <div className="bg-ink-2 border border-rule rounded-xl p-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1 bg-ink border border-rule rounded-lg px-3.5 py-2.5">
+              <svg className="w-4 h-4 text-faint flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+              </svg>
+              <span className="text-sm text-paper truncate">{portalUrl.replace(/^https?:\/\//, '')}</span>
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                onClick={(e) => {
+                onClick={() => {
                   navigator.clipboard.writeText(portalUrl)
                   try { localStorage.setItem('vb_link_copied', '1') } catch { /* ignore */ }
-                  const btn = e.currentTarget
-                  btn.textContent = 'Copied!'
-                  btn.style.color = '#4ade80'
-                  setTimeout(() => { btn.textContent = 'Copy link'; btn.style.color = '' }, 2000)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
                 }}
-                className="text-xs text-faint hover:text-paper border border-rule-2 hover:border-rule-3 px-2.5 py-1 rounded-full"
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2.5 rounded-lg min-w-[118px]"
               >
-                Copy link
+                {copied ? (
+                  <><svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied</>
+                ) : 'Copy link'}
               </button>
               <a href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-faint hover:text-paper border border-rule-2 hover:border-rule-3 px-2.5 py-1 rounded-full">
+                className="flex-1 sm:flex-none text-center text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-4 py-2.5 rounded-lg">
                 Preview
               </a>
             </div>
-            <div className="flex items-center gap-1.5 mt-2.5">
-              <svg className="w-3.5 h-3.5 text-faint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-xs text-faint">
-                {viewStats.count > 0
-                  ? `${viewStats.count} view${viewStats.count !== 1 ? 's' : ''} · Last viewed ${timeAgo(viewStats.lastViewed)}`
-                  : 'No views yet'}
-              </span>
-            </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => setShowEditModal(true)}
-              className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3 py-1.5 rounded-lg">
-              Edit
-            </button>
-            <button onClick={() => setShowDeleteModal(true)}
-              className="text-sm text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-3 py-1.5 rounded-lg">
-              Delete
-            </button>
-          </div>
+          <p className="flex items-center gap-1.5 text-xs text-faint mt-3">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {viewStats.count > 0
+              ? `Opened ${viewStats.count} time${viewStats.count !== 1 ? 's' : ''} · last ${timeAgo(viewStats.lastViewed)}`
+              : 'Not opened yet'}
+          </p>
         </div>
 
         {/* Files ready toggle */}
@@ -479,14 +499,14 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         <div className="bg-ink-2 border border-rule rounded-xl overflow-hidden mb-4">
           <div className="px-6 py-4 border-b border-rule flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-xs text-faint uppercase tracking-[0.1em]">
-                Files {files.length > 0 && <span className="text-faint normal-case font-normal tracking-normal">({files.length})</span>}
+              <h2 className="font-semibold text-paper">
+                Files {files.length > 0 && <span className="text-faint font-normal">{files.length}</span>}
               </h2>
               {files.length > 1 && <p className="text-xs text-faint mt-0.5">Drag to reorder</p>}
             </div>
             <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-              className="text-xs font-semibold bg-paper hover:bg-white text-ink px-3 py-1.5 rounded-lg disabled:opacity-50">
-              {uploading ? 'Uploading...' : '+ Upload files'}
+              className="text-sm font-semibold bg-paper hover:bg-white text-ink px-3.5 py-2 rounded-lg disabled:opacity-50">
+              {uploading ? 'Uploading...' : 'Upload files'}
             </button>
             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
             <input ref={replaceInputRef} type="file" onChange={handleReplace} className="hidden" />
@@ -521,14 +541,14 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 <p className="text-faint text-xs mt-1">PDFs, images, videos, zips — any file type</p>
               </div>
             ) : (
-              <div className="p-3 flex flex-col gap-2">
+              <div className="divide-y divide-rule">
                 {files.map((file) => (
                   <div key={file.id} draggable
                     onDragStart={(e) => handleDragStart(e, file.id)}
                     onDragOver={(e) => handleDragOver(e, file.id)}
                     onDrop={(e) => handleDrop(e, file.id)}
                     onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
-                    className={`bg-ink border rounded-xl px-3 sm:px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2.5 group cursor-grab active:cursor-grabbing ${draggingId === file.id ? 'opacity-40' : ''} ${dragOverId === file.id && draggingId !== file.id ? 'border-accent/60' : 'border-rule-2 hover:border-rule-2'}`}
+                    className={`px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-2 group cursor-grab active:cursor-grabbing hover:bg-ink-3/40 transition-colors ${draggingId === file.id ? 'opacity-40' : ''} ${dragOverId === file.id && draggingId !== file.id ? 'bg-accent-soft/50' : ''}`}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1 basis-[13rem]">
                       <div className="text-faint group-hover:text-muted flex-shrink-0">
@@ -547,23 +567,23 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     <div className="flex items-center gap-1.5 ml-auto flex-shrink-0 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100">
                       <a href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/deliverables/${file.file_path}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-muted hover:text-paper px-2.5 py-1.5 rounded-lg border border-rule-2 hover:border-rule-3">
+                        className="text-xs font-medium text-muted hover:text-paper hover:bg-ink-3 px-2.5 py-1.5 rounded-md">
                         View
                       </a>
                       <button onClick={() => { setReplacingId(file.id); replaceInputRef.current?.click() }}
-                        className="text-xs text-muted hover:text-accent-text px-2.5 py-1.5 rounded-lg border border-rule-2 hover:border-accent/40">
+                        className="text-xs font-medium text-muted hover:text-paper hover:bg-ink-3 px-2.5 py-1.5 rounded-md">
                         Replace
                       </button>
                       <button onClick={() => setDeleteFileId(file.id)}
-                        className="text-xs text-muted hover:text-red-400 px-2.5 py-1.5 rounded-lg border border-rule-2 hover:border-red-400/30">
+                        className="text-xs font-medium text-muted hover:text-red-400 hover:bg-red-400/10 px-2.5 py-1.5 rounded-md">
                         Delete
                       </button>
                     </div>
                   </div>
                 ))}
                 <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                  className="text-xs text-faint hover:text-accent-text text-left px-1 py-1.5">
-                  {uploading ? 'Uploading...' : '+ Add more files'}
+                  className="w-full text-sm text-faint hover:text-paper hover:bg-ink-3/40 text-left px-4 sm:px-6 py-3.5">
+                  {uploading ? 'Uploading...' : '+ Add more files (or drop them here)'}
                 </button>
               </div>
             )}
@@ -572,32 +592,30 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
 
         {/* Invoice section */}
         <div className="bg-ink-2 border border-rule rounded-xl p-6">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <h2 className="font-semibold text-paper mb-1">Invoice</h2>
-              <p className="text-faint text-sm">
-                {portal.invoice_amount
-                  ? `$${portal.invoice_amount} — ${portal.invoice_paid ? 'Paid' : 'Awaiting payment'}`
-                  : 'No invoice attached'}
-              </p>
-            </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {portal.invoice_amount && (
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${portal.invoice_paid ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
-                  {portal.invoice_paid ? 'Paid' : 'Unpaid'}
-                </span>
-              )}
-              {!portal.invoice_paid ? (
-                <button onClick={() => setShowEditModal(true)}
-                  className="text-xs text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3 py-1.5 rounded-lg">
-                  {portal.invoice_amount ? 'Edit invoice' : 'Add invoice'}
-                </button>
+              {portal.invoice_amount ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl font-bold text-paper tracking-tight">
+                    ${Number(portal.invoice_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${portal.invoice_paid ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
+                    {portal.invoice_paid ? 'Paid' : 'Awaiting payment'}
+                  </span>
+                </div>
               ) : (
-                <span className="text-xs text-faint border border-rule-2 px-3 py-1.5 rounded-lg">
-                  Locked after payment
-                </span>
+                <p className="text-faint text-sm">No invoice yet. Add one and your client can pay right from the portal.</p>
               )}
             </div>
+            {!portal.invoice_paid ? (
+              <button onClick={() => setShowEditModal(true)}
+                className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">
+                {portal.invoice_amount ? 'Edit invoice' : 'Add invoice'}
+              </button>
+            ) : (
+              <span className="text-xs text-faint">Locked after payment</span>
+            )}
           </div>
         </div>
       </div>

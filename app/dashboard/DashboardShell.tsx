@@ -100,10 +100,16 @@ export default function DashboardShell({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-paper">{displayLabel} Dashboard</h1>
+            <h1 className="text-2xl font-bold text-paper">Portals</h1>
             <p className="text-faint text-sm mt-1">Your portals live at <span className="text-accent-text">voxabase.com/{username}/</span></p>
           </div>
-          <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
+          <div className="flex items-center gap-3">
+            <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
+            <a href="/dashboard/new" className="hidden lg:inline-flex items-center gap-1.5 bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2 rounded-lg">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" d="M12 5v14M5 12h14" /></svg>
+              New portal
+            </a>
+          </div>
         </div>
 
         {/* Getting started (falls back to the Stripe reminder once hidden) */}
@@ -132,28 +138,16 @@ export default function DashboardShell({
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-9">
           {[
-            { label: 'Total Portals', value: portals.length, tone: 'brand',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /> },
-            { label: 'Active', value: activePortals.length, tone: 'brand',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" /> },
-            { label: 'Total Invoiced', value: `$${totalInvoiced.toLocaleString()}`, tone: 'neutral',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z" /> },
-            { label: 'Collected', value: `$${totalPaid.toLocaleString()}`, tone: 'green',
-              icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /> },
-          ].map(s => {
-            const toneCls = s.tone === 'green' ? 'bg-green-400/10 text-green-400' : s.tone === 'brand' ? 'bg-accent/10 text-accent-text' : 'bg-ink-3 text-muted'
-            return (
-              <div key={s.label} className="bg-ink-2 border border-rule rounded-xl p-4 flex items-center gap-3.5">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${toneCls}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">{s.icon}</svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] text-faint uppercase tracking-wide font-semibold mb-0.5 leading-snug">{s.label}</p>
-                  <p className={`text-xl font-semibold ${s.tone === 'green' ? 'text-green-400' : 'text-paper'}`}>{s.value}</p>
-                </div>
-              </div>
-            )
-          })}
+            { label: 'Portals', value: String(portals.length), green: false },
+            { label: 'Active', value: String(activePortals.length), green: false },
+            { label: 'Invoiced', value: `$${totalInvoiced.toLocaleString()}`, green: false },
+            { label: 'Collected', value: `$${totalPaid.toLocaleString()}`, green: true },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-ink-2 border border-rule rounded-xl px-5 py-4">
+              <p className="text-[13px] text-muted mb-1">{stat.label}</p>
+              <p className={`text-2xl font-bold tracking-tight ${stat.green ? 'text-green-400' : 'text-paper'}`}>{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* Mobile filter tabs */}
