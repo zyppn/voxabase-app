@@ -3,9 +3,10 @@ import { useState, useEffect, useRef, ReactNode } from 'react'
 import { useIdleSignOut } from '@/lib/useIdleSignOut'
 import { createClient } from '@/utils/supabase/client'
 import { readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { displayName, isOnline } from '@/lib/people'
 
 type Team = { owner_id: string; owner_label: string | null }
-type Mate = { id: string; email: string; status: 'pending' | 'active' }
+type RosterRow = { member_id: string | null; email: string; status: 'pending' | 'active'; is_owner: boolean; business_name: string | null; full_name: string | null; last_seen_at: string | null }
 
 interface AppShellProps {
   counts: { all: number; active: number; completed: number }
@@ -46,29 +47,52 @@ export default function AppShell({
   // Agency teams this person belongs to (for the workspace switcher)
   const [teams, setTeams] = useState<Team[]>([])
   const [currentWs, setCurrentWs] = useState<string | null>(null)
-  // Your own teammates (Agency owners), for the sidebar's Team section
-  const [mates, setMates] = useState<Mate[]>([])
+  // Everyone in the current workspace's team, for the sidebar's Team section
+  const [roster, setRoster] = useState<RosterRow[]>([])
+  const [myId, setMyId] = useState<string | null>(null)
   const [teamLoaded, setTeamLoaded] = useState(false)
   useEffect(() => {
     let active = true
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user || !active) return
-      const [{ data }, { data: mine }] = await Promise.all([
-        supabase.from('team_members').select('owner_id, owner_label').eq('member_id', user.id).eq('status', 'active'),
-        supabase.from('team_members').select('id, email, status').eq('owner_id', user.id).order('invited_at'),
-      ])
+      const { data } = await supabase.from('team_members').select('owner_id, owner_label').eq('member_id', user.id).eq('status', 'active')
       if (!active) return
-      setMates((mine || []) as Mate[])
-      setTeamLoaded(true)
       const list = (data || []) as Team[]
       setTeams(list)
       const cookie = readWorkspaceCookie()
-      setCurrentWs(list.some(t => t.owner_id === cookie) ? cookie : null)
+      const ws = list.some(t => t.owner_id === cookie) ? cookie : null
+      setCurrentWs(ws)
+      setMyId(user.id)
+
+      // Presence: check in now and about once a minute while the app is open,
+      // and refresh the team list so online dots stay current.
+      const ownerId = ws || user.id
+      const tick = async () => {
+        if (document.visibilityState !== 'visible') return
+        await supabase.rpc('touch_presence')
+        const { data: rows } = await supabase.rpc('team_roster', { p_owner: ownerId })
+        if (active) { setRoster((rows || []) as RosterRow[]); setTeamLoaded(true) }
+      }
+      await tick()
+      timer = setInterval(tick, 60_000)
+      document.addEventListener('visibilitychange', tick)
+      cleanupVis = () => document.removeEventListener('visibilitychange', tick)
     })
-    return () => { active = false }
+    let timer: ReturnType<typeof setInterval> | undefined
+    let cleanupVis: (() => void) | undefined
+    return () => { active = false; if (timer) clearInterval(timer); cleanupVis?.() }
   }, [])
   const currentTeam = teams.find(t => t.owner_id === currentWs) || null
+  const hasMates = roster.some(r => !r.is_owner)
+  const owner = roster.find(r => r.is_owner)
+  const teamLabel = currentTeam?.owner_label || (owner ? displayName(owner) : displayLabel)
+  // Owner first, then you, then teammates (joined before invited). Owners with no
+  // teammates yet only see the invite prompt.
+  const people = !currentTeam && !hasMates ? [] : [...roster].sort((a, b) => {
+    const rank = (r: RosterRow) => (r.is_owner ? 0 : r.member_id === myId ? 1 : r.status === 'active' ? 2 : 3)
+    return rank(a) - rank(b)
+  })
   const switchWorkspace = (ownerId: string | null) => {
     setWorkspaceCookie(ownerId)
     window.location.assign('/dashboard')
@@ -127,11 +151,11 @@ export default function AppShell({
           </button>
         </div>
 
-        {currentTeam && (
-          <button onClick={() => setMenuOpen(true)} title={`Working in ${currentTeam.owner_label || 'team'} workspace`}
+        {(currentTeam || (plan === 'agency' && hasMates)) && (
+          <button onClick={() => setMenuOpen(true)} title={`Working in the ${teamLabel} team workspace`}
             className={`-mt-3 mb-4 flex items-center gap-2 rounded-lg border border-rule-2 bg-ink-2 text-xs text-muted hover:text-paper overflow-hidden ${collapsed ? 'justify-center px-0 py-2' : 'px-2.5 py-2'}`}>
             <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-            {!collapsed && <span className="truncate">{currentTeam.owner_label || 'Team'} <span className="text-faint">· team</span></span>}
+            {!collapsed && <span className="truncate">{teamLabel} <span className="text-faint">· Team</span></span>}
           </button>
         )}
 
@@ -155,55 +179,41 @@ export default function AppShell({
           ))}
         </nav>
 
-        {/* Team: who's in this workspace */}
+        {/* Team: who's in this workspace, with online status */}
         {!collapsed && teamLoaded && (currentTeam || plan === 'agency') && (
           <div className="mt-6 px-1">
             <div className="flex items-center justify-between px-1.5 mb-2">
               <span className="text-[11px] text-faint uppercase tracking-wide font-semibold">Team</span>
               {!currentTeam && <a href="/settings#team" className="text-[11px] text-faint hover:text-paper">Manage</a>}
             </div>
-            {currentTeam ? (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-2.5 px-1.5 py-1.5">
-                  <span className="w-6 h-6 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-[10px] font-bold text-paper flex-shrink-0">{(currentTeam.owner_label || 'T')[0].toUpperCase()}</span>
-                  <span className="text-[13px] text-paper/85 truncate flex-1">{currentTeam.owner_label || 'Team'}</span>
-                  <span className="text-[10px] text-faint">Owner</span>
-                </div>
-                <div className="flex items-center gap-2.5 px-1.5 py-1.5">
-                  <span className="w-6 h-6 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-[10px] font-bold text-paper flex-shrink-0">{(email[0] || 'Y').toUpperCase()}</span>
-                  <span className="text-[13px] text-paper/85 truncate flex-1">{email}</span>
-                  <span className="text-[10px] text-faint">You</span>
-                </div>
-              </div>
-            ) : mates.length === 0 ? (
-              <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-2 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
-                <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
-                </span>
-                Invite a teammate
-              </a>
-            ) : (
-              <div className="flex flex-col gap-0.5">
-                {mates.map(m => (
-                  <div key={m.id} className="flex items-center gap-2.5 px-1.5 py-1.5" title={m.status === 'active' ? m.email : `${m.email} · invite sent`}>
+            <div className="flex flex-col gap-0.5">
+              {people.map(m => {
+                const me = m.member_id === myId
+                const online = me || (m.status === 'active' && isOnline(m.last_seen_at))
+                const name = displayName(m)
+                const role = me ? 'You' : m.is_owner ? 'Owner' : m.status === 'pending' ? 'Invited' : ''
+                return (
+                  <div key={(m.member_id || m.email) + (m.is_owner ? ':o' : '')} className="flex items-center gap-2.5 px-1.5 py-1.5"
+                    title={`${m.email}${m.status === 'pending' ? ' · invite sent' : online ? ' · online' : ' · offline'}`}>
                     <span className="relative w-6 h-6 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-[10px] font-bold text-paper flex-shrink-0">
-                      {m.email[0].toUpperCase()}
-                      <span aria-hidden="true" className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-ink ${m.status === 'active' ? 'bg-green-400' : 'bg-amber-400'}`} />
+                      {name[0].toUpperCase()}
+                      <span aria-hidden="true" className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-ink ${m.status === 'pending' ? 'bg-amber-400' : online ? 'bg-green-400' : 'bg-faint'}`} />
                     </span>
-                    <span className={`text-[13px] truncate flex-1 ${m.status === 'active' ? 'text-paper/85' : 'text-faint'}`}>{m.email}</span>
-                    {m.status === 'pending' && <span className="text-[10px] text-faint">Invited</span>}
+                    <span className={`text-[13px] truncate flex-1 ${m.status === 'pending' ? 'text-faint' : 'text-paper/85'}`}>{name}</span>
+                    {role && <span className="text-[10px] text-faint">{role}</span>}
+                    <span className="sr-only">{m.status === 'pending' ? 'invited' : online ? 'online' : 'offline'}</span>
                   </div>
-                ))}
-                {mates.length < 4 && (
-                  <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
-                    <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
-                    </span>
-                    Invite
-                  </a>
-                )}
-              </div>
-            )}
+                )
+              })}
+              {!currentTeam && roster.filter(r => !r.is_owner).length < 4 && (
+                <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
+                  <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
+                  </span>
+                  {hasMates ? 'Invite' : 'Invite a teammate'}
+                </a>
+              )}
+            </div>
           </div>
         )}
 
@@ -236,7 +246,7 @@ export default function AppShell({
                 {teams.length > 0 && (
                   <>
                     <p className="px-3 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-faint">Workspace</p>
-                    {[{ id: null as string | null, label: displayLabel === 'Your' ? 'Personal' : `${displayLabel} (personal)` },
+                    {[{ id: null as string | null, label: 'Personal' },
                       ...teams.map(t => ({ id: t.owner_id as string | null, label: t.owner_label || 'Team' }))].map(w => (
                       <button key={w.id || 'personal'} onClick={() => w.id !== currentWs && switchWorkspace(w.id)}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper text-left">

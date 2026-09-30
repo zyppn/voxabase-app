@@ -254,7 +254,7 @@ export default function SignupPage() {
             {loading ? 'Creating account...' : 'Create account'}
           </button>
 
-          <p className="text-center text-faint text-[11px] leading-relaxed whitespace-nowrap">
+          <p className="text-center text-faint text-xs leading-relaxed text-balance">
             By creating an account, you agree to our{' '}
             <Link href="/terms" className="text-muted hover:text-paper underline">Terms of Service</Link>{' '}
             and{' '}

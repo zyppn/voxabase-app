@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { TEAM_SEATS, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { displayName, isOnline } from '@/lib/people'
 
 type Row = { id: string; email: string; status: 'pending' | 'active'; token: string; invited_at: string; joined_at: string | null }
 type Membership = { id: string; owner_id: string; owner_label: string | null }
@@ -16,6 +17,7 @@ export default function TeamCard({ plan }: { plan: string }) {
   const [rows, setRows] = useState<Row[]>([])
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [names, setNames] = useState<Record<string, { name: string; online: boolean }>>({})
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -40,6 +42,14 @@ export default function TeamCard({ plan }: { plan: string }) {
       }
       setRows((mine || []) as Row[])
       setMemberships((onTeams || []) as Membership[])
+      // Names and online status of people who have joined
+      const { data: roster } = await supabase.rpc('team_roster', { p_owner: user.id })
+      if (!active) return
+      const map: Record<string, { name: string; online: boolean }> = {}
+      for (const r of (roster || []) as { email: string; is_owner: boolean; business_name: string | null; full_name: string | null; last_seen_at: string | null }[]) {
+        if (!r.is_owner) map[r.email.toLowerCase()] = { name: displayName(r), online: isOnline(r.last_seen_at) }
+      }
+      setNames(map)
       setLoaded(true)
     }
     load()
@@ -139,13 +149,19 @@ export default function TeamCard({ plan }: { plan: string }) {
             <li key={row.id} className="px-4 py-3">
               <div className="flex flex-wrap items-center gap-3">
                 <span aria-hidden="true" className="w-8 h-8 rounded-full bg-ink-3 border border-rule-2 grid place-items-center text-xs font-bold text-paper flex-shrink-0">
-                  {row.email[0].toUpperCase()}
+                  {(names[row.email]?.name || row.email)[0].toUpperCase()}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-paper truncate">{row.email}</p>
+                  <p className="text-sm text-paper truncate">
+                    {names[row.email]?.name && names[row.email].name !== row.email
+                      ? <>{names[row.email].name} <span className="text-faint">· {row.email}</span></>
+                      : row.email}
+                  </p>
                   <p className="text-xs text-faint flex items-center gap-1.5">
-                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${row.status === 'active' ? 'bg-green-400' : 'bg-amber-400'}`} />
-                    {row.status === 'active' ? `Joined ${row.joined_at ? fmt(row.joined_at) : ''}` : `Invited ${fmt(row.invited_at)} · waiting to join`}
+                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${row.status !== 'active' ? 'bg-amber-400' : names[row.email]?.online ? 'bg-green-400' : 'bg-faint'}`} />
+                    {row.status === 'active'
+                      ? `${names[row.email]?.online ? 'Online' : 'Offline'} · joined ${row.joined_at ? fmt(row.joined_at) : ''}`
+                      : `Invited ${fmt(row.invited_at)} · waiting to join`}
                   </p>
                 </div>
                 {confirmId === row.id ? (
