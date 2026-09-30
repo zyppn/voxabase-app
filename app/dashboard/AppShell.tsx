@@ -16,6 +16,8 @@ interface AppShellProps {
   stripeConnected: boolean
   activeFilter: 'all' | 'active' | 'completed' | null
   onFilterClick: (key: 'all' | 'active' | 'completed') => void
+  /** Where you are, after "Portals" (e.g. ['Settings']). Empty on the dashboard itself. */
+  crumbs?: string[]
   children: ReactNode
 }
 
@@ -27,7 +29,7 @@ const STORAGE_LIMITS: Record<string, number> = {
 
 export default function AppShell({
   counts, usedBytes, plan, displayLabel, email, initials, stripeConnected,
-  activeFilter, onFilterClick, children,
+  activeFilter, onFilterClick, children, crumbs = [],
 }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -240,6 +242,23 @@ export default function AppShell({
             <a href="/api/auth/signout" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg></a>
           </div>
         </div>
+
+        {/* Breadcrumb bar: same place on every page, one click back to Portals */}
+        <nav aria-label="Breadcrumb" className="lg:sticky lg:top-0 z-10 border-b border-rule bg-ink/85 backdrop-blur-sm">
+          <ol className="flex h-12 items-center gap-1.5 px-6 lg:px-10 text-[13px] min-w-0">
+            <li className={crumbs.length ? 'flex-none' : 'min-w-0'}>
+              {crumbs.length
+                ? <a href="/dashboard" className="text-faint hover:text-paper transition-colors">Portals</a>
+                : <span className="text-paper font-medium" aria-current="page">Portals</span>}
+            </li>
+            {crumbs.map((c, i) => (
+              <li key={i} className="flex items-center gap-1.5 min-w-0">
+                <svg className="w-3.5 h-3.5 flex-none text-faint/70" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <span className={`truncate ${i === crumbs.length - 1 ? 'text-paper font-medium' : 'text-faint'}`} aria-current={i === crumbs.length - 1 ? 'page' : undefined}>{c}</span>
+              </li>
+            ))}
+          </ol>
+        </nav>
 
         {children}
       </div>

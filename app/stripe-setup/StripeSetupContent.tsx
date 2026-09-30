@@ -121,17 +121,12 @@ export default function StripeSetupContent() {
       initials={sidebar?.initials || 'U'}
       stripeConnected={sidebar?.stripeConnected || false}
       activeFilter={null}
+      crumbs={['Stripe payments']}
       onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         <div className="max-w-lg mx-auto">
           {/* Back button — clean arrow */}
-          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
-            <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to dashboard
-          </a>
 
           {status === 'connected' ? (
             <div className="text-center">

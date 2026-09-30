@@ -200,14 +200,6 @@ function PricingContent() {
 
   const pricingBody = (
     <div className="max-w-5xl mx-auto px-6 lg:px-10 py-9">
-      {sidebar && (
-        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
-          <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to dashboard
-        </a>
-      )}
       <div className="text-center mb-12">
         {upgraded && (
           <div className="inline-flex items-center gap-2 bg-green-400/10 border border-green-400/20 text-green-400 text-sm px-4 py-2 rounded-full mb-6">
@@ -312,6 +304,7 @@ function PricingContent() {
         initials={sidebar.initials}
         stripeConnected={sidebar.stripeConnected}
         activeFilter={null}
+        crumbs={['Plans']}
         onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
       >
         {pricingBody}

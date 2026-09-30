@@ -429,16 +429,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       initials={sidebar?.initials || 'U'}
       stripeConnected={sidebar?.stripeConnected || false}
       activeFilter={null}
+      crumbs={[portal.name]}
       onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         {/* Back button — clean arrow */}
-        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
-          <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to dashboard
-        </a>
 
         {/* Portal header */}
         <div className="flex items-start justify-between gap-4 mb-5">
