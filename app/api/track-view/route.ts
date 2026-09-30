@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+// Counts a client opening a portal. Server-side, since portals aren't publicly readable.
 export async function POST(request: Request) {
   try {
     const { portalId } = await request.json()
-    if (!portalId) return NextResponse.json({ ok: false })
+    if (typeof portalId !== 'string' || !portalId) return NextResponse.json({ ok: false })
 
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+    const admin = supabaseAdmin()
+    const { data: portal } = await admin.from('portals').select('id').eq('id', portalId).eq('is_active', true).maybeSingle()
+    if (!portal) return NextResponse.json({ ok: false })
 
-    await supabase.from('portal_views').insert({
+    await admin.from('portal_views').insert({
       portal_id: portalId,
       viewed_at: new Date().toISOString(),
     })

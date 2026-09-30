@@ -112,17 +112,26 @@ export default function NewPortalPage() {
 
     const finalSlug = isPro && useCustomSlug && customSlug ? customSlug : slug
 
-    const { error } = await supabase.from('portals').insert({
+    const password = isPro ? portalPassword.trim() : ''
+    const { data: created, error } = await supabase.from('portals').insert({
       user_id: workspaceOwner,
       name,
       slug: finalSlug,
       description: description || null,
       owner_username: username,
       invoice_amount: invoiceAmount ? parseFloat(invoiceAmount) : null,
-      portal_password: isPro ? (portalPassword || null) : null,
-    })
-    if (error) { setError(error.message); setLoading(false) }
-    else router.push('/dashboard')
+      password_protected: !!password,
+    }).select('id').single()
+    if (error || !created) { setError(error?.message || 'Could not create the portal. Please try again.'); setLoading(false); return }
+    // The password goes in a private table only the owner and team can read
+    if (password) {
+      const { error: pwError } = await supabase.from('portal_passwords').insert({ portal_id: created.id, user_id: workspaceOwner, password })
+      if (pwError) {
+        await supabase.from('portals').delete().eq('id', created.id)
+        setError('Could not save the portal password. Please try again.'); setLoading(false); return
+      }
+    }
+    router.push('/dashboard')
   }
 
   const isPro = plan === 'pro' || plan === 'agency'

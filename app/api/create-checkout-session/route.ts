@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { assertStripeEnv } from '@/lib/stripe-guard'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { canOpenPortal } from '@/lib/portalAccess'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-05-27.dahlia',
@@ -17,13 +18,12 @@ export async function POST(request: Request) {
     assertStripeEnv()
     const body = await request.json().catch(() => null)
     const portalId = typeof body?.portalId === 'string' ? body.portalId : ''
-    const password = typeof body?.password === 'string' ? body.password : ''
     if (!portalId) return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
 
     const admin = supabaseAdmin()
     const { data: portal } = await admin
       .from('portals')
-      .select('id, user_id, name, slug, owner_username, invoice_amount, invoice_paid, is_active, portal_password')
+      .select('id, user_id, name, slug, owner_username, invoice_amount, invoice_paid, is_active, password_protected')
       .eq('id', portalId)
       .single()
 
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'There’s no invoice to pay on this portal.' }, { status: 404 })
     }
     if (portal.invoice_paid) return NextResponse.json({ error: 'This invoice has already been paid.' }, { status: 400 })
-    if (portal.portal_password && password !== portal.portal_password) {
+    if (!(await canOpenPortal(admin, portal))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

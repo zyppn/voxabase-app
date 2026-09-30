@@ -19,7 +19,7 @@ interface Portal {
   is_active: boolean
   owner_username: string
   files_ready: boolean
-  portal_password: string | null
+  password_protected: boolean
   approval_required?: boolean | null
   approval_status?: 'approved' | 'changes_requested' | null
   approval_note?: string | null
@@ -101,7 +101,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       setEditName(portalData.name)
       setEditDescription(portalData.description || '')
       setEditInvoice(portalData.invoice_amount?.toString() || '')
-      setEditPassword(portalData.portal_password || '')
+      // Passwords live in a private table only the owner and team can read
+      if (portalData.password_protected) {
+        const { data: pw } = await supabase.from('portal_passwords').select('password').eq('portal_id', id).maybeSingle()
+        setEditPassword(pw?.password || '')
+      }
 
       const { data: filesData } = await supabase
         .from('files')
@@ -353,14 +357,21 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       name: editName,
       description: editDescription || null,
       invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
-      portal_password: userPlan !== 'free' ? (editPassword || null) : portal.portal_password,
+      ...(userPlan !== 'free' ? { password_protected: !!editPassword } : {}),
     }).eq('id', portal.id)
+    if (userPlan !== 'free') {
+      if (editPassword) {
+        await supabase.from('portal_passwords').upsert({ portal_id: portal.id, user_id: portal.user_id, password: editPassword })
+      } else {
+        await supabase.from('portal_passwords').delete().eq('portal_id', portal.id)
+      }
+    }
     setPortal({
       ...portal,
       name: editName,
       description: editDescription,
       invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
-      portal_password: userPlan !== 'free' ? (editPassword || null) : portal.portal_password,
+      password_protected: userPlan !== 'free' ? !!editPassword : portal.password_protected,
     })
     setSaving(false)
     setShowEditModal(false)
@@ -607,7 +618,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 ml-auto flex-shrink-0 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100">
-                      <a href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/deliverables/${file.file_path}`}
+                      <a href={`/api/file/${file.id}?view=1`}
                         target="_blank" rel="noopener noreferrer"
                         className="text-xs font-medium text-muted hover:text-paper hover:bg-ink-3 px-2.5 py-1.5 rounded-md">
                         View

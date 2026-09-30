@@ -18,7 +18,6 @@ export interface PortalViewProps {
   ownerIsPro: boolean
   isReady: boolean
   files: PortalFile[]
-  supabaseUrl: string
   invoiceAmount: number | null
   invoicePaid: boolean
   username: string
@@ -28,8 +27,6 @@ export interface PortalViewProps {
   approvalNote?: string | null
   approvalName?: string | null
   approvalAt?: string | null
-  /** The password the client typed, so approval requests can prove access. */
-  accessPassword?: string
   /** On the owner's own domain: hide "Delivered via Voxabase". */
   whiteLabel?: boolean
 }
@@ -115,7 +112,7 @@ export default function PortalView(p: PortalViewProps) {
           <p className="px-6 py-12 text-center text-sm text-faint">No files have been added yet.</p>
         ) : (
           <>
-            <FilesList files={p.files} supabaseUrl={p.supabaseUrl} showLimit={4} brandColor={p.brandColor} />
+            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} />
             {fileCount > 1 && <DownloadAllButton portalId={p.portalId} portalName={p.portalName} />}
           </>
         )}
@@ -130,7 +127,6 @@ export default function PortalView(p: PortalViewProps) {
             initialNote={p.approvalNote ?? null}
             initialName={p.approvalName ?? null}
             initialAt={p.approvalAt ?? null}
-            accessPassword={p.accessPassword}
           />
         )}
 
@@ -150,7 +146,7 @@ export default function PortalView(p: PortalViewProps) {
               </div>
             </div>
             {!p.invoicePaid ? (
-              <PayInvoiceButton portalId={p.portalId} portalName={p.portalName} amount={Number(p.invoiceAmount)} username={p.username} slug={p.slug} brandColor={p.brandColor} accessPassword={p.accessPassword} />
+              <PayInvoiceButton portalId={p.portalId} portalName={p.portalName} amount={Number(p.invoiceAmount)} username={p.username} slug={p.slug} brandColor={p.brandColor} />
             ) : (
               <p className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[10px] border border-green-400/25 bg-green-400/10 text-[15px] font-semibold text-green-400">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24" aria-hidden="true">

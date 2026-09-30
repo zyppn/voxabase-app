@@ -5,7 +5,7 @@ import { brandInk, textOnBrand } from '@/lib/brand'
 
 type Status = 'approved' | 'changes_requested' | null
 
-export default function ApprovalPanel({ portalId, displayName, brandColor, initialStatus, initialNote, initialName, initialAt, accessPassword }: {
+export default function ApprovalPanel({ portalId, displayName, brandColor, initialStatus, initialNote, initialName, initialAt}: {
   portalId: string
   displayName: string
   brandColor: string
@@ -13,7 +13,6 @@ export default function ApprovalPanel({ portalId, displayName, brandColor, initi
   initialNote: string | null
   initialName: string | null
   initialAt: string | null
-  accessPassword?: string
 }) {
   const [status, setStatus] = useState<Status>(initialStatus)
   const [note, setNote] = useState(initialNote || '')
@@ -30,7 +29,7 @@ export default function ApprovalPanel({ portalId, displayName, brandColor, initi
       const res = await fetch('/api/portal-approval', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portalId, action, note, name, password: accessPassword }),
+        body: JSON.stringify({ portalId, action, note, name }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) { setError(data.error || 'Could not send your response. Please try again.'); return }

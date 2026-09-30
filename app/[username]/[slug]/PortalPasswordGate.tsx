@@ -1,71 +1,56 @@
 'use client'
+// Password screen for a protected portal. The password is checked on the
+// server; nothing about the portal's files or invoice reaches the browser
+// until it's right.
 import { useState } from 'react'
-import PortalView, { DeliveredVia, PortalBrand } from './PortalView'
-import type { PortalFile } from './FilesList'
+import { useRouter } from 'next/navigation'
+import { DeliveredVia, PortalBrand } from './PortalView'
 import { DEFAULT_BRAND, brandInk, brandLine, brandSurface, textOnBrand } from '@/lib/brand'
 
 interface Props {
   portalId: string
-  portalPassword: string
-  displayName: string
   portalName: string
-  portalDescription: string | null
-  files: PortalFile[]
-  supabaseUrl: string
-  isReady: boolean
-  invoiceAmount: number | null
-  invoicePaid: boolean
-  username: string
-  slug: string
+  displayName: string
   brandColor?: string
   logoUrl?: string | null
   brandDisplay?: string
   brandInitial?: string
   ownerIsPro?: boolean
-  approvalRequired?: boolean
-  approvalStatus?: 'approved' | 'changes_requested' | null
-  approvalNote?: string | null
-  approvalName?: string | null
-  approvalAt?: string | null
   whiteLabel?: boolean
 }
 
 export default function PortalPasswordGate({
-  portalPassword, brandColor = DEFAULT_BRAND, logoUrl = null, brandDisplay = 'both', brandInitial = 'V', ownerIsPro = false, ...rest
+  portalId, portalName, displayName, brandColor = DEFAULT_BRAND, logoUrl = null, brandDisplay = 'both', brandInitial = 'V', ownerIsPro = false, whiteLabel = false,
 }: Props) {
-  const [unlocked, setUnlocked] = useState(false)
+  const router = useRouter()
   const [input, setInput] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (input === portalPassword) {
-      setUnlocked(true)
-    } else {
-      setError('That password is not right. Check with the person who sent you this link.')
+    setBusy(true); setError('')
+    try {
+      const res = await fetch('/api/portal-unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalId, password: input }),
+      })
+      if (res.ok) { router.refresh(); return }
+      const data = await res.json().catch(() => ({}))
+      setError(data.error || 'That password is not right. Check with the person who sent you this link.')
       setInput('')
+    } catch {
+      setError('Could not check the password. Check your connection and try again.')
     }
-  }
-
-  if (unlocked) {
-    return (
-      <PortalView
-        {...rest}
-        brandColor={brandColor}
-        logoUrl={logoUrl}
-        brandDisplay={brandDisplay}
-        brandInitial={brandInitial}
-        ownerIsPro={ownerIsPro}
-        accessPassword={input}
-      />
-    )
+    setBusy(false)
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-7">
-          <PortalBrand ownerIsPro={ownerIsPro} brandDisplay={brandDisplay} logoUrl={logoUrl} displayName={rest.displayName} brandInitial={brandInitial} brandColor={brandColor} centered />
+          <PortalBrand ownerIsPro={ownerIsPro} brandDisplay={brandDisplay} logoUrl={logoUrl} displayName={displayName} brandInitial={brandInitial} brandColor={brandColor} centered />
         </div>
         <form onSubmit={handleSubmit} className="rounded-[14px] border border-rule bg-ink-2 p-6">
           <div className="mb-5 flex items-center gap-3.5">
@@ -75,7 +60,7 @@ export default function PortalPasswordGate({
               </svg>
             </span>
             <div className="min-w-0">
-              <h1 className="text-lg font-bold leading-tight text-paper">{rest.portalName}</h1>
+              <h1 className="text-lg font-bold leading-tight text-paper">{portalName}</h1>
               <p className="text-[13px] text-muted">This portal is private. Enter the password to open it.</p>
             </div>
           </div>
@@ -95,13 +80,14 @@ export default function PortalPasswordGate({
           />
           <button
             type="submit"
-            className="mt-4 flex min-h-12 w-full items-center justify-center rounded-[10px] text-[15px] font-semibold transition hover:brightness-110"
+            disabled={busy}
+            className="mt-4 flex min-h-12 w-full items-center justify-center rounded-[10px] text-[15px] font-semibold transition hover:brightness-110 disabled:opacity-70"
             style={{ background: brandColor, color: textOnBrand(brandColor) }}
           >
-            Open portal
+            {busy ? 'Checking…' : 'Open portal'}
           </button>
         </form>
-        {!rest.whiteLabel && <DeliveredVia />}
+        {!whiteLabel && <DeliveredVia />}
       </div>
     </div>
   )

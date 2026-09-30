@@ -6,14 +6,12 @@ import { fileLabel } from '@/lib/files'
 export interface PortalFile {
   id: string
   name: string
-  file_path: string
   file_size: number | null
   file_type: string | null
 }
 
 interface FilesListProps {
   files: PortalFile[]
-  supabaseUrl: string
   showLimit?: number
   brandColor?: string
 }
@@ -24,9 +22,10 @@ function formatSize(bytes: number | null) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function FileRow({ file, supabaseUrl, brandColor }: { file: PortalFile; supabaseUrl: string; brandColor: string }) {
+function FileRow({ file, brandColor }: { file: PortalFile; brandColor: string }) {
   const size = formatSize(file.file_size)
-  const downloadUrl = `${supabaseUrl}/storage/v1/object/public/deliverables/${file.file_path}`
+  // The server checks access, then hands out a short-lived download link
+  const downloadUrl = `/api/file/${file.id}`
 
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
@@ -53,7 +52,7 @@ function FileRow({ file, supabaseUrl, brandColor }: { file: PortalFile; supabase
   )
 }
 
-export default function FilesList({ files, supabaseUrl, showLimit = 6, brandColor = DEFAULT_BRAND }: FilesListProps) {
+export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_BRAND }: FilesListProps) {
   const [showAll, setShowAll] = useState(false)
   const visibleFiles = showAll ? files : files.slice(0, showLimit)
   const hiddenCount = files.length - showLimit
@@ -62,7 +61,7 @@ export default function FilesList({ files, supabaseUrl, showLimit = 6, brandColo
     <div className="px-3">
       <ul className="grid gap-1.5">
         {visibleFiles.map((file) => (
-          <FileRow key={file.id} file={file} supabaseUrl={supabaseUrl} brandColor={brandColor} />
+          <FileRow key={file.id} file={file} brandColor={brandColor} />
         ))}
       </ul>
       {hiddenCount > 0 && (
