@@ -517,7 +517,7 @@ function SettingsContent() {
                 ) : subscriptionPeriodEnd ? (
                   <p className="text-faint text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
                 ) : (
-                  <p className="text-faint text-sm mt-0.5">Active subscription — billed monthly</p>
+                  <p className="text-faint text-sm mt-0.5">Active subscription</p>
                 )}
               </div>
             </div>
@@ -539,7 +539,7 @@ function SettingsContent() {
           </div>
           {plan !== 'free' && (
             <p className="text-xs text-faint mt-4 pt-4 border-t border-rule">
-              Subscriptions auto-renew monthly. Cancel anytime through Manage billing — your plan stays active until the end of the current period.
+              Your subscription renews automatically. Cancel anytime through Manage billing — your plan stays active until the end of the current billing period.
             </p>
           )}
         </div>

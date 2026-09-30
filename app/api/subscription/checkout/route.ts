@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { assertStripeEnv } from '@/lib/stripe-guard'
+import { planForPrice } from '@/lib/plans'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-05-27.dahlia',
@@ -11,12 +12,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: Request) {
   try {
     assertStripeEnv()
-    const { priceId, plan } = await request.json()
+    const { priceId } = await request.json()
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // The plan is decided by the price, never by what the browser sends.
+    const plan = planForPrice(priceId)
+    if (!plan) {
+      return NextResponse.json({ error: 'That plan is not available right now.' }, { status: 400 })
+    }
 
     const { data: profile } = await supabase
       .from('profiles')

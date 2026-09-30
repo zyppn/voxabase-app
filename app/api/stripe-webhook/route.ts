@@ -2,10 +2,19 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { assertStripeEnv } from '@/lib/stripe-guard'
+import { planForPrice } from '@/lib/plans'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-05-27.dahlia',
 })
+
+// Stripe reports the billing period on the subscription item (API 2025-03-31
+// and later); fall back to the old top-level field just in case.
+function periodEndOf(subscription: Stripe.Subscription): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = subscription.items.data[0]?.current_period_end ?? (subscription as any).current_period_end
+  return raw ? new Date(raw * 1000).toISOString() : null
+}
 
 export async function POST(request: Request) {
   assertStripeEnv()
@@ -29,20 +38,22 @@ export async function POST(request: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.supabase_user_id
-    const plan = session.metadata?.plan
 
-    if (userId && plan && session.mode === 'subscription') {
+    if (userId && session.mode === 'subscription' && session.subscription) {
       const subscriptionId = session.subscription as string
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rawEnd = (subscription as any).current_period_end
-      const periodEnd = rawEnd ? new Date(rawEnd * 1000).toISOString() : null
+      // The price actually bought (monthly or annual) decides the plan.
+      const plan = planForPrice(subscription.items.data[0]?.price.id)
 
-      await supabase.from('profiles').update({
-        plan,
-        subscription_id: subscriptionId,
-        subscription_period_end: periodEnd,
-      }).eq('id', userId)
+      if (plan) {
+        await supabase.from('profiles').update({
+          plan,
+          subscription_id: subscriptionId,
+          subscription_period_end: periodEndOf(subscription),
+        }).eq('id', userId)
+      } else {
+        console.error(`[stripe-webhook] Subscription ${subscriptionId} uses a price that isn't configured; plan left unchanged.`)
+      }
     }
   }
 
@@ -68,16 +79,12 @@ export async function POST(request: Request) {
   if (event.type === 'customer.subscription.updated') {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
-    const status = subscription.status
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rawEnd = (subscription as any).current_period_end
-    const periodEnd = rawEnd ? new Date(rawEnd * 1000).toISOString() : null
 
-    if (status === 'active') {
-      const priceId = subscription.items.data[0]?.price.id
-      const proPrice = process.env.STRIPE_PRO_PRICE_ID
-      const agencyPrice = process.env.STRIPE_AGENCY_PRICE_ID
-      const plan = priceId === agencyPrice ? 'agency' : priceId === proPrice ? 'pro' : 'free'
+    if (subscription.status === 'active') {
+      // Monthly and annual prices both map to their plan. A price that isn't
+      // configured never downgrades anyone; only the renewal date is updated.
+      const plan = planForPrice(subscription.items.data[0]?.price.id)
+      const periodEnd = periodEndOf(subscription)
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -86,10 +93,9 @@ export async function POST(request: Request) {
         .single()
 
       if (profile) {
-        await supabase.from('profiles').update({
-          plan,
-          subscription_period_end: periodEnd,
-        }).eq('id', profile.id)
+        await supabase.from('profiles').update(
+          plan ? { plan, subscription_period_end: periodEnd } : { subscription_period_end: periodEnd }
+        ).eq('id', profile.id)
       }
     }
   }
