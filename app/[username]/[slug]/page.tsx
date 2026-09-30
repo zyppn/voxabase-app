@@ -1,10 +1,11 @@
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import PortalTracker from './PortalTracker'
 import PortalPasswordGate from './PortalPasswordGate'
 import PortalView from './PortalView'
 import { DEFAULT_BRAND, normalizeBrand } from '@/lib/brand'
+import { DOMAIN_HEADER } from '@/lib/domainHeader'
 
 export const revalidate = 0
 
@@ -47,6 +48,8 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const isReady = portal.files_ready
   const isPasswordProtected = !!portal.portal_password
+  // On an Agency customer's own domain the portal carries no Voxabase branding
+  const whiteLabel = !!(await headers()).get(DOMAIN_HEADER) && ownerPlan === 'agency'
   // Client approvals are an Agency feature; turning the plan off hides them.
   const approval = {
     approvalRequired: !!portal.approval_required && ownerPlan === 'agency',
@@ -80,6 +83,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           brandInitial={brandInitial}
           ownerIsPro={ownerIsPro}
           {...approval}
+          whiteLabel={whiteLabel}
         />
       ) : (
         <PortalView
@@ -100,6 +104,7 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
           username={username}
           slug={slug}
           {...approval}
+          whiteLabel={whiteLabel}
         />
       )}
     </main>

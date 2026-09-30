@@ -6,8 +6,8 @@ import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 
-// Listed on the Agency plan but not built yet: shown with a "Soon" tag
-const COMING_SOON = new Set(['White-label portal domain'])
+// Plan features not built yet get a "Soon" tag. Everything listed is live now.
+const COMING_SOON = new Set<string>()
 
 function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null)

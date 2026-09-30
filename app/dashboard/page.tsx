@@ -44,6 +44,10 @@ export default async function DashboardPage() {
   }
 
   const planKey = (profile?.plan || 'free') as string
+  // Live white-label domain (Agency) replaces the default portal address
+  const { data: liveDomain } = planKey === 'agency'
+    ? await supabase.from('custom_domains').select('domain').eq('owner_id', ws.ownerId).eq('verified', true).maybeSingle()
+    : { data: null }
   const totalInvoiced = portals?.reduce((sum, p) => sum + (p.invoice_amount || 0), 0) || 0
   const totalPaid = portals?.filter(p => p.invoice_paid).reduce((sum, p) => sum + (p.invoice_amount || 0), 0) || 0
 
@@ -61,6 +65,7 @@ export default async function DashboardPage() {
       totalInvoiced={totalInvoiced}
       totalPaid={totalPaid}
       hasFiles={(fileCount || 0) > 0}
+      portalHost={liveDomain?.domain ?? null}
       teamName={ws.isOwner ? null : (profile?.business_name || profile?.full_name || profile?.username || 'Team')}
     />
   )

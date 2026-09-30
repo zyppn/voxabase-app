@@ -39,6 +39,19 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.supabase_user_id
 
+    // A client paid a portal invoice. Only Stripe can mark an invoice paid, and
+    // only for the full amount the portal asked for when checkout started.
+    const portalId = session.metadata?.portal_id
+    if (session.mode === 'payment' && portalId && session.payment_status === 'paid') {
+      const { data: portal } = await supabase.from('portals').select('id, invoice_amount').eq('id', portalId).single()
+      const expected = Math.round(Number(portal?.invoice_amount) * 100)
+      if (portal && (session.amount_total ?? 0) >= expected) {
+        await supabase.from('portals').update({ invoice_paid: true }).eq('id', portalId)
+      } else {
+        console.error(`[stripe-webhook] Invoice payment for portal ${portalId} was ${session.amount_total}, expected ${expected}; not marked paid.`)
+      }
+    }
+
     if (userId && session.mode === 'subscription' && session.subscription) {
       const subscriptionId = session.subscription as string
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)

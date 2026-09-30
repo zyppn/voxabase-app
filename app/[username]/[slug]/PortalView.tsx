@@ -30,6 +30,8 @@ export interface PortalViewProps {
   approvalAt?: string | null
   /** The password the client typed, so approval requests can prove access. */
   accessPassword?: string
+  /** On the owner's own domain: hide "Delivered via Voxabase". */
+  whiteLabel?: boolean
 }
 
 export function PortalBrand({ ownerIsPro, brandDisplay, logoUrl, displayName, brandInitial, brandColor, centered = false }: {
@@ -148,7 +150,7 @@ export default function PortalView(p: PortalViewProps) {
               </div>
             </div>
             {!p.invoicePaid ? (
-              <PayInvoiceButton portalId={p.portalId} portalName={p.portalName} amount={Number(p.invoiceAmount)} username={p.username} slug={p.slug} brandColor={p.brandColor} />
+              <PayInvoiceButton portalId={p.portalId} portalName={p.portalName} amount={Number(p.invoiceAmount)} username={p.username} slug={p.slug} brandColor={p.brandColor} accessPassword={p.accessPassword} />
             ) : (
               <p className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[10px] border border-green-400/25 bg-green-400/10 text-[15px] font-semibold text-green-400">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24" aria-hidden="true">
@@ -162,7 +164,7 @@ export default function PortalView(p: PortalViewProps) {
         )}
         {!amount && <div className="h-4" />}
       </article>
-      <DeliveredVia />
+      {!p.whiteLabel && <DeliveredVia />}
     </div>
   )
 }

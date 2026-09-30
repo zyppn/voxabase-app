@@ -30,11 +30,13 @@ interface Props {
   hasFiles: boolean
   /** Set when working in an Agency team you belong to (not your own workspace). */
   teamName?: string | null
+  /** Live custom domain, if the workspace has one */
+  portalHost?: string | null
 }
 
 export default function DashboardShell({
   email, username, businessName, fullName, plan, stripeConnected,
-  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles, teamName = null,
+  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles, teamName = null, portalHost = null,
 }: Props) {
   const isTeam = !!teamName
   const searchParams = useSearchParams()
@@ -108,7 +110,7 @@ export default function DashboardShell({
             <h1 className="text-2xl font-bold text-paper">Portals</h1>
             <p className="text-faint text-sm mt-1">
               {isTeam ? <>{teamName}’s portals live at </> : <>Your portals live at </>}
-              <span className="text-muted">voxabase.com/{username}/</span>
+              <span className="text-muted">{portalHost ? `${portalHost}/` : `voxabase.com/${username}/`}</span>
             </p>
           </div>
           <div className="flex items-center gap-3">

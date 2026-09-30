@@ -60,6 +60,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [savingApproval, setSavingApproval] = useState(false)
   // Teammates work in the owner's workspace; only the owner can delete a portal
   const [isOwner, setIsOwner] = useState(true)
+  // Agency white-label domain, once live: share links use it
+  const [liveDomain, setLiveDomain] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -88,6 +90,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       const profileData = ws.me
       if (ws.owner?.plan) setUserPlan(ws.owner.plan)
       setIsOwner(ws.isOwner)
+      if (ws.owner?.plan === 'agency') {
+        const { data: cd } = await supabase.from('custom_domains').select('domain').eq('owner_id', ws.ownerId).eq('verified', true).maybeSingle()
+        setLiveDomain(cd?.domain ?? null)
+      }
 
       const { data: portalData } = await supabase.from('portals').select('*').eq('id', id).eq('user_id', ws.ownerId).single()
       if (!portalData) { router.push('/dashboard'); return }
@@ -393,7 +399,9 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   if (loading) return <PortalDetailSkeleton />
   if (!portal) return null
 
-  const portalUrl = typeof window !== 'undefined'
+  const portalUrl = liveDomain
+    ? `https://${liveDomain}/${portal.slug}`
+    : typeof window !== 'undefined'
     ? `${window.location.origin}/${portal.owner_username}/${portal.slug}`
     : `voxabase.com/${portal.owner_username}/${portal.slug}`
 

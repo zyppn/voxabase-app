@@ -1,28 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 
 export default function PaymentSuccessContent() {
   const searchParams = useSearchParams()
-  const portalId = searchParams.get('portal_id')
   const username = searchParams.get('username')
   const slug = searchParams.get('slug')
-  const [done, setDone] = useState(false)
-  const supabase = createClient()
-
-  useEffect(() => {
-    const markPaid = async () => {
-      if (!portalId) return
-      await supabase
-        .from('portals')
-        .update({ invoice_paid: true })
-        .eq('id', portalId)
-      setDone(true)
-    }
-    markPaid()
-  }, [portalId])
+  // The invoice is marked paid by Stripe's webhook, not by this page.
 
   return (
     <main className="min-h-screen bg-ink text-paper flex items-center justify-center px-4">
@@ -34,7 +18,7 @@ export default function PaymentSuccessContent() {
         </div>
         <h1 className="text-3xl font-bold text-paper mb-3">Payment received</h1>
         <p className="text-muted mb-8">
-          Your payment was successful. The freelancer has been notified and your invoice is now marked as paid.
+          Your payment was successful. The freelancer has been notified and the invoice will show as paid in a moment.
         </p>
         {username && slug && (
           <Link

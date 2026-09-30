@@ -9,9 +9,11 @@ interface PayInvoiceButtonProps {
   username: string
   slug: string
   brandColor?: string
+  /** Password the client typed on a protected portal (checked again by the server). */
+  accessPassword?: string
 }
 
-export default function PayInvoiceButton({ portalId, portalName, amount, username, slug, brandColor = DEFAULT_BRAND }: PayInvoiceButtonProps) {
+export default function PayInvoiceButton({ portalId, amount, brandColor = DEFAULT_BRAND, accessPassword }: PayInvoiceButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const onBrand = textOnBrand(brandColor)
@@ -23,7 +25,8 @@ export default function PayInvoiceButton({ portalId, portalName, amount, usernam
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portalId, portalName, amount, username, slug }),
+        // The server looks up the name and amount itself; the browser only says which portal
+        body: JSON.stringify({ portalId, password: accessPassword }),
       })
       const data = await response.json()
       if (data.url) {

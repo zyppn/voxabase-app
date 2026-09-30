@@ -27,6 +27,7 @@ interface Props {
   approvalNote?: string | null
   approvalName?: string | null
   approvalAt?: string | null
+  whiteLabel?: boolean
 }
 
 export default function PortalPasswordGate({
@@ -100,7 +101,7 @@ export default function PortalPasswordGate({
             Open portal
           </button>
         </form>
-        <DeliveredVia />
+        {!rest.whiteLabel && <DeliveredVia />}
       </div>
     </div>
   )

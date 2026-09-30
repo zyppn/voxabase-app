@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import TwoStepCard from './TwoStepCard'
 import SessionsCard from './SessionsCard'
 import TeamCard from './TeamCard'
+import DomainCard from './DomainCard'
 import { verifyPassword } from '@/lib/verifyPassword'
 import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
@@ -526,6 +527,9 @@ function SettingsContent() {
 
         {/* ── Team seats (Agency) ── */}
         <TeamCard plan={plan} />
+
+        {/* ── White-label portal domain (Agency) ── */}
+        <DomainCard plan={plan} />
 
         {/* ── Membership / Plan & Billing — full width ── */}
         <div className="mt-5 bg-ink-2 border border-rule rounded-xl p-6">
