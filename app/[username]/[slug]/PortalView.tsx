@@ -70,10 +70,11 @@ export function DeliveredVia() {
 
 export default function PortalView(p: PortalViewProps) {
   const fileCount = p.files.length
+  const showReview = !!p.approvalRequired && p.isReady && fileCount > 0
   const amount = p.invoiceAmount ? Number(p.invoiceAmount).toLocaleString('en-US', { minimumFractionDigits: 2 }) : null
 
   return (
-    <div className="mx-auto w-full max-w-[640px] px-4 py-8 sm:px-6 sm:py-14">
+    <div className="mx-auto w-full max-w-[640px] px-4 py-6 sm:px-6 sm:py-10">
       <article className="overflow-hidden rounded-[14px] border border-rule bg-ink-2">
         {/* Brand bar */}
         <header className="flex items-center justify-between gap-3 border-b border-rule px-5 py-3.5">
@@ -118,7 +119,7 @@ export default function PortalView(p: PortalViewProps) {
         )}
 
         {/* Client approval (Agency) */}
-        {p.approvalRequired && p.isReady && fileCount > 0 && (
+        {showReview && (
           <ApprovalPanel
             portalId={p.portalId}
             displayName={p.displayName}
@@ -132,7 +133,7 @@ export default function PortalView(p: PortalViewProps) {
 
         {/* Invoice */}
         {amount && (
-          <section className="mt-4 border-t border-rule px-5 py-[18px]" aria-label="Invoice">
+          <section className={`${showReview ? '' : 'mt-4 '}border-t border-rule px-5 py-[18px]`} aria-label="Invoice">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">Invoice</p>

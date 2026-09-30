@@ -69,7 +69,7 @@ export default function ApprovalPanel({ portalId, displayName, brandColor, initi
   // appear when the client asks for changes, which is when they're useful.
   if (mode !== 'changes') {
     return (
-      <section aria-labelledby="review-title" className="mt-4 border-t border-rule px-5 py-4">
+      <section aria-labelledby="review-title" className="mt-4 border-t border-rule px-5 py-3.5">
         {error && <p role="alert" className="mb-3 rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-[13px] text-red-400">{error}</p>}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
