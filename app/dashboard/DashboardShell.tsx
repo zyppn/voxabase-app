@@ -105,10 +105,6 @@ export default function DashboardShell({
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
-            <a href="/dashboard/new" className="hidden lg:inline-flex items-center gap-1.5 bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2 rounded-lg">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" d="M12 5v14M5 12h14" /></svg>
-              New portal
-            </a>
           </div>
         </div>
 

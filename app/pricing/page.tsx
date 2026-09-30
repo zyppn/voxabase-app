@@ -5,6 +5,9 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 
+// Listed on the Agency plan but not built yet: shown with a "Soon" tag
+const COMING_SOON = new Set(['Team member seats', 'White-label portal domain', 'Client approval workflows'])
+
 function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null)
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
@@ -267,7 +270,10 @@ function PricingContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  {feature}
+                  <span className={COMING_SOON.has(feature) ? 'text-muted' : undefined}>{feature}</span>
+                  {COMING_SOON.has(feature) && (
+                    <span className="text-[10px] font-semibold text-faint border border-rule-2 rounded-full px-1.5 py-px leading-none">Soon</span>
+                  )}
                 </li>
               ))}
             </ul>
