@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import OnboardingChecklist from './OnboardingChecklist'
 import { useSearchParams } from 'next/navigation'
 import AppShell from './AppShell'
 
@@ -24,11 +25,12 @@ interface Props {
   usedBytes: number
   totalInvoiced: number
   totalPaid: number
+  hasFiles: boolean
 }
 
 export default function DashboardShell({
   email, username, businessName, fullName, plan, stripeConnected,
-  portals, viewMap, usedBytes, totalInvoiced, totalPaid,
+  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles,
 }: Props) {
   const searchParams = useSearchParams()
   const initialFilter = (searchParams.get('filter') as 'all' | 'active' | 'completed') || 'all'
@@ -104,8 +106,14 @@ export default function DashboardShell({
           <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
         </div>
 
-        {/* Stripe banner */}
-        {!stripeConnected && (
+        {/* Getting started (falls back to the Stripe reminder once hidden) */}
+        <OnboardingChecklist
+          hasPortal={portals.length > 0}
+          hasFiles={hasFiles}
+          stripeConnected={stripeConnected}
+          linkShared={Object.values(viewMap).some((v) => v.count > 0)}
+          latestPortalId={portals[0]?.id ?? null}
+          fallback={!stripeConnected ? (
           <div className="bg-accent-soft border border-accent/30 rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -118,7 +126,8 @@ export default function DashboardShell({
             </div>
             <a href="/stripe-setup" className="flex-shrink-0 bg-paper hover:bg-white text-ink font-semibold px-4 py-2 rounded-lg text-xs">Set up</a>
           </div>
-        )}
+          ) : null}
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-9">

@@ -27,6 +27,11 @@ export default async function DashboardPage() {
     ? await supabase.from('portal_views').select('portal_id, viewed_at').in('portal_id', portalIds)
     : { data: [] }
 
+  const { count: fileCount } = await supabase
+    .from('files')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
   const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
   const usedBytes = storageData || 0
 
@@ -56,6 +61,7 @@ export default async function DashboardPage() {
       usedBytes={usedBytes}
       totalInvoiced={totalInvoiced}
       totalPaid={totalPaid}
+      hasFiles={(fileCount || 0) > 0}
     />
   )
 }

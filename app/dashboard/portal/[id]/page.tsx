@@ -402,6 +402,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <button
                 onClick={(e) => {
                   navigator.clipboard.writeText(portalUrl)
+                  try { localStorage.setItem('vb_link_copied', '1') } catch { /* ignore */ }
                   const btn = e.currentTarget
                   btn.textContent = 'Copied!'
                   btn.style.color = '#4ade80'
