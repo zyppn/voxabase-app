@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 
 const PRESET_COLORS = [
-  { label: 'VoxaBase Purple', value: '#7656b9' },
+  { label: 'VoxaBase Purple', value: '#865fd9' },
   { label: 'Ocean Blue', value: '#3b82f6' },
   { label: 'Emerald', value: '#10b981' },
   { label: 'Rose', value: '#f43f5e' },
@@ -23,7 +24,7 @@ function SettingsContent() {
   const [newEmail, setNewEmail] = useState('')
   const [plan, setPlan] = useState('free')
   const [username, setUsername] = useState('')
-  const [brandColor, setBrandColor] = useState('#7656b9')
+  const [brandColor, setBrandColor] = useState('#865fd9')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [brandDisplay, setBrandDisplay] = useState('both')
@@ -68,7 +69,7 @@ function SettingsContent() {
         setUsername(profile.username || '')
         setPlan(profile.plan || 'free')
         setSubscriptionPeriodEnd(profile.subscription_period_end || null)
-        setBrandColor(profile.brand_color || '#7656b9')
+        setBrandColor(profile.brand_color || '#865fd9')
         setLogoUrl(profile.logo_url || null)
         setBrandDisplay(profile.brand_display || 'both')
       }
@@ -238,7 +239,7 @@ function SettingsContent() {
   }
 
   const planLabel = plan === 'pro' ? 'Pro' : plan === 'agency' ? 'Agency' : 'Free'
-  const planColor = plan === 'free' ? 'text-gray-400' : plan === 'agency' ? 'text-yellow-400' : 'text-[#ac9dd9]'
+  const planColor = plan === 'free' ? 'text-muted' : plan === 'agency' ? 'text-yellow-400' : 'text-accent-text'
   const isPro = plan === 'pro' || plan === 'agency'
 
   const formatDate = (dateStr: string) => {
@@ -246,8 +247,8 @@ function SettingsContent() {
   }
 
   if (loading) return (
-    <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+    <main className="min-h-screen bg-ink flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
     </main>
   )
 
@@ -265,7 +266,7 @@ function SettingsContent() {
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         {/* Back button */}
-        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
+        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
@@ -273,7 +274,7 @@ function SettingsContent() {
         </a>
 
         <h1 className="text-2xl font-bold mb-1 tracking-tight">Account settings</h1>
-        <p className="text-gray-400 text-sm mb-7">Manage your profile, branding, and billing</p>
+        <p className="text-muted text-sm mb-7">Manage your profile, branding, and billing</p>
 
         {successMessage && (
           <div className="bg-green-400/10 border border-green-400/20 text-green-400 text-sm rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
@@ -294,47 +295,47 @@ function SettingsContent() {
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
-            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6">
-              <h2 className="font-semibold text-white mb-5">Profile</h2>
+            <div className="bg-ink-2 border border-rule rounded-2xl p-6">
+              <h2 className="font-semibold text-paper mb-5">Profile</h2>
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-sm text-gray-400 mb-1.5 block">Full name</label>
+                  <label className="text-sm text-muted mb-1.5 block">Full name</label>
                   <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your full name" />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400 mb-1.5 block">Business name <span className="text-gray-600">(optional)</span></label>
+                  <label className="text-sm text-muted mb-1.5 block">Business name <span className="text-faint">(optional)</span></label>
                   <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your studio or business name" />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400 mb-1.5 block">Username <span className="text-gray-600">(cannot be changed)</span></label>
-                  <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
-                    <span className="text-gray-600 text-sm">voxabase.com/</span>
-                    <span className="text-gray-400 text-sm">{username}</span>
+                  <label className="text-sm text-muted mb-1.5 block">Username <span className="text-faint">(cannot be changed)</span></label>
+                  <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
+                    <span className="text-faint text-sm">voxabase.com/</span>
+                    <span className="text-muted text-sm">{username}</span>
                   </div>
                 </div>
                 <button onClick={handleSaveProfile} disabled={saving}
-                  className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm mt-1">
+                  className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 text-sm mt-1">
                   {saving ? 'Saving...' : 'Save changes'}
                 </button>
               </div>
             </div>
 
             {/* Email */}
-            <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6">
-              <h2 className="font-semibold text-white mb-5">Email address</h2>
+            <div className="bg-ink-2 border border-rule rounded-2xl p-6">
+              <h2 className="font-semibold text-paper mb-5">Email address</h2>
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-sm text-gray-400 mb-1.5 block">Email</label>
+                  <label className="text-sm text-muted mb-1.5 block">Email</label>
                   <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm" />
-                  <p className="text-xs text-gray-600 mt-1.5">You'll receive a confirmation email at the new address</p>
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
+                  <p className="text-xs text-faint mt-1.5">You'll receive a confirmation email at the new address</p>
                 </div>
                 <button onClick={handleChangeEmail} disabled={changingEmail || newEmail === email}
-                  className="w-full bg-[#08080a] border border-[#1c1c22] hover:border-[#2a2a33] text-white font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-[#1c1c22] text-sm">
+                  className="w-full bg-ink border border-rule-2 hover:border-rule-3 text-paper font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:border-rule-2 text-sm">
                   {changingEmail ? 'Sending...' : 'Update email'}
                 </button>
               </div>
@@ -342,80 +343,74 @@ function SettingsContent() {
           </div>
 
           {/* ── Right column: Custom branding ── */}
-          <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 relative overflow-hidden">
+          <div className="bg-ink-2 border border-rule rounded-2xl p-6 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="font-semibold text-white">Custom branding</h2>
-                <p className="text-gray-500 text-xs mt-0.5">Your logo and accent color on every portal</p>
+                <h2 className="font-semibold text-paper">Custom branding</h2>
+                <p className="text-faint text-xs mt-0.5">Your logo and accent color on every portal</p>
               </div>
               {!isPro && (
-                <span className="text-[11px] bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2.5 py-1 rounded-full font-semibold">Pro</span>
+                <span className="text-[11px] bg-accent-soft text-accent-text border border-accent/30 px-2.5 py-1 rounded-full font-semibold">Pro</span>
               )}
             </div>
 
             {/* The full branding UI — dimmed + overlaid for free users */}
             <div className={!isPro ? 'pointer-events-none select-none opacity-30 blur-[1px]' : ''}>
-              {/* Live preview */}
-              <div className="bg-[#08080a] border border-[#1c1c22] rounded-xl p-4 mb-5">
-                <div className="flex items-center justify-between pb-3 border-b border-[#16161a]">
-                  <div className="flex items-center gap-2.5">
-                    {(brandDisplay === 'both' || brandDisplay === 'logo') && (
-                      logoUrl ? (
-                        <img src={logoUrl} alt="Logo" className="max-h-7 w-auto max-w-[120px] object-contain" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: brandColor }}>
-                          <span className="text-white text-xs font-bold">{(businessName || fullName || 'V').charAt(0).toUpperCase()}</span>
-                        </div>
-                      )
-                    )}
-                    {(brandDisplay === 'both' || brandDisplay === 'name') && (
-                      <span className="text-sm font-bold text-white">{businessName || fullName || 'Your brand'}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: brandColor }} />
-                    <span className="text-[11px] text-gray-500 font-medium">Ready</span>
-                  </div>
-                </div>
-
-                {/* Sample project + file row — mirrors the real portal */}
-                <div className="pt-3">
-                  <p className="text-xs uppercase tracking-[0.12em] font-semibold mb-2" style={{ color: brandColor }}>Delivered by you</p>
-                  <div className="flex items-center justify-between gap-2 bg-[#0b0b0e] border border-[#1c1c22] rounded-lg px-3 py-2.5 mb-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-md flex items-center justify-center text-[9px] font-bold flex-shrink-0"
-                        style={{ background: `${brandColor}1f`, color: brandColor }}>
-                        PDF
+              {/* Live preview: a small copy of the portal card your clients see */}
+              {(() => {
+                const c = normalizeBrand(brandColor)
+                const name = businessName || fullName || 'Your brand'
+                const showLogo = brandDisplay === 'both' || brandDisplay === 'logo'
+                const showName = brandDisplay === 'both' || brandDisplay === 'name'
+                return (
+                  <div className="mb-5 overflow-hidden rounded-[14px] border border-rule bg-ink-2" aria-label="Preview of your client portal">
+                    <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        {showLogo && (logoUrl ? (
+                          <img src={logoUrl} alt="Logo" className="max-h-7 w-auto max-w-[120px] object-contain" />
+                        ) : (
+                          <span className="grid h-7 w-7 flex-none place-items-center rounded-lg text-[13px] font-bold" style={{ background: c, color: textOnBrand(c) }}>
+                            {name.charAt(0).toUpperCase()}
+                          </span>
+                        ))}
+                        {showName && <span className="truncate text-sm font-bold text-paper">{name}</span>}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-white truncate">Example.pdf</p>
-                        <p className="text-[10px] text-gray-600">2.4 MB</p>
+                      <span className="flex flex-none items-center gap-2 text-xs text-faint">
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: brandInk(c) }} aria-hidden="true" />
+                        Ready
+                      </span>
+                    </div>
+                    <div className="px-4 pb-3 pt-4">
+                      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: brandInk(c) }}>Delivered by {name}</p>
+                      <p className="text-base font-bold tracking-[-0.02em] text-paper">Example project</p>
+                    </div>
+                    <div className="px-3">
+                      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
+                        <span className="grid h-[34px] w-[34px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]" style={{ background: brandSurface(c), color: brandInk(c), borderColor: brandLine(c) }}>PDF</span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-paper">Example.pdf</span>
+                          <span className="block text-xs text-faint">2.4 MB</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-rule-2 px-2.5 py-1.5 text-xs font-semibold text-paper"><svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>Download</span>
                       </div>
                     </div>
-                    <span className="flex items-center gap-1 text-[11px] font-semibold flex-shrink-0" style={{ color: brandColor }}>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Download
-                    </span>
+                    <div className="mt-3 border-t border-rule px-4 py-3.5">
+                      <span className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] text-sm font-semibold" style={{ background: c, color: textOnBrand(c) }}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+                        Pay Invoice
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                <button style={{ background: brandColor }} className="w-full py-2.5 rounded-lg text-white text-xs font-semibold flex items-center justify-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
-                  </svg>
-                  Pay Invoice
-                </button>
-              </div>
+                )
+              })()}
 
               {/* Logo */}
-              <p className="text-xs text-gray-500 mb-1.5 font-medium">Logo <span className="text-gray-600 font-normal">· PNG, JPG, or SVG · max 2MB</span></p>
+              <p className="text-xs text-faint mb-1.5 font-medium">Logo <span className="text-faint font-normal">· PNG, JPG, or SVG · max 2MB</span></p>
               {logoUrl ? (
-                <div className="flex items-center gap-3 bg-[#08080a] border border-[#1c1c22] rounded-lg p-2.5 mb-4">
+                <div className="flex items-center gap-3 bg-ink border border-rule-2 rounded-lg p-2.5 mb-4">
                   <img src={logoUrl} alt="Logo" className="h-8 w-auto max-w-[120px] object-contain" />
                   <div className="flex-1" />
-                  <label className="text-xs text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-2.5 py-1.5 rounded-lg cursor-pointer">
+                  <label className="text-xs text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-2.5 py-1.5 rounded-lg cursor-pointer">
                     Replace
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
                   </label>
@@ -423,15 +418,15 @@ function SettingsContent() {
                     className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 bg-[#08080a] border border-dashed border-[#1c1c22] hover:border-[#7656b9]/40 rounded-lg py-3 cursor-pointer mb-4">
+                <label className="flex items-center justify-center gap-2 bg-ink border border-dashed border-rule-2 hover:border-accent/40 rounded-lg py-3 cursor-pointer mb-4">
                   {uploadingLogo ? (
-                    <div className="w-5 h-5 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                       </svg>
-                      <span className="text-xs text-gray-400 font-medium">Upload your logo</span>
+                      <span className="text-xs text-muted font-medium">Upload your logo</span>
                     </>
                   )}
                   <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
@@ -439,103 +434,103 @@ function SettingsContent() {
               )}
 
               {/* Display toggle (segmented) */}
-              <p className="text-xs text-gray-500 mb-1.5 font-medium">Show on portals</p>
-              <div className="grid grid-cols-3 gap-1 bg-[#08080a] border border-[#1c1c22] rounded-lg p-1 mb-4">
+              <p className="text-xs text-faint mb-1.5 font-medium">Show on portals</p>
+              <div className="grid grid-cols-3 gap-1 bg-ink border border-rule-2 rounded-lg p-1 mb-4">
                 {[
                   { value: 'both', label: 'Logo + Name' },
                   { value: 'logo', label: 'Logo only' },
                   { value: 'name', label: 'Name only' },
                 ].map(opt => (
                   <button key={opt.value} onClick={() => setBrandDisplay(opt.value)}
-                    className={`text-xs font-semibold py-2 rounded-md transition-colors ${brandDisplay === opt.value ? 'bg-[#7656b9] text-white' : 'text-gray-400 hover:text-white'}`}>
+                    className={`text-xs font-semibold py-2 rounded-md transition-colors ${brandDisplay === opt.value ? 'bg-paper text-ink' : 'text-muted hover:text-paper'}`}>
                     {opt.label}
                   </button>
                 ))}
               </div>
 
               {/* Color — circles */}
-              <p className="text-xs text-gray-500 mb-2 font-medium">Accent color</p>
+              <p className="text-xs text-faint mb-2 font-medium">Accent color</p>
               <div className="flex items-center gap-2.5 flex-wrap mb-3">
                 {PRESET_COLORS.map((color) => (
                   <button key={color.value} onClick={() => setBrandColor(color.value)} title={color.label}
                     className="w-8 h-8 rounded-full transition-transform hover:scale-110 flex items-center justify-center"
                     style={{ background: color.value, boxShadow: brandColor.toLowerCase() === color.value.toLowerCase() ? `0 0 0 2px #08080a, 0 0 0 4px ${color.value}` : 'none' }}>
                     {brandColor.toLowerCase() === color.value.toLowerCase() && (
-                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      <svg className="w-3.5 h-3.5 text-paper" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     )}
                   </button>
                 ))}
                 {/* Custom color picker as a circle */}
-                <label className="w-8 h-8 rounded-full cursor-pointer relative overflow-hidden border border-[#2a2a33] flex items-center justify-center"
+                <label className="w-8 h-8 rounded-full cursor-pointer relative overflow-hidden border border-rule-3 flex items-center justify-center"
                   style={{ background: 'conic-gradient(from 0deg, #f43f5e, #f59e0b, #10b981, #06b6d4, #3b82f6, #8b3cf7, #f43f5e)' }}
                   title="Custom color">
                   <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)}
                     className="absolute inset-0 opacity-0 cursor-pointer" />
-                  <svg className="w-3.5 h-3.5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                  <svg className="w-3.5 h-3.5 text-paper drop-shadow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 </label>
               </div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-xs text-gray-600">Hex</span>
+                <span className="text-xs text-faint">Hex</span>
                 <input type="text" value={brandColor}
                   onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
-                  className="w-28 bg-[#08080a] border border-[#1c1c22] rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#7656b9] text-xs font-mono" />
+                  className="w-28 bg-ink border border-rule-2 rounded-lg px-3 py-1.5 text-paper focus:outline-none focus:border-accent text-xs font-mono" />
               </div>
 
               <button onClick={handleSaveBranding} disabled={savingBrand}
-                className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
+                className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 text-sm">
                 {savingBrand ? 'Saving...' : 'Save branding'}
               </button>
             </div>
 
             {/* Free overlay */}
             {!isPro && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 bg-[#101013]/40 backdrop-blur-[2px]">
-                <div className="w-12 h-12 rounded-2xl bg-[#1c142e] border border-[#7656b9]/30 flex items-center justify-center mb-3">
-                  <svg className="w-6 h-6 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 bg-ink-2/40 backdrop-blur-[2px]">
+                <div className="w-12 h-12 rounded-2xl bg-accent-soft border border-accent/30 flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                   </svg>
                 </div>
-                <p className="text-white font-semibold mb-1">Custom branding is a Pro feature</p>
-                <p className="text-gray-400 text-sm mb-4 max-w-xs">Add your logo and accent color so clients see your brand, not ours.</p>
-                <a href="/pricing" className="bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
+                <p className="text-paper font-semibold mb-1">Custom branding is a Pro feature</p>
+                <p className="text-muted text-sm mb-4 max-w-xs">Add your logo and accent color so clients see your brand, not ours.</p>
+                <a href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</a>
               </div>
             )}
           </div>
         </div>
 
         {/* ── Membership / Plan & Billing — full width ── */}
-        <div className="mt-5 bg-[#101013] border border-[#16161a] rounded-2xl p-6">
+        <div className="mt-5 bg-ink-2 border border-rule rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-[#7656b9]/10 border border-[#7656b9]/20' : 'bg-[#1e1e24] border border-[#16161a]'}`}>
-                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-[#ac9dd9]' : 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${plan === 'agency' ? 'bg-yellow-400/10 border border-yellow-400/20' : plan === 'pro' ? 'bg-accent/10 border border-accent/20' : 'bg-ink-3 border border-rule'}`}>
+                <svg className={`w-6 h-6 ${plan === 'agency' ? 'text-yellow-400' : plan === 'pro' ? 'text-accent-text' : 'text-faint'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                 </svg>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-lg font-bold text-white">{planLabel} plan</p>
-                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-[#7656b9]/10 text-[#ac9dd9]'}`}>Active</span>}
+                  <p className="text-lg font-bold text-paper">{planLabel} plan</p>
+                  {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${plan === 'agency' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-accent/10 text-accent-text'}`}>Active</span>}
                 </div>
                 {plan === 'free' ? (
-                  <p className="text-gray-500 text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
+                  <p className="text-faint text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
                 ) : subscriptionPeriodEnd ? (
-                  <p className="text-gray-500 text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
+                  <p className="text-faint text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
                 ) : (
-                  <p className="text-gray-500 text-sm mt-0.5">Active subscription — billed monthly</p>
+                  <p className="text-faint text-sm mt-0.5">Active subscription — billed monthly</p>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-2.5 flex-shrink-0">
               {plan === 'free' ? (
-                <a href="/pricing" className="bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
+                <a href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</a>
               ) : (
                 <>
                   {plan !== 'agency' && (
-                    <a href="/pricing" className="text-sm text-gray-400 hover:text-white border border-[#1c1c22] hover:border-[#2a2a33] px-4 py-2.5 rounded-lg">Upgrade to Agency</a>
+                    <a href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-4 py-2.5 rounded-lg">Upgrade to Agency</a>
                   )}
                   <button onClick={handleManageBilling} disabled={managingBilling}
-                    className="bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+                    className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
                     {managingBilling ? 'Opening...' : 'Manage billing'}
                   </button>
                 </>
@@ -543,7 +538,7 @@ function SettingsContent() {
             </div>
           </div>
           {plan !== 'free' && (
-            <p className="text-xs text-gray-600 mt-4 pt-4 border-t border-[#16161a]">
+            <p className="text-xs text-faint mt-4 pt-4 border-t border-rule">
               Subscriptions auto-renew monthly. Cancel anytime through Manage billing — your plan stays active until the end of the current period.
             </p>
           )}
@@ -557,8 +552,8 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+      <main className="min-h-screen bg-ink flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </main>
     }>
       <SettingsContent />

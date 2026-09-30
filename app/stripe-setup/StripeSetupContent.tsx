@@ -105,8 +105,8 @@ export default function StripeSetupContent() {
 
   if (status === 'loading') {
     return (
-      <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+      <main className="min-h-screen bg-ink flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </main>
     )
   }
@@ -126,7 +126,7 @@ export default function StripeSetupContent() {
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         <div className="max-w-lg mx-auto">
           {/* Back button — clean arrow */}
-          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
+          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
             <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -141,10 +141,10 @@ export default function StripeSetupContent() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold mb-3 tracking-tight">Stripe connected</h1>
-              <p className="text-gray-400 text-sm mb-8">
+              <p className="text-muted text-sm mb-8">
                 Your clients can now pay invoices directly to your bank account. Payments arrive within 2 business days.
               </p>
-              <div className="bg-[#101013] border border-green-400/20 rounded-2xl p-5 mb-6 text-left">
+              <div className="bg-ink-2 border border-green-400/20 rounded-2xl p-5 mb-6 text-left">
                 {[
                   'Clients pay invoices on your portals',
                   'Funds go directly to your bank account',
@@ -157,42 +157,42 @@ export default function StripeSetupContent() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <p className="text-sm text-gray-300">{item}</p>
+                    <p className="text-sm text-paper/85">{item}</p>
                   </div>
                 ))}
               </div>
               <div className="flex flex-col gap-3">
                 <a
                   href="/dashboard"
-                  className="w-full inline-flex items-center justify-center bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold px-6 py-3 rounded-lg text-sm"
+                  className="w-full inline-flex items-center justify-center bg-paper hover:bg-white text-ink font-semibold px-6 py-3 rounded-lg text-sm"
                 >
                   Go to dashboard
                 </a>
                 <button
                   onClick={handleManage}
                   disabled={loading}
-                  className="w-full inline-flex items-center justify-center gap-2 border border-[#1c1c22] hover:border-[#2a2a33] text-gray-400 hover:text-white font-semibold px-6 py-3 rounded-lg text-sm disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 border border-rule-2 hover:border-rule-3 text-muted hover:text-paper font-semibold px-6 py-3 rounded-lg text-sm disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                   </svg>
                   {loading ? 'Opening...' : 'Manage Stripe account'}
                 </button>
-                <p className="text-xs text-gray-600 text-center">Update your bank account, view payouts, and manage your Stripe settings</p>
+                <p className="text-xs text-faint text-center">Update your bank account, view payouts, and manage your Stripe settings</p>
               </div>
             </div>
           ) : (
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#1c142e] border border-[#7656b9]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-accent-soft border border-accent/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
               </div>
               <h1 className="text-2xl font-bold mb-3 tracking-tight">Connect your Stripe account</h1>
-              <p className="text-gray-400 text-sm mb-8">
+              <p className="text-muted text-sm mb-8">
                 Connect Stripe so your clients can pay invoices directly to your bank. Takes about 5 minutes.
               </p>
-              <div className="bg-[#101013] border border-[#16161a] rounded-2xl p-6 mb-6 text-left">
+              <div className="bg-ink-2 border border-rule rounded-2xl p-6 mb-6 text-left">
                 {[
                   'Client payments go directly to your bank',
                   'Stripe handles all payment security',
@@ -200,19 +200,19 @@ export default function StripeSetupContent() {
                   'VoxaBase never touches your funds',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">
-                    <div className="w-5 h-5 rounded-full bg-[#7656b9]/10 border border-[#7656b9]/30 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <div className="w-5 h-5 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-accent-text" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <p className="text-sm text-gray-300">{item}</p>
+                    <p className="text-sm text-paper/85">{item}</p>
                   </div>
                 ))}
               </div>
               <button
                 onClick={handleConnect}
                 disabled={loading}
-                className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
+                className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
               >
                 {loading ? (
                   <>
@@ -223,7 +223,7 @@ export default function StripeSetupContent() {
                   status === 'incomplete' ? 'Continue Stripe setup' : 'Connect Stripe account'
                 )}
               </button>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-faint">
                 You will be redirected to Stripe to complete setup securely
               </p>
             </div>

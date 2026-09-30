@@ -141,7 +141,7 @@ function PricingContent() {
 
     if (isCurrent) {
       return (
-        <div className="w-full text-center py-3 rounded-lg border border-[#16161a] text-gray-500 text-sm font-semibold">
+        <div className="w-full text-center py-3 rounded-lg border border-rule text-faint text-sm font-semibold">
           Current plan
         </div>
       )
@@ -149,7 +149,7 @@ function PricingContent() {
 
     if (plan.key === 'free') {
       return (
-        <a href={sidebar ? '/dashboard' : '/signup'} className="w-full text-center py-3 rounded-lg border border-[#1c1c22] hover:border-[#2a2a33] text-gray-400 hover:text-white text-sm font-semibold block">
+        <a href={sidebar ? '/dashboard' : '/signup'} className="w-full text-center py-3 rounded-lg border border-rule-2 hover:border-rule-3 text-muted hover:text-paper text-sm font-semibold block">
           {sidebar ? 'Go to dashboard' : 'Get started free'}
         </a>
       )
@@ -161,7 +161,7 @@ function PricingContent() {
         <button
           onClick={handleManageBilling}
           disabled={loading === 'billing'}
-          className="w-full py-3 rounded-lg text-sm font-semibold bg-[#16161a] hover:bg-[#1f1f26] text-white transition-colors disabled:opacity-50"
+          className="w-full py-3 rounded-lg text-sm font-semibold bg-ink-3 hover:bg-ink-4 text-paper transition-colors disabled:opacity-50"
         >
           {loading === 'billing' ? 'Opening...' : 'Upgrade via billing portal'}
         </button>
@@ -174,7 +174,7 @@ function PricingContent() {
         <button
           onClick={handleManageBilling}
           disabled={loading === 'billing'}
-          className="w-full py-3 rounded-lg text-sm font-semibold border border-[#1c1c22] hover:border-[#2a2a33] text-gray-400 hover:text-white disabled:opacity-50"
+          className="w-full py-3 rounded-lg text-sm font-semibold border border-rule-2 hover:border-rule-3 text-muted hover:text-paper disabled:opacity-50"
         >
           {loading === 'billing' ? 'Opening...' : 'Manage via billing portal'}
         </button>
@@ -186,7 +186,7 @@ function PricingContent() {
       <button
         onClick={() => pid && handleUpgrade(pid, plan.key)}
         disabled={loading === plan.key || !pid}
-        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-[#7656b9] hover:bg-[#805ec5] text-white shadow-lg shadow-black/30' : 'bg-[#16161a] hover:bg-[#1f1f26] text-white'}`}
+        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-paper hover:bg-white text-ink shadow-lg shadow-black/30' : 'bg-ink-3 hover:bg-ink-4 text-paper'}`}
       >
         {loading === plan.key ? 'Redirecting...' : !pid ? 'Unavailable' : plan.key === 'pro' ? 'Upgrade to Pro' : 'Upgrade to Agency'}
       </button>
@@ -196,7 +196,7 @@ function PricingContent() {
   const pricingBody = (
     <div className="max-w-5xl mx-auto px-6 lg:px-10 py-9">
       {sidebar && (
-        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
+        <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
@@ -213,23 +213,23 @@ function PricingContent() {
           </div>
         )}
         <h1 className="text-3xl font-bold mb-3 tracking-tight">Simple pricing, no surprises</h1>
-        <p className="text-gray-400">Free to start. Upgrade when your client list grows.</p>
+        <p className="text-muted">Free to start. Upgrade when your client list grows.</p>
       </div>
 
       <div className="flex justify-center mb-10">
-        <div className="inline-flex items-center bg-[#101013] border border-[#16161a] rounded-full p-1">
+        <div className="inline-flex items-center bg-ink-2 border border-rule rounded-full p-1">
           <button
             onClick={() => setBilling('monthly')}
-            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${billing === 'monthly' ? 'bg-[#7656b9] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${billing === 'monthly' ? 'bg-paper text-ink' : 'text-muted hover:text-paper'}`}
           >
             Monthly
           </button>
           <button
             onClick={() => setBilling('annual')}
-            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === 'annual' ? 'bg-[#7656b9] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === 'annual' ? 'bg-paper text-ink' : 'text-muted hover:text-paper'}`}
           >
             Annual
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-[#7656b9]/15 text-[#ac9dd9]'}`}>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${billing === 'annual' ? 'bg-accent/15 text-accent-deep' : 'bg-accent/15 text-accent-text'}`}>
               SAVE 20%
             </span>
           </button>
@@ -240,10 +240,10 @@ function PricingContent() {
         {plans.map((plan) => (
           <div
             key={plan.key}
-            className={`rounded-2xl p-6 flex flex-col ${plan.featured ? 'bg-[#1c142e] border-2 border-[#7656b9]' : 'bg-[#101013] border border-[#16161a]'}`}
+            className={`rounded-2xl p-6 flex flex-col ${plan.featured ? 'bg-ink-2 border border-rule-2 shadow-[inset_0_2px_0_var(--color-accent-mark)]' : 'bg-ink-2 border border-rule'}`}
           >
             {plan.featured && (
-              <span className="text-xs font-bold bg-[#7656b9] text-white px-3 py-1 rounded-full self-start mb-4 uppercase tracking-wide">
+              <span className="text-[13px] font-semibold text-accent-text self-start mb-4">
                 Most popular
               </span>
             )}
@@ -252,18 +252,18 @@ function PricingContent() {
                 Current plan
               </span>
             )}
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">{plan.name}</h2>
+            <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-2">{plan.name}</h2>
             <div className="mb-0.5">
-              <span className="text-4xl font-bold text-white">{plan[billing].price}</span>
-              <span className="text-gray-500 text-sm">{plan[billing].suffix}</span>
+              <span className="text-4xl font-bold text-paper">{plan[billing].price}</span>
+              <span className="text-faint text-sm">{plan[billing].suffix}</span>
             </div>
-            <p className="text-xs text-gray-600 h-4">{plan[billing].note}</p>
-            <div className="h-px bg-[#16161a] my-5" />
+            <p className="text-xs text-faint h-4">{plan[billing].note}</p>
+            <div className="h-px bg-ink-3 my-5" />
             <ul className="flex flex-col gap-3 mb-8 flex-1">
               {plan.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-2.5 text-sm text-gray-300">
-                  <div className="w-4 h-4 rounded-full bg-[#7656b9]/15 border border-[#7656b9]/35 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-2.5 h-2.5 text-[#ac9dd9]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <li key={feature} className="flex items-center gap-2.5 text-sm text-paper/85">
+                  <div className="w-4 h-4 rounded-full bg-accent/15 border border-accent/35 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-2.5 h-2.5 text-accent-text" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -276,7 +276,7 @@ function PricingContent() {
         ))}
       </div>
 
-      <p className="text-center text-xs text-gray-600 mt-8">
+      <p className="text-center text-xs text-faint mt-8">
         Payments processed securely by Stripe. Upgrades are prorated. Cancel anytime.
       </p>
     </div>
@@ -286,8 +286,8 @@ function PricingContent() {
   // this prevents the logged-out layout flashing before the shell loads.
   if (!authChecked) {
     return (
-      <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+      <main className="min-h-screen bg-ink flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </main>
     )
   }
@@ -312,10 +312,10 @@ function PricingContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#08080a] text-white">
-      <nav className="border-b border-[#16161a] px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 bg-[#08080a]/85 backdrop-blur-sm z-10">
+    <main className="min-h-screen bg-ink text-paper">
+      <nav className="border-b border-rule px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 bg-ink/85 backdrop-blur-sm z-10">
         <a href="https://voxabase.com"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
-        <a href="/signup" className="bg-[#7656b9] hover:bg-[#805ec5] text-white text-sm font-semibold px-4 py-2 rounded-lg">Get started</a>
+        <a href="/signup" className="bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2 rounded-lg">Get started</a>
       </nav>
       {pricingBody}
     </main>
@@ -325,8 +325,8 @@ function PricingContent() {
 export default function PricingPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+      <main className="min-h-screen bg-ink flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </main>
     }>
       <PricingContent />

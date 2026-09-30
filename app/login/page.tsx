@@ -26,52 +26,52 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#090909] flex items-center justify-center px-4 relative overflow-hidden">
+    <main className="min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <img src="/vblogo.png" alt="VoxaBase" className="h-10 w-auto mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-white mb-1">Welcome back</h1>
-          <p className="text-gray-400 text-sm">Sign in to your VoxaBase account</p>
+          <h1 className="text-2xl font-bold text-paper mb-1">Welcome back</h1>
+          <p className="text-muted text-sm">Sign in to your VoxaBase account</p>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-[#111114] border border-[#1e1e24] rounded-xl p-8 flex flex-col gap-4">
+        <form onSubmit={handleLogin} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
           {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
           <div>
-            <label className="text-sm text-gray-400 mb-1.5 block">Email</label>
+            <label className="text-sm text-muted mb-1.5 block">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] transition-colors text-sm"
+              className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
               placeholder="you@example.com"
             />
           </div>
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm text-gray-400">Password</label>
-              <Link href="/forgot-password" className="text-xs text-[#ac9dd9] hover:underline">Forgot password?</Link>
+              <label className="text-sm text-muted">Password</label>
+              <Link href="/forgot-password" className="text-xs text-accent-text hover:underline">Forgot password?</Link>
             </div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] transition-colors text-sm"
+              className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
               placeholder="Your password"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
+            className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
-          <p className="text-center text-gray-500 text-sm">
+          <p className="text-center text-faint text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-[#ac9dd9] hover:underline font-medium">Create one</Link>
+            <Link href="/signup" className="text-accent-text hover:underline font-medium">Create one</Link>
           </p>
         </form>
       </div>

@@ -73,14 +73,14 @@ export default function AppShell({
   const storageAnim = mounted ? 'transition-all duration-200' : ''
 
   return (
-    <div className="min-h-screen bg-[#08080a] text-white flex">
+    <div className="min-h-screen bg-ink text-paper flex">
       {/* ── Sidebar ── */}
-      <aside className={`hidden lg:flex flex-col border-r border-[#16161a] fixed inset-y-0 left-0 py-5 px-3 ${animate} ${railW}`}>
+      <aside className={`hidden lg:flex flex-col border-r border-rule fixed inset-y-0 left-0 py-5 px-3 ${animate} ${railW}`}>
         {/* Header: logo + collapse toggle */}
         <div className={`flex items-center mb-7 h-8 ${collapsed ? 'justify-center' : 'justify-between px-1'}`}>
           {!collapsed && <a href="/dashboard"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>}
           <button onClick={toggleCollapse} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-[#101013]">
+            className="p-1.5 rounded-lg text-faint hover:text-paper hover:bg-ink-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
               <rect x="3" y="4" width="18" height="16" rx="2" /><line x1="9" y1="4" x2="9" y2="20" />
             </svg>
@@ -90,19 +90,19 @@ export default function AppShell({
         <nav className="flex flex-col gap-1">
           {/* New Portal */}
           <a href="/dashboard/new" title="New Portal"
-            className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#101013] overflow-hidden">
-            <svg className="w-5 h-5 text-[#ac9dd9] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-paper/85 hover:text-paper hover:bg-ink-2 overflow-hidden">
+            <svg className="w-5 h-5 text-accent-text flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
             <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
           </a>
 
-          <div className={`h-px bg-[#16161a] my-1.5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
+          <div className={`h-px bg-ink-3 my-1.5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
 
           {navItems.map(item => (
             <button key={item.key} onClick={() => onFilterClick(item.key)} title={item.label}
-              className={`flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm overflow-hidden ${activeFilter === item.key ? 'bg-[#16161a] text-white' : 'text-gray-500 hover:text-gray-300 hover:bg-[#101013]'}`}>
+              className={`flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm overflow-hidden ${activeFilter === item.key ? 'bg-ink-3 text-paper' : 'text-faint hover:text-paper hover:bg-ink-2'}`}>
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">{item.icon}</svg>
               <span className={`whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.label}</span>
-              <span className={`text-xs text-gray-600 ml-auto whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.count}</span>
+              <span className={`text-xs text-faint ml-auto whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>{item.count}</span>
             </button>
           ))}
         </nav>
@@ -111,42 +111,42 @@ export default function AppShell({
           {/* Storage */}
           <div className={`px-3 overflow-hidden ${storageAnim} ${collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-32 opacity-100 mb-4'}`}>
             <div className="flex items-center justify-between mb-1.5 whitespace-nowrap">
-              <span className="text-[11px] text-gray-600 uppercase tracking-wide font-semibold">Storage</span>
-              <span className="text-[11px] text-gray-500">{formatBytes(usedBytes)} / {limitLabel}</span>
+              <span className="text-[11px] text-faint uppercase tracking-wide font-semibold">Storage</span>
+              <span className="text-[11px] text-faint">{formatBytes(usedBytes)} / {limitLabel}</span>
             </div>
-            <div className="w-full bg-[#1e1e24] rounded-full h-1">
-              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-[#7656b9]'}`} style={{ width: `${storagePercent}%` }} />
+            <div className="w-full bg-ink-3 rounded-full h-1">
+              <div className={`h-1 rounded-full ${storagePercent >= 90 ? 'bg-red-400' : storagePercent >= 70 ? 'bg-yellow-400' : 'bg-accent'}`} style={{ width: `${storagePercent}%` }} />
             </div>
-            {plan === 'free' && <a href="/pricing" className="text-[11px] text-[#ac9dd9] hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
+            {plan === 'free' && <a href="/pricing" className="text-[11px] text-accent-text hover:underline font-semibold mt-1.5 inline-block whitespace-nowrap">Upgrade plan</a>}
           </div>
 
           {/* Profile menu */}
           <div className="relative" ref={menuRef}>
             <div className={`absolute bottom-full left-0 mb-2 w-56 origin-bottom transition-all duration-200 ${menuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
-              <div className="bg-[#101013] border border-[#1f1f26] rounded-xl p-1.5 shadow-2xl shadow-black/60">
+              <div className="bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-2xl shadow-black/60">
                 {collapsed && (
                   <>
                     <div className="px-3 py-2">
-                      <p className="text-sm text-white font-medium truncate">{displayLabel}</p>
-                      <p className="text-[11px] text-gray-600 truncate">{email}</p>
+                      <p className="text-sm text-paper font-medium truncate">{displayLabel}</p>
+                      <p className="text-[11px] text-faint truncate">{email}</p>
                     </div>
-                    <div className="h-px bg-[#1f1f26] my-1 mx-2" />
+                    <div className="h-px bg-ink-4 my-1 mx-2" />
                   </>
                 )}
-                <a href="/stripe-setup" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-[#16161a] hover:text-white">
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+                <a href="/stripe-setup" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
+                  <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
                   {stripeConnected ? 'Stripe account' : 'Connect Stripe'}
                 </a>
-                <a href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-[#16161a] hover:text-white">
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <a href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
+                  <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   Settings
                 </a>
-                <a href="mailto:support@voxabase.com?subject=VoxaBase%20support" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-[#16161a] hover:text-white">
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+                <a href="mailto:support@voxabase.com?subject=VoxaBase%20support" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
+                  <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
                   Help &amp; support
                 </a>
-                <div className="h-px bg-[#1f1f26] my-1 mx-2" />
-                <a href="/api/auth/signout" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-red-400/10 hover:text-red-400">
+                <div className="h-px bg-ink-4 my-1 mx-2" />
+                <a href="/api/auth/signout" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:bg-red-400/10 hover:text-red-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
                   Sign out
                 </a>
@@ -154,15 +154,15 @@ export default function AppShell({
             </div>
 
             <button onClick={() => setMenuOpen(o => !o)} title={collapsed ? displayLabel : undefined}
-              className={`w-full flex items-center gap-3 px-1.5 py-1.5 rounded-xl overflow-hidden ${menuOpen ? 'bg-[#16161a]' : 'hover:bg-[#101013]'}`}>
-              <div className="w-8 h-8 rounded-full bg-[#7656b9] flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs font-bold">{initials}</span>
+              className={`w-full flex items-center gap-3 px-1.5 py-1.5 rounded-xl overflow-hidden ${menuOpen ? 'bg-ink-3' : 'hover:bg-ink-2'}`}>
+              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                <span className="text-paper text-xs font-bold">{initials}</span>
               </div>
               <div className={`min-w-0 flex-1 text-left whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
-                <p className="text-sm text-white font-medium truncate leading-tight">{displayLabel}</p>
-                <p className="text-[11px] text-gray-600 truncate leading-tight">{email}</p>
+                <p className="text-sm text-paper font-medium truncate leading-tight">{displayLabel}</p>
+                <p className="text-[11px] text-faint truncate leading-tight">{email}</p>
               </div>
-              <svg className={`w-4 h-4 text-gray-600 flex-shrink-0 ${labelAnim} ${menuOpen ? 'rotate-180' : ''} ${collapsed ? 'opacity-0' : 'opacity-100'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+              <svg className={`w-4 h-4 text-faint flex-shrink-0 ${labelAnim} ${menuOpen ? 'rotate-180' : ''} ${collapsed ? 'opacity-0' : 'opacity-100'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
             </button>
           </div>
         </div>
@@ -171,11 +171,11 @@ export default function AppShell({
       {/* ── Main ── */}
       <div className={`flex-1 min-w-0 ${animate} ${mainML}`}>
         {/* Mobile top bar */}
-        <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-[#16161a] sticky top-0 bg-[#08080a]/85 backdrop-blur-sm z-20">
+        <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-rule sticky top-0 bg-ink/85 backdrop-blur-sm z-20">
           <a href="/dashboard"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
           <div className="flex items-center gap-2">
-            <a href="/settings" className="p-2 rounded-lg border border-[#1f1f26] text-gray-400"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></a>
-            <a href="/api/auth/signout" className="p-2 rounded-lg border border-[#1f1f26] text-gray-400"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg></a>
+            <a href="/settings" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></a>
+            <a href="/api/auth/signout" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg></a>
           </div>
         </div>
 

@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
+import { brandInk, brandLine, brandSurface, DEFAULT_BRAND } from '@/lib/brand'
+import { fileLabel } from '@/lib/files'
 
-interface FileRecord {
+export interface PortalFile {
   id: string
   name: string
   file_path: string
@@ -10,7 +12,7 @@ interface FileRecord {
 }
 
 interface FilesListProps {
-  files: FileRecord[]
+  files: PortalFile[]
   supabaseUrl: string
   showLimit?: number
   brandColor?: string
@@ -18,59 +20,59 @@ interface FilesListProps {
 
 function formatSize(bytes: number | null) {
   if (!bytes) return null
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function FileRow({ file, supabaseUrl, brandColor }: { file: FileRecord; supabaseUrl: string; brandColor: string }) {
-  const ext = file.file_type?.split('/')[1]?.toUpperCase().slice(0, 4) || 'FILE'
+function FileRow({ file, supabaseUrl, brandColor }: { file: PortalFile; supabaseUrl: string; brandColor: string }) {
   const size = formatSize(file.file_size)
   const downloadUrl = `${supabaseUrl}/storage/v1/object/public/deliverables/${file.file_path}`
 
   return (
-    <div className="flex items-center justify-between gap-3 bg-[#0b0b0e] border border-[#1c1c22] rounded-xl px-4 py-3 transition-colors hover:border-[#26262e] group">
-      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-          style={{ background: `${brandColor}1f`, color: brandColor }}>
-          {ext}
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-white truncate">{file.name}</p>
-          <p className="text-xs text-gray-600 mt-0.5">{size}</p>
-        </div>
-      </div>
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
+      <span
+        className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
+        style={{ background: brandSurface(brandColor), color: brandInk(brandColor), borderColor: brandLine(brandColor) }}
+      >
+        {fileLabel(file)}
+      </span>
+      <span className="min-w-0 truncate text-sm font-medium text-paper" title={file.name}>{file.name}</span>
+      <span className="hidden text-xs text-faint sm:block">{size}</span>
       <a
         href={downloadUrl}
         download={file.name}
-        className="flex items-center gap-1.5 text-xs font-semibold flex-shrink-0 transition-opacity hover:opacity-80"
-        style={{ color: brandColor }}
+        className="inline-flex items-center gap-1.5 rounded-[7px] border border-rule-2 px-3 py-[7px] text-xs font-semibold text-paper transition-colors hover:border-rule-3 hover:bg-ink-3"
+        aria-label={`Download ${file.name}`}
       >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
         Download
       </a>
-    </div>
+    </li>
   )
 }
 
-export default function FilesList({ files, supabaseUrl, showLimit = 6, brandColor = '#7656b9' }: FilesListProps) {
+export default function FilesList({ files, supabaseUrl, showLimit = 6, brandColor = DEFAULT_BRAND }: FilesListProps) {
   const [showAll, setShowAll] = useState(false)
   const visibleFiles = showAll ? files : files.slice(0, showLimit)
   const hiddenCount = files.length - showLimit
 
   return (
-    <div className="flex flex-col gap-2 px-3 pb-1">
-      {visibleFiles.map((file) => (
-        <FileRow key={file.id} file={file} supabaseUrl={supabaseUrl} brandColor={brandColor} />
-      ))}
+    <div className="px-3">
+      <ul className="grid gap-1.5">
+        {visibleFiles.map((file) => (
+          <FileRow key={file.id} file={file} supabaseUrl={supabaseUrl} brandColor={brandColor} />
+        ))}
+      </ul>
       {hiddenCount > 0 && (
         <button
+          type="button"
           onClick={() => setShowAll(!showAll)}
-          className="text-xs font-semibold transition-colors text-left px-1 py-1.5"
-          style={{ color: brandColor }}
+          className="mt-1.5 px-1 py-1.5 text-left text-xs font-semibold transition-opacity hover:opacity-80"
+          style={{ color: brandInk(brandColor) }}
         >
-          {showAll ? 'Show less' : `Show ${hiddenCount} more file${hiddenCount !== 1 ? 's' : ''}`}
+          {showAll ? 'Show fewer files' : `Show ${hiddenCount} more file${hiddenCount !== 1 ? 's' : ''}`}
         </button>
       )}
     </div>

@@ -3,9 +3,11 @@ import { useState } from 'react'
 
 export default function DownloadAllButton({ portalId, portalName }: { portalId: string; portalName: string }) {
   const [downloading, setDownloading] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   const handleDownloadAll = async () => {
     setDownloading(true)
+    setFailed(false)
     try {
       const response = await fetch(`/api/download-all?portalId=${portalId}`)
       if (!response.ok) throw new Error('Download failed')
@@ -20,20 +22,26 @@ export default function DownloadAllButton({ portalId, portalName }: { portalId: 
       URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Download error:', err)
+      setFailed(true)
     }
     setDownloading(false)
   }
 
   return (
-    <button
-      onClick={handleDownloadAll}
-      disabled={downloading}
-      className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white border border-[#1e1e24] hover:border-[#3a3a4a] px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
-    >
-      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-      </svg>
-      {downloading ? 'Preparing zip...' : 'Download all'}
-    </button>
+    <div className="px-3 pt-2">
+      <button
+        type="button"
+        onClick={handleDownloadAll}
+        disabled={downloading}
+        aria-busy={downloading}
+        className="flex w-full items-center justify-center gap-2 rounded-[10px] border border-rule py-2.5 text-[13px] font-semibold text-muted transition-colors hover:border-rule-3 hover:text-paper disabled:cursor-progress disabled:opacity-60"
+      >
+        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        {downloading ? 'Preparing zip...' : 'Download all'}
+      </button>
+      {failed && <p role="alert" className="mt-2 text-center text-xs text-red-400">The zip could not be created. Download the files one at a time, or try again.</p>}
+    </div>
   )
 }

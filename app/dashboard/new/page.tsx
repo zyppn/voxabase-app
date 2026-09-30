@@ -125,8 +125,8 @@ export default function NewPortalPage() {
   const isPro = plan === 'pro' || plan === 'agency'
 
   if (profileLoading) return (
-    <main className="min-h-screen bg-[#08080a] flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-[#7656b9] border-t-transparent rounded-full animate-spin" />
+    <main className="min-h-screen bg-ink flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
     </main>
   )
 
@@ -145,7 +145,7 @@ export default function NewPortalPage() {
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         <div className="max-w-xl mx-auto">
           {/* Back button — clean arrow */}
-          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-white mb-6 group w-fit">
+          <a href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-faint hover:text-paper mb-6 group w-fit">
             <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -153,73 +153,73 @@ export default function NewPortalPage() {
           </a>
 
           <h1 className="text-2xl font-bold mb-2 tracking-tight">Create a new portal</h1>
-          <p className="text-gray-400 text-sm mb-8">Your client will see this page when you share the link</p>
+          <p className="text-muted text-sm mb-8">Your client will see this page when you share the link</p>
 
-          <form onSubmit={handleSubmit} className="bg-[#101013] border border-[#16161a] rounded-2xl p-8 flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="bg-ink-2 border border-rule rounded-2xl p-8 flex flex-col gap-5">
             {error && (
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
                 {error.includes('Upgrade') && (
-                  <a href="/pricing" className="block mt-1 text-[#ac9dd9] hover:underline font-semibold">Upgrade to Pro →</a>
+                  <a href="/pricing" className="block mt-1 text-accent-text hover:underline font-semibold">Upgrade to Pro →</a>
                 )}
               </div>
             )}
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Client / Project name</label>
+              <label className="text-sm text-muted mb-1.5 block">Client / Project name</label>
               <input
                 type="text"
                 value={name}
                 onChange={handleNameChange}
                 required
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
+                className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                 placeholder="e.g. Nike Campaign, Sarah Johnson"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm text-gray-400">Portal URL</label>
+                <label className="text-sm text-muted">Portal URL</label>
                 {isPro && (
                   <button
                     type="button"
                     onClick={() => setUseCustomSlug(!useCustomSlug)}
-                    className="text-xs text-[#ac9dd9] hover:underline font-semibold"
+                    className="text-xs text-accent-text hover:underline font-semibold"
                   >
                     {useCustomSlug ? 'Use random URL instead' : 'Set custom URL'}
                   </button>
                 )}
                 {!isPro && (
-                  <span className="text-xs bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2 py-0.5 rounded-full">Free plan</span>
+                  <span className="text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Free plan</span>
                 )}
               </div>
 
               {isPro && useCustomSlug ? (
                 <>
-                  <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 focus-within:border-[#7656b9]">
-                    <span className="text-gray-600 text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
+                  <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 focus-within:border-accent">
+                    <span className="text-faint text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
                     <input
                       type="text"
                       value={customSlug}
                       onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                      className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm"
+                      className="flex-1 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
                       placeholder="my-custom-url"
                     />
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">Lowercase letters, numbers, and hyphens only</p>
+                  <p className="text-xs text-faint mt-1">Lowercase letters, numbers, and hyphens only</p>
                 </>
               ) : (
                 <>
-                  <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 opacity-60 cursor-not-allowed">
-                    <span className="text-gray-600 text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
-                    <span className="text-gray-400 text-sm">{slug || 'auto-generated'}</span>
+                  <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-60 cursor-not-allowed">
+                    <span className="text-faint text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
+                    <span className="text-muted text-sm">{slug || 'auto-generated'}</span>
                   </div>
                   {isPro && (
-                    <p className="text-xs text-gray-600 mt-1">Random URL — click "Set custom URL" above to customize</p>
+                    <p className="text-xs text-faint mt-1">Random URL — click "Set custom URL" above to customize</p>
                   )}
                   {!isPro && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      Custom slugs available on <span className="text-[#ac9dd9]">Pro plan</span>
+                    <p className="text-xs text-faint mt-1">
+                      Custom slugs available on <span className="text-accent-text">Pro plan</span>
                     </p>
                   )}
                 </>
@@ -227,25 +227,25 @@ export default function NewPortalPage() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Description <span className="text-gray-600">(optional)</span></label>
+              <label className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
+                className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                 placeholder="A short note your client will see"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Invoice amount <span className="text-gray-600">(optional)</span></label>
-              <div className="flex items-center bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 focus-within:border-[#7656b9]">
-                <span className="text-gray-600 text-sm mr-1">$</span>
+              <label className="text-sm text-muted mb-1.5 block">Invoice amount <span className="text-faint">(optional)</span></label>
+              <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 focus-within:border-accent">
+                <span className="text-faint text-sm mr-1">$</span>
                 <input
                   type="number"
                   value={invoiceAmount}
                   onChange={(e) => setInvoiceAmount(e.target.value)}
-                  className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm"
+                  className="flex-1 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
                   placeholder="0.00"
                   min="0"
                   step="0.01"
@@ -254,9 +254,9 @@ export default function NewPortalPage() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">
-                Portal password <span className="text-gray-600">(optional)</span>
-                {!isPro && <span className="ml-2 text-xs bg-[#1c142e] text-[#ac9dd9] border border-[#7656b9]/30 px-2 py-0.5 rounded-full">Pro</span>}
+              <label className="text-sm text-muted mb-1.5 block">
+                Portal password <span className="text-faint">(optional)</span>
+                {!isPro && <span className="ml-2 text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Pro</span>}
               </label>
               {isPro ? (
                 <>
@@ -264,15 +264,15 @@ export default function NewPortalPage() {
                     type="text"
                     value={portalPassword}
                     onChange={(e) => setPortalPassword(e.target.value)}
-                    className="w-full bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
+                    className="w-full bg-ink border border-rule-2 rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Leave blank for no password"
                   />
-                  <p className="text-xs text-gray-600 mt-1">Clients must enter this password to view the portal</p>
+                  <p className="text-xs text-faint mt-1">Clients must enter this password to view the portal</p>
                 </>
               ) : (
-                <div className="bg-[#08080a] border border-[#1c1c22] rounded-lg px-4 py-3 opacity-50 cursor-not-allowed flex items-center justify-between">
-                  <span className="text-gray-600 text-sm">Upgrade to Pro to enable password protection</span>
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <div className="bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed flex items-center justify-between">
+                  <span className="text-faint text-sm">Upgrade to Pro to enable password protection</span>
+                  <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                   </svg>
                 </div>
@@ -282,7 +282,7 @@ export default function NewPortalPage() {
             <button
               type="submit"
               disabled={loading || !name}
-              className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 text-sm"
+              className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 text-sm"
             >
               {loading ? 'Creating...' : 'Create portal'}
             </button>

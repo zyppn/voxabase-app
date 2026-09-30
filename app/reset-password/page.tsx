@@ -114,32 +114,32 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#090909] flex items-center justify-center px-4 relative overflow-hidden">
+    <main className="min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <img src="/vblogo.png" alt="VoxaBase" className="h-10 w-auto mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-white mb-1">Set new password</h1>
-          <p className="text-gray-400 text-sm">Choose a strong password for your account</p>
+          <h1 className="text-2xl font-bold text-paper mb-1">Set new password</h1>
+          <p className="text-muted text-sm">Choose a strong password for your account</p>
         </div>
 
         {done ? (
-          <div className="bg-[#111114] border border-[#1e1e24] rounded-xl p-8 text-center">
+          <div className="bg-ink-2 border border-rule rounded-xl p-8 text-center">
             <div className="w-12 h-12 bg-green-400/10 border border-green-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-lg font-bold text-white mb-2">Password updated</h2>
-            <p className="text-gray-400 text-sm">Redirecting you to your dashboard...</p>
+            <h2 className="text-lg font-bold text-paper mb-2">Password updated</h2>
+            <p className="text-muted text-sm">Redirecting you to your dashboard...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-[#111114] border border-[#1e1e24] rounded-xl p-8 flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
             {error && (
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
                 {error.includes('link from your email') && (
-                  <Link href="/forgot-password" className="block mt-1 text-[#ac9dd9] hover:underline">
+                  <Link href="/forgot-password" className="block mt-1 text-accent-text hover:underline">
                     Request a new reset link
                   </Link>
                 )}
@@ -153,21 +153,21 @@ export default function ResetPasswordPage() {
             )}
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">New password</label>
+              <label className="text-sm text-muted mb-1.5 block">New password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full bg-[#090909] border border-[#1e1e24] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm"
+                className="w-full bg-ink border border-rule rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                 placeholder="8+ characters"
               />
               {password.length > 0 && (
                 <div className="mt-2">
                   <div className="flex gap-1 mb-1">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className={`h-1 flex-1 rounded-full transition-all ${strength.score >= i ? strength.color : 'bg-[#1e1e24]'}`} />
+                      <div key={i} className={`h-1 flex-1 rounded-full transition-all ${strength.score >= i ? strength.color : 'bg-ink-3'}`} />
                     ))}
                   </div>
                   <p className={`text-xs ${strength.score <= 1 ? 'text-red-400' : strength.score <= 2 ? 'text-yellow-400' : strength.score <= 3 ? 'text-blue-400' : 'text-green-400'}`}>
@@ -178,16 +178,16 @@ export default function ResetPasswordPage() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Confirm new password</label>
+              <label className="text-sm text-muted mb-1.5 block">Confirm new password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className={`w-full bg-[#090909] border rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#7656b9] text-sm ${
+                className={`w-full bg-ink border rounded-lg px-4 py-3 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm ${
                   confirmPassword.length > 0
                     ? password === confirmPassword ? 'border-green-500' : 'border-red-500'
-                    : 'border-[#1e1e24]'
+                    : 'border-rule'
                 }`}
                 placeholder="Re-enter your password"
               />
@@ -199,13 +199,13 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !sessionReady || password !== confirmPassword || password.length < 8 || strength.score < 2}
-              className="w-full bg-[#7656b9] hover:bg-[#805ec5] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
+              className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
             >
               {loading ? 'Updating...' : 'Update password'}
             </button>
 
-            <p className="text-center text-gray-500 text-sm">
-              <Link href="/login" className="text-[#ac9dd9] hover:underline">Back to sign in</Link>
+            <p className="text-center text-faint text-sm">
+              <Link href="/login" className="text-accent-text hover:underline">Back to sign in</Link>
             </p>
           </form>
         )}

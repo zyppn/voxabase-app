@@ -1,5 +1,5 @@
 // app/privacy/page.tsx
-import Link from 'next/link'
+import LegalShell, { CONTACT_EMAIL } from '../_components/LegalShell'
 
 export const metadata = {
   title: 'Privacy Policy · VoxaBase',
@@ -7,20 +7,10 @@ export const metadata = {
 }
 
 const LAST_UPDATED = 'June 29, 2026'
-const SUPPORT_EMAIL = 'support@voxabase.com'
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#08080a] text-white">
-      <nav className="border-b border-[#16161a] px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 bg-[#08080a]/85 backdrop-blur-sm z-10">
-        <a href="https://voxabase.com"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
-        <a href="/dashboard" className="text-sm text-gray-400 hover:text-white">Dashboard</a>
-      </nav>
-
-      <article className="max-w-2xl mx-auto px-6 py-14 legal">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#ac9dd9] font-semibold mb-3">Legal</p>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Privacy Policy</h1>
-        <p className="text-gray-500 text-sm mb-10">Last updated {LAST_UPDATED}</p>
+    <LegalShell title="Privacy Policy" updated={LAST_UPDATED} other={{ href: '/terms', label: 'Terms of Service' }}>
 
         <p>
           This Privacy Policy explains how VoxaBase (&ldquo;VoxaBase,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) collects, uses,
@@ -86,7 +76,7 @@ export default function PrivacyPage() {
           Depending on where you live (for example, under the GDPR or CCPA), you may have the right to access,
           correct, export, or delete your personal information, and to object to or restrict certain processing.
           You can update most details directly in your account settings, or contact us at{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> and we will respond. We will not discriminate
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we will respond. We will not discriminate
           against you for exercising these rights.
         </p>
 
@@ -113,25 +103,8 @@ export default function PrivacyPage() {
         <h2>Contact us</h2>
         <p>
           If you have questions about this policy or your data, email us at{' '}
-          <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
-
-        <div className="mt-12 pt-6 border-t border-[#16161a] flex items-center justify-between text-sm">
-          <Link href="/terms" className="text-[#ac9dd9] hover:underline">Terms of Service →</Link>
-          <a href="https://voxabase.com" className="text-gray-500 hover:text-white">Back to home</a>
-        </div>
-      </article>
-
-      <style>{`
-        .legal { line-height: 1.7; color: #c9c9d1; }
-        .legal h2 { color: #fff; font-size: 1.125rem; font-weight: 600; margin-top: 2.25rem; margin-bottom: 0.6rem; }
-        .legal p { margin-bottom: 1rem; }
-        .legal ul { margin: 0 0 1.25rem; padding-left: 1.1rem; list-style: disc; }
-        .legal li { margin-bottom: 0.5rem; }
-        .legal a { color: #ac9dd9; text-decoration: underline; text-underline-offset: 2px; }
-        .legal a:hover { color: #d1c5f7; }
-        .legal strong { color: #e6e6ea; font-weight: 600; }
-      `}</style>
-    </main>
+    </LegalShell>
   )
 }
