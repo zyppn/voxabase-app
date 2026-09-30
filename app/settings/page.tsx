@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import { APP_HOST } from '@/lib/appHost'
 
 const PRESET_COLORS = [
   { label: 'Voxabase Purple', value: '#865fd9' },
@@ -320,7 +321,7 @@ function SettingsContent() {
                 <div>
                   <label className="text-sm text-muted mb-1.5 block">Username <span className="text-faint">(cannot be changed)</span></label>
                   <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed">
-                    <span className="text-faint text-sm">voxabase.com/</span>
+                    <span className="text-faint text-sm">{APP_HOST}/</span>
                     <span className="text-muted text-sm">{username}</span>
                   </div>
                 </div>

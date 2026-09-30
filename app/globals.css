@@ -65,4 +65,12 @@
   .legal strong { color: var(--color-paper); font-weight: 600; }
   .legal a { color: var(--color-accent-text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in oklab, var(--color-accent-text) 45%, transparent); }
   .legal a:hover { color: var(--color-paper); }
+  .legal ol { margin: 0 0 1.25rem; padding-left: 1.3rem; list-style: decimal; }
+  .legal ol li::marker { color: var(--color-paper); font-weight: 600; }
+  .legal h3 { margin: 1.75rem 0 0.5rem; color: var(--color-paper); font-weight: 650; font-size: 1.0625rem; }
+  .legal code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; color: var(--color-paper); background: var(--color-ink-3); border: 1px solid var(--color-rule-2); border-radius: 5px; padding: 0.1em 0.4em; }
+  .legal table { width: 100%; margin: 0.5rem 0 1.5rem; border-collapse: collapse; font-size: 0.9375rem; }
+  .legal th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-faint); font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--color-rule-2); }
+  .legal td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--color-rule); color: var(--color-paper); }
+  .legal .note { border: 1px solid var(--color-rule-2); background: var(--color-ink-2); border-radius: 10px; padding: 0.9rem 1rem; margin: 0 0 1.25rem; font-size: 0.9375rem; }
 }

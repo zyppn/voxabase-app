@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import { joinNext } from '@/lib/joinNext'
+import { APP_HOST } from '@/lib/appHost'
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0
@@ -160,7 +161,7 @@ export default function SignupPage() {
               Username <span className="text-faint text-xs">— your portal URL</span>
             </label>
             <div className="flex items-center bg-ink border border-rule rounded-lg px-4 py-3 focus-within:border-accent transition-colors">
-              <span className="text-faint text-sm">voxabase.com/</span>
+              <span className="text-faint text-sm">{APP_HOST}/</span>
               <input
                 type="text"
                 value={username}

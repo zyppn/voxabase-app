@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import OnboardingChecklist from './OnboardingChecklist'
 import { useSearchParams } from 'next/navigation'
 import AppShell from './AppShell'
+import { APP_HOST } from '@/lib/appHost'
 
 interface Portal {
   id: string
@@ -115,7 +116,7 @@ export default function DashboardShell({
             <h1 className="text-2xl font-bold text-paper">{isTeam ? 'Team portals' : personalSplit ? 'Personal portals' : 'Portals'}</h1>
             <p className="text-faint text-sm mt-1">
               {isTeam ? <>Shared with the {teamName} team · live at </> : personalSplit ? <>Only you can see these · live at </> : <>Your portals live at </>}
-              <span className="text-muted">{portalHost ? `${portalHost}/` : `voxabase.com/${username}/`}</span>
+              <span className="text-muted">{portalHost ? `${portalHost}/` : `${APP_HOST}/${username}/`}</span>
             </p>
           </div>
           <div className="flex items-center gap-3">

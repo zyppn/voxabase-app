@@ -1,13 +1,15 @@
-// Shared frame for Privacy and Terms: the landing page's nav and footer around readable prose.
+// Shared frame for Privacy, Terms and help guides: the landing page's nav and footer around readable prose.
 import Link from 'next/link'
 
 export const CONTACT_EMAIL = 'support@voxabase.com'
 
-export default function LegalShell({ title, updated, other, children }: {
+export default function LegalShell({ title, updated, other, children, kicker = 'Legal', intro }: {
   title: string
-  updated: string
-  other: { href: string; label: string }
+  updated?: string
+  other?: { href: string; label: string }
   children: React.ReactNode
+  kicker?: string
+  intro?: React.ReactNode
 }) {
   return (
     <main className="min-h-screen bg-ink text-paper">
@@ -22,15 +24,18 @@ export default function LegalShell({ title, updated, other, children }: {
       </header>
 
       <article className="mx-auto max-w-[44rem] px-4 pb-20 pt-14 sm:px-6 sm:pt-20">
-        <p className="mb-4 text-sm font-semibold text-faint">Legal</p>
+        <p className="mb-4 text-sm font-semibold text-faint">{kicker}</p>
         <h1 className="text-[clamp(2.25rem,1.6rem+2.4vw,3.25rem)] font-bold leading-[1.02] tracking-[-0.035em] [font-stretch:115%]">{title}</h1>
         <p className="mt-4 text-sm text-faint">
-          Last updated {updated} · Questions? <a href={`mailto:${CONTACT_EMAIL}`} className="text-accent-text underline decoration-accent-text/40 underline-offset-[3px] hover:text-paper">{CONTACT_EMAIL}</a>
+          {intro ?? <>Last updated {updated} · Questions?</>}{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-accent-text underline decoration-accent-text/40 underline-offset-[3px] hover:text-paper">{CONTACT_EMAIL}</a>
         </p>
         <div className="legal mt-10">{children}</div>
-        <p className="mt-14 border-t border-rule pt-6 text-sm">
-          <Link href={other.href} className="font-semibold text-accent-text transition-colors hover:text-paper">{other.label} →</Link>
-        </p>
+        {other && (
+          <p className="mt-14 border-t border-rule pt-6 text-sm">
+            <Link href={other.href} className="font-semibold text-accent-text transition-colors hover:text-paper">{other.label} →</Link>
+          </p>
+        )}
       </article>
 
       <footer className="border-t border-rule">

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import AppShell from '../AppShell'
 import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import { APP_HOST } from '@/lib/appHost'
 
 function generateRandomSlug(name: string) {
   const random = Math.random().toString(36).slice(2, 7)
@@ -195,7 +196,7 @@ export default function NewPortalPage() {
                 <>
                   <label htmlFor="custom-slug" className="text-sm text-muted mb-1.5 block">Custom link</label>
                   <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 focus-within:border-accent">
-                    <span className="text-faint text-sm">{username ? `voxabase.com/${username}/` : 'voxabase.com/...'}</span>
+                    <span className="text-faint text-sm">{username ? `${APP_HOST}/${username}/` : `${APP_HOST}/...`}</span>
                     <input
                       id="custom-slug"
                       type="text"
@@ -212,7 +213,7 @@ export default function NewPortalPage() {
                 </>
               ) : (
                 <p className="text-xs text-faint flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>Link: <span className="text-muted">{username ? `voxabase.com/${username}/` : 'voxabase.com/…/'}{slug}</span>{!slug && <span className="italic"> (made from the name)</span>}</span>
+                  <span>Link: <span className="text-muted">{username ? `${APP_HOST}/${username}/` : `${APP_HOST}/…/`}{slug}</span>{!slug && <span className="italic"> (made from the name)</span>}</span>
                   {isPro ? (
                     <button type="button" onClick={() => setUseCustomSlug(true)} className="text-accent-text hover:underline font-medium">Customize link</button>
                   ) : (

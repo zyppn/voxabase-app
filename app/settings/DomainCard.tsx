@@ -86,7 +86,8 @@ export default function DomainCard({ plan }: { plan: string }) {
       ) : !domain ? (
         <>
           <p className="text-sm text-muted mb-4 max-w-2xl">
-            Send clients to portals on your own domain, with no Voxabase branding. Use a subdomain you own, like <span className="text-paper">files.yourstudio.com</span>.
+            Send clients to portals on your own domain, with no Voxabase branding. Use a subdomain you own, like <span className="text-paper">files.yourstudio.com</span>.{' '}
+            <Link href="/docs/custom-domain" className="text-paper underline underline-offset-2">Setup guide</Link>
           </p>
           {error && <div role="alert" className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3 mb-4">{error}</div>}
           <form onSubmit={connect} className="flex flex-col sm:flex-row gap-2.5">
@@ -144,7 +145,7 @@ export default function DomainCard({ plan }: { plan: string }) {
                   </table>
                 </div>
               )}
-              <p className="text-xs text-faint mt-2.5">Click a name or value to copy it. Using Cloudflare? Set the record to “DNS only” (grey cloud).</p>
+              <p className="text-xs text-faint mt-2.5">Click a name or value to copy it. Using Cloudflare? Set the record to “DNS only” (grey cloud). <Link href="/docs/custom-domain" className="text-muted underline underline-offset-2 hover:text-paper">Step-by-step guide</Link></p>
             </>
           )}
 
