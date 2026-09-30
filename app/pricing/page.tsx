@@ -314,7 +314,7 @@ function PricingContent() {
   return (
     <main className="min-h-screen bg-ink text-paper">
       <nav className="border-b border-rule px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 bg-ink/85 backdrop-blur-sm z-10">
-        <a href="https://voxabase.com"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
+        <a href="https://voxabase.com"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
         <a href="/signup" className="bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2 rounded-lg">Get started</a>
       </nav>
       {pricingBody}

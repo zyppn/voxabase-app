@@ -41,7 +41,7 @@ export async function POST(request: Request) {
             currency: 'usd',
             product_data: {
               name: portalName,
-              description: 'Invoice payment via VoxaBase',
+              description: 'Invoice payment via Voxabase',
             },
             unit_amount: Math.round(amount * 100),
           },

@@ -44,7 +44,7 @@ export default function PaymentSuccessContent() {
             Back to portal
           </Link>
         )}
-        <p className="text-xs text-faint mt-6">Powered by Stripe · VoxaBase</p>
+        <p className="text-xs text-faint mt-6">Powered by Stripe · Voxabase</p>
       </div>
     </main>
   )

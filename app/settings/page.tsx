@@ -7,7 +7,7 @@ import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
 
 const PRESET_COLORS = [
-  { label: 'VoxaBase Purple', value: '#865fd9' },
+  { label: 'Voxabase Purple', value: '#865fd9' },
   { label: 'Ocean Blue', value: '#3b82f6' },
   { label: 'Emerald', value: '#10b981' },
   { label: 'Rose', value: '#f43f5e' },
@@ -209,7 +209,7 @@ function SettingsContent() {
 
     await supabase.from('profiles').update({ logo_url: null }).eq('id', user.id)
     setLogoUrl(null)
-    setSuccessMessage('Logo removed — portals will show the default VoxaBase logo')
+    setSuccessMessage('Logo removed — portals will show the default Voxabase logo')
     setTimeout(() => setSuccessMessage(''), 4000)
     setUploadingLogo(false)
   }

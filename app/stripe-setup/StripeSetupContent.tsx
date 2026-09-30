@@ -148,7 +148,7 @@ export default function StripeSetupContent() {
                 {[
                   'Clients pay invoices on your portals',
                   'Funds go directly to your bank account',
-                  'VoxaBase collects a small platform fee',
+                  'Voxabase collects a small platform fee',
                   'You never need to chase payments again',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">
@@ -197,7 +197,7 @@ export default function StripeSetupContent() {
                   'Client payments go directly to your bank',
                   'Stripe handles all payment security',
                   'Money arrives in 2 business days',
-                  'VoxaBase never touches your funds',
+                  'Voxabase never touches your funds',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">
                     <div className="w-5 h-5 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center flex-shrink-0">

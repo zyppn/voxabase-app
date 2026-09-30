@@ -30,9 +30,9 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="/vblogo.png" alt="VoxaBase" className="h-10 w-auto mx-auto mb-6" />
+          <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-paper mb-1">Welcome back</h1>
-          <p className="text-muted text-sm">Sign in to your VoxaBase account</p>
+          <p className="text-muted text-sm">Sign in to your Voxabase account</p>
         </div>
 
         <form onSubmit={handleLogin} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">

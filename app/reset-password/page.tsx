@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="/vblogo.png" alt="VoxaBase" className="h-10 w-auto mx-auto mb-6" />
+          <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-paper mb-1">Set new password</h1>
           <p className="text-muted text-sm">Choose a strong password for your account</p>
         </div>

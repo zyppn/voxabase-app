@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* VoxaBase design tokens: shared with the voxabase.com landing page.
+/* Voxabase design tokens: shared with the voxabase.com landing page.
    Ink and paper carry the interface; purple marks brand, selection and state. */
 @theme {
   --color-ink: #0c0b10;          /* page background */

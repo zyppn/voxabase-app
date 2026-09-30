@@ -2,8 +2,8 @@
 import LegalShell, { CONTACT_EMAIL } from '../_components/LegalShell'
 
 export const metadata = {
-  title: 'Privacy Policy · VoxaBase',
-  description: 'How VoxaBase collects, uses, and protects your information.',
+  title: 'Privacy Policy · Voxabase',
+  description: 'How Voxabase collects, uses, and protects your information.',
 }
 
 const LAST_UPDATED = 'June 29, 2026'
@@ -13,17 +13,17 @@ export default function PrivacyPage() {
     <LegalShell title="Privacy Policy" updated={LAST_UPDATED} other={{ href: '/terms', label: 'Terms of Service' }}>
 
         <p>
-          This Privacy Policy explains how VoxaBase (&ldquo;VoxaBase,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) collects, uses,
+          This Privacy Policy explains how Voxabase (&ldquo;Voxabase,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) collects, uses,
           and shares information when you use our client deliverables portal at voxabase.com and app.voxabase.com
           (the &ldquo;Service&rdquo;). By using the Service, you agree to this policy.
         </p>
 
         <h2>Who we are</h2>
         <p>
-          VoxaBase is a software service that lets freelancers and studios create branded portals to deliver files
-          to their clients and collect invoice payments. For the personal information of account holders, VoxaBase
+          Voxabase is a software service that lets freelancers and studios create branded portals to deliver files
+          to their clients and collect invoice payments. For the personal information of account holders, Voxabase
           acts as the data controller. For files and client details that account holders upload about their own
-          customers, the account holder is the controller and VoxaBase is a processor acting on their behalf.
+          customers, the account holder is the controller and Voxabase is a processor acting on their behalf.
         </p>
 
         <h2>Information we collect</h2>

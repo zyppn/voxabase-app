@@ -28,7 +28,7 @@ export function PortalBrand({ ownerIsPro, brandDisplay, logoUrl, displayName, br
   ownerIsPro: boolean; brandDisplay: string; logoUrl: string | null; displayName: string; brandInitial: string; brandColor: string; centered?: boolean
 }) {
   if (!ownerIsPro) {
-    return <img src="/vblogo.png" alt="VoxaBase" className={`h-6 w-auto ${centered ? 'mx-auto' : ''}`} />
+    return <img src="/vblogo.png" alt="Voxabase" className={`h-6 w-auto ${centered ? 'mx-auto' : ''}`} />
   }
   const showLogo = brandDisplay === 'both' || brandDisplay === 'logo'
   const showName = brandDisplay === 'both' || brandDisplay === 'name'
@@ -55,7 +55,7 @@ export function DeliveredVia() {
           <path fill="#eeeae3" d="M3.2 7H11.2L19.2 20V33Z" />
           <path fill="#9c7de8" d="M36.8 7H28.8L20.8 20V33Z" />
         </svg>
-        <span className="font-semibold text-muted">VoxaBase</span>
+        <span className="font-semibold text-muted">Voxabase</span>
       </a>
     </p>
   )

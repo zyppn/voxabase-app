@@ -12,7 +12,7 @@ const mona = Mona_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "VoxaBase — Client Deliverables Portal",
+  title: "Voxabase — Client Deliverables Portal",
   description: "Deliver client work like a studio. Upload files, share one branded link, and collect payment — all in one portal.",
 };
 

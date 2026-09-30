@@ -2,8 +2,8 @@
 import LegalShell, { CONTACT_EMAIL } from '../_components/LegalShell'
 
 export const metadata = {
-  title: 'Terms of Service · VoxaBase',
-  description: 'The terms that govern your use of VoxaBase.',
+  title: 'Terms of Service · Voxabase',
+  description: 'The terms that govern your use of Voxabase.',
 }
 
 const LAST_UPDATED = 'June 29, 2026'
@@ -13,14 +13,14 @@ export default function TermsPage() {
     <LegalShell title="Terms of Service" updated={LAST_UPDATED} other={{ href: '/privacy', label: 'Privacy Policy' }}>
 
         <p>
-          These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of VoxaBase (the &ldquo;Service&rdquo;),
-          operated by VoxaBase (&ldquo;we,&rdquo; &ldquo;us&rdquo;). By creating an account or using the Service, you agree
+          These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of Voxabase (the &ldquo;Service&rdquo;),
+          operated by Voxabase (&ldquo;we,&rdquo; &ldquo;us&rdquo;). By creating an account or using the Service, you agree
           to these Terms. If you do not agree, do not use the Service.
         </p>
 
         <h2>The Service</h2>
         <p>
-          VoxaBase lets you create branded portals to deliver files to your clients and collect invoice payments.
+          Voxabase lets you create branded portals to deliver files to your clients and collect invoice payments.
           We may add, change, or remove features over time to improve the Service.
         </p>
 
@@ -48,7 +48,7 @@ export default function TermsPage() {
           <li>The Service offers a free plan and paid subscription plans (Pro and Agency). Current pricing is shown on our pricing page.</li>
           <li>Paid plans are billed in advance on a recurring monthly basis through our payment processor, Stripe.</li>
           <li>Upgrades take effect immediately and are prorated. You can cancel at any time; your plan remains active until the end of the current billing period, and we do not provide partial refunds except where required by law.</li>
-          <li>When your clients pay invoices through your portal, those payments are processed by Stripe and routed to your connected Stripe account. VoxaBase is not a party to the transaction between you and your client and does not hold your funds.</li>
+          <li>When your clients pay invoices through your portal, those payments are processed by Stripe and routed to your connected Stripe account. Voxabase is not a party to the transaction between you and your client and does not hold your funds.</li>
           <li>You are responsible for any taxes related to your use of the Service and to payments you collect from your clients.</li>
         </ul>
 
@@ -61,7 +61,7 @@ export default function TermsPage() {
 
         <h2>Our intellectual property</h2>
         <p>
-          The Service itself — including its software, design, and the VoxaBase name and logo — belongs to us. These
+          The Service itself — including its software, design, and the Voxabase name and logo — belongs to us. These
           Terms do not grant you any right to use our branding except as needed to use the Service normally.
         </p>
 
@@ -80,7 +80,7 @@ export default function TermsPage() {
 
         <h2>Limitation of liability</h2>
         <p>
-          To the maximum extent permitted by law, VoxaBase will not be liable for any indirect, incidental,
+          To the maximum extent permitted by law, Voxabase will not be liable for any indirect, incidental,
           special, consequential, or punitive damages, or for lost profits or data. Our total liability for any
           claim relating to the Service will not exceed the amount you paid us in the twelve months before the
           claim arose.

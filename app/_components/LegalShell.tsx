@@ -13,7 +13,7 @@ export default function LegalShell({ title, updated, other, children }: {
     <main className="min-h-screen bg-ink text-paper">
       <header className="sticky top-0 z-10 border-b border-rule bg-ink/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-4 py-3.5 sm:px-8">
-          <a href="https://voxabase.com" aria-label="VoxaBase home"><img src="/vblogo.png" alt="VoxaBase" className="h-7 w-auto" /></a>
+          <a href="https://voxabase.com" aria-label="Voxabase home"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
           <nav className="flex items-center gap-5 text-[15px]" aria-label="Account">
             <Link href="/login" className="text-muted transition-colors hover:text-paper">Sign in</Link>
             <Link href="/signup" className="rounded-md bg-paper px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-white">Get started free</Link>
@@ -35,12 +35,12 @@ export default function LegalShell({ title, updated, other, children }: {
 
       <footer className="border-t border-rule">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-7 text-[13px] text-faint sm:px-8">
-          <p>© 2026 VoxaBase. All rights reserved.</p>
+          <p>© 2026 Voxabase. All rights reserved.</p>
           <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Footer">
             <Link href="/privacy" className="hover:text-paper">Privacy</Link>
             <Link href="/terms" className="hover:text-paper">Terms</Link>
             <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-paper">{CONTACT_EMAIL}</a>
-            <a href="https://x.com/VoxaBase" target="_blank" rel="noopener" className="hover:text-paper">@VoxaBase</a>
+            <a href="https://x.com/Voxabase" target="_blank" rel="noopener" className="hover:text-paper">@Voxabase</a>
           </nav>
         </div>
       </footer>
