@@ -10,7 +10,6 @@ import { canOpenPortal } from '@/lib/portalAccess'
 
 export const revalidate = 0
 
-const PORTAL_FIELDS = 'id, user_id, name, slug, description, owner_username, is_active, files_ready, invoice_amount, invoice_paid, password_protected, approval_required, approval_status, approval_note, approval_name, approval_at'
 
 export default async function PortalPage({ params }: { params: Promise<{ username: string; slug: string }> }) {
   const { username, slug } = await params
@@ -18,14 +17,16 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
   // them and only sends the browser what the visitor is allowed to see.
   const admin = supabaseAdmin()
 
-  const { data: portal } = await admin
+  // select('*') so a column that hasn't been added yet can't break every portal
+  const { data: portal, error } = await admin
     .from('portals')
-    .select(PORTAL_FIELDS)
+    .select('*')
     .eq('slug', slug)
     .eq('owner_username', username)
     .eq('is_active', true)
     .maybeSingle()
 
+  if (error) console.error('[portal page] lookup failed', error.message)
   if (!portal) notFound()
 
   const { data: profile } = await admin
