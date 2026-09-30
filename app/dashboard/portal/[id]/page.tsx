@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PortalDetailSkeleton from './PortalDetailSkeleton'
 import AppShell from '../../AppShell'
-import { loadWorkspace, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { hasTeams, loadWorkspace, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 
 interface Portal {
   id: string
@@ -494,7 +494,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-56 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
                   <a role="menuitem" href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
                     className="block text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Open client view</a>
-                  {isOwner && userPlan === 'agency' && (
+                  {isOwner && hasTeams(userPlan) && (
                     <button role="menuitem" onClick={() => { setMoreOpen(false); handleToggleShared() }} disabled={moving}
                       className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">
                       {portal.team_shared ? 'Move to Personal' : 'Move to Team'}

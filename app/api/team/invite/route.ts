@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 import { randomBytes } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { TEAM_SEATS } from '@/lib/workspace'
+import { seatsFor } from '@/lib/workspace'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -25,14 +25,16 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from('profiles').select('username, business_name, full_name, plan').eq('id', user.id).single()
-  if (profile?.plan !== 'agency' || !profile.username) {
-    return NextResponse.json({ error: 'Team seats are part of the Agency plan.' }, { status: 403 })
+  const seats = seatsFor(profile?.plan)
+  if (!seats || !profile?.username) {
+    return NextResponse.json({ error: 'Teammates are part of the Pro and Agency plans.' }, { status: 403 })
   }
 
   const admin = supabaseAdmin()
   const { count } = await admin.from('team_members').select('id', { count: 'exact', head: true }).eq('owner_id', user.id)
-  if ((count || 0) >= TEAM_SEATS) {
-    return NextResponse.json({ error: `All ${TEAM_SEATS} teammate seats are in use. Remove someone to invite another person.` }, { status: 400 })
+  if ((count || 0) >= seats) {
+    const more = profile.plan === 'pro' ? ' Upgrade to Agency for up to 4 teammates.' : ' Remove someone to invite another person.'
+    return NextResponse.json({ error: `All ${seats} teammate seat${seats === 1 ? ' is' : 's are'} in use.${more}` }, { status: 400 })
   }
 
   const token = randomBytes(24).toString('base64url')

@@ -54,12 +54,12 @@ export default function TermsPage() {
           <li>You are responsible for any taxes related to your use of the Service and to payments you collect from your clients.</li>
         </ul>
 
-        <h2>Teams (Agency plan)</h2>
+        <h2>Teams (Pro and Agency plans)</h2>
         <ul>
-          <li>An Agency account owner can invite teammates. Teammates can see and work on portals the owner shares with the team; they cannot see the owner&rsquo;s personal portals, billing, or payment settings.</li>
+          <li>A Pro or Agency account owner can invite teammates (1 on Pro, up to 4 on Agency). Teammates can see and work on portals the owner shares with the team; they cannot see the owner&rsquo;s personal portals, billing, or payment settings.</li>
           <li>The account owner is responsible for the people they invite and for what they do in the team workspace, and can remove them at any time.</li>
           <li>When a teammate moves one of their own portals into a team, that portal, its files and any unpaid invoice transfer to the team owner&rsquo;s account. Its link changes and future payments go to the owner&rsquo;s connected Stripe account.</li>
-          <li>If the owner&rsquo;s Agency plan ends, teammates lose access to the team workspace.</li>
+          <li>If the owner moves to the Free plan, teammates lose access to the team workspace. After a move from Agency to Pro, existing teammates keep access, but no new ones can be invited while the team is over the Pro limit.</li>
         </ul>
 
         <h2>Custom domains and client approvals</h2>

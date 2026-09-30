@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, ReactNode } from 'react'
 import { useIdleSignOut } from '@/lib/useIdleSignOut'
 import { createClient } from '@/utils/supabase/client'
-import { readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { hasTeams, seatsFor, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 import { displayName, isOnline } from '@/lib/people'
 
 type Team = { owner_id: string; owner_label: string | null }
@@ -50,6 +50,7 @@ export default function AppShell({
   // Everyone in the current workspace's team, for the sidebar's Team section
   const [roster, setRoster] = useState<RosterRow[]>([])
   const [myId, setMyId] = useState<string | null>(null)
+  const [myPlan, setMyPlan] = useState<string | null>(null)
   const [teamLoaded, setTeamLoaded] = useState(false)
   useEffect(() => {
     let active = true
@@ -62,13 +63,14 @@ export default function AppShell({
       ])
       if (!active) return
       // Your own Team workspace (Agency) first, then teams you've joined
-      const own: Team[] = meRow?.plan === 'agency' ? [{ owner_id: user.id, owner_label: displayName({ ...meRow, email: user.email }) }] : []
+      const own: Team[] = hasTeams(meRow?.plan) ? [{ owner_id: user.id, owner_label: displayName({ ...meRow, email: user.email }) }] : []
       const list = [...own, ...((data || []) as Team[])]
       setTeams(list)
       const cookie = readWorkspaceCookie()
       const ws = list.some(t => t.owner_id === cookie) ? cookie : null
       setCurrentWs(ws)
       setMyId(user.id)
+      setMyPlan(meRow?.plan ?? null)
 
       // Presence: check in now and about once a minute while the app is open,
       // and refresh the team list so online dots stay current.
@@ -211,7 +213,7 @@ export default function AppShell({
                   </div>
                 )
               })}
-              {isMyTeam && roster.filter(r => !r.is_owner).length < 4 && (
+              {isMyTeam && roster.filter(r => !r.is_owner).length < seatsFor(myPlan) && (
                 <a href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
                   <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>

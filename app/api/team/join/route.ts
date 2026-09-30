@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { WS_COOKIE } from '@/lib/workspace'
+import { WS_COOKIE, hasTeams } from '@/lib/workspace'
 
 async function findInvite(token: string) {
   if (!token || token.length > 100) return null
@@ -16,7 +16,7 @@ async function findInvite(token: string) {
     .maybeSingle()
   if (!data) return null
   const { data: owner } = await admin.from('profiles').select('plan').eq('id', data.owner_id).single()
-  return { ...data, ownerOnAgency: owner?.plan === 'agency' }
+  return { ...data, ownerOnAgency: hasTeams(owner?.plan) }
 }
 
 export async function GET(request: Request) {

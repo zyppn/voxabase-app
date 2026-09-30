@@ -8,8 +8,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const WS_COOKIE = 'vb_ws'
-/** Teammates an Agency owner can invite (the owner is the fifth seat). */
-export const TEAM_SEATS = 4
+/** Teammates each plan can invite (the owner doesn't count). */
+export const TEAM_SEATS: Record<string, number> = { pro: 1, agency: 4 }
+export const seatsFor = (plan?: string | null) => TEAM_SEATS[plan || ''] ?? 0
+/** Plans that get a Team workspace */
+export const hasTeams = (plan?: string | null) => seatsFor(plan) > 0
 
 export const PROFILE_FIELDS = 'id, username, full_name, business_name, plan, stripe_onboarding_complete'
 
@@ -50,7 +53,7 @@ export function setWorkspaceCookie(ownerId: string | null) {
  */
 export async function loadWorkspace(supabase: SupabaseClient, userId: string, preferred: string | null | undefined): Promise<Workspace> {
   const { data: me } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', userId).single()
-  const iAmAgency = me?.plan === 'agency'
+  const iAmAgency = hasTeams(me?.plan)
   if (preferred === userId && iAmAgency) return { ownerId: userId, isOwner: true, shared: true, owner: me, me }
   if (preferred && preferred !== userId) {
     const { data: membership } = await supabase
@@ -62,7 +65,7 @@ export async function loadWorkspace(supabase: SupabaseClient, userId: string, pr
       .maybeSingle()
     if (membership) {
       const { data: owner } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', preferred).maybeSingle()
-      if (owner && owner.plan === 'agency') return { ownerId: preferred, isOwner: false, shared: true, owner, me }
+      if (owner && hasTeams(owner.plan)) return { ownerId: preferred, isOwner: false, shared: true, owner, me }
     }
   }
   return { ownerId: userId, isOwner: true, shared: iAmAgency ? false : null, owner: me, me }

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
-import { TEAM_SEATS, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { hasTeams, seatsFor, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 import { displayName, isOnline } from '@/lib/people'
 
 type Row = { id: string; email: string; status: 'pending' | 'active'; token: string; invited_at: string; joined_at: string | null }
@@ -24,7 +24,9 @@ export default function TeamCard({ plan }: { plan: string }) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [justInvited, setJustInvited] = useState<string | null>(null)
-  const isAgency = plan === 'agency'
+  // Pro: 1 teammate, Agency: 4
+  const isAgency = hasTeams(plan)
+  const seats = seatsFor(plan)
 
   useEffect(() => {
     let active = true
@@ -99,35 +101,41 @@ export default function TeamCard({ plan }: { plan: string }) {
     `mailto:${encodeURIComponent(row.email)}?subject=${encodeURIComponent('Join our team on Voxabase')}&body=${encodeURIComponent(`Hi! I've added you to our team on Voxabase. Use this link to join:\n\n${link(row.token)}\n\nSign in (or create an account) with ${row.email} to accept.`)}`
 
   const used = rows.length
-  const full = used >= TEAM_SEATS
+  const full = used >= seats
+  const over = used > seats
 
   return (
     <div id="team" className="mt-5 bg-ink-2 border border-rule rounded-xl p-6 scroll-mt-16">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
         <h2 className="font-semibold text-paper flex items-center gap-2">
           Team
-          {!isAgency && <span className="text-[11px] font-semibold text-accent-text border border-accent/30 bg-accent-soft px-2 py-0.5 rounded-full">Agency</span>}
+          {!isAgency && <span className="text-[11px] font-semibold text-accent-text border border-accent/30 bg-accent-soft px-2 py-0.5 rounded-full">Pro</span>}
         </h2>
-        {isAgency && <span className="text-xs text-faint">{used} of {TEAM_SEATS} seats used</span>}
+        {isAgency && <span className="text-xs text-faint">{used} of {seats} seat{seats === 1 ? '' : 's'} used</span>}
       </div>
 
       {isAgency ? (
         <p className="text-sm text-muted mb-5 max-w-2xl">
-          Invite up to {TEAM_SEATS} teammates. They can create portals, upload files and send deliveries in your workspace.
+          {seats === 1 ? 'Invite 1 teammate' : `Invite up to ${seats} teammates`}. They can create portals, upload files and send deliveries in your Team workspace.
           Only you can delete portals or manage billing, Stripe, branding and the team.
+          {plan === 'pro' && <> Need more seats? <Link href="/pricing" className="text-paper underline underline-offset-2">Agency</Link> includes up to 4.</>}
         </p>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
-          <p className="text-sm text-muted">Invite up to {TEAM_SEATS} teammates to work on your portals with you.</p>
-          <Link href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">See Agency</Link>
+          <p className="text-sm text-muted">Invite teammates to work on your portals with you: 1 on Pro, up to 4 on Agency.</p>
+          <Link href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">See plans</Link>
         </div>
       )}
 
       {!isAgency && rows.length > 0 && (
-        <p className="mt-3 text-sm text-amber-400/90">Your teammates can’t open your workspace while you’re off the Agency plan. They’ll get access back when you upgrade.</p>
+        <p className="mt-3 text-sm text-amber-400/90">Your teammates can’t open your Team workspace on the Free plan. They’ll get access back when you upgrade.</p>
       )}
 
       {error && <div role="alert" className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3 mb-4">{error}</div>}
+
+      {isAgency && over && (
+        <p className="mb-4 text-sm text-amber-400/90">You have more teammates than your plan includes. They keep access, but you can’t invite anyone new until you remove someone{plan === 'pro' ? ' or upgrade to Agency' : ''}.</p>
+      )}
 
       {isAgency && (
         <form onSubmit={invite} className="flex flex-col sm:flex-row gap-2.5 mb-5">

@@ -120,6 +120,7 @@ function PricingContent() {
         'Stripe payments, 0% Voxabase fee',
         'Password-protected portals',
         'Custom branding & colors',
+        'Invite 1 teammate',
         'Priority support',
       ],
       monthly: { price: '$15', suffix: '/mo', note: 'Billed monthly', priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID },

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { hasTeams } from '@/lib/workspace'
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
   const { data: membership } = await admin.from('team_members').select('id')
     .eq('owner_id', toOwner).eq('member_id', user.id).eq('status', 'active').maybeSingle()
   const { data: owner } = await admin.from('profiles').select('username, plan').eq('id', toOwner).maybeSingle()
-  if (!membership || owner?.plan !== 'agency' || !owner.username) {
+  if (!membership || !hasTeams(owner?.plan) || !owner?.username) {
     return NextResponse.json({ error: 'You’re not on that team anymore.' }, { status: 403 })
   }
 

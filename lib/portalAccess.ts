@@ -8,6 +8,7 @@ import { createHash, timingSafeEqual } from 'crypto'
 import { cookies } from 'next/headers'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server'
+import { hasTeams } from '@/lib/workspace'
 
 export type PortalAccessRow = { id: string; user_id: string; is_active: boolean; password_protected: boolean }
 
@@ -40,7 +41,7 @@ export async function isOwnerOrTeam(admin: SupabaseClient, userId: string | null
     .from('team_members').select('id').eq('owner_id', ownerId).eq('member_id', userId).eq('status', 'active').maybeSingle()
   if (!data) return false
   const { data: owner } = await admin.from('profiles').select('plan').eq('id', ownerId).single()
-  return owner?.plan === 'agency'
+  return hasTeams(owner?.plan)
 }
 
 export async function storedPassword(admin: SupabaseClient, portalId: string): Promise<string | null> {
