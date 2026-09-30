@@ -9,6 +9,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [unconfirmed, setUnconfirmed] = useState(false)
+  const [resend, setResend] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const router = useRouter()
   const supabase = createClient()
 
@@ -16,13 +18,30 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setUnconfirmed(false)
+    setResend('idle')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError('Invalid email or password. Please try again.')
+      // Supabase refuses sign-in until the signup link is clicked; say so instead of "wrong password"
+      if (error.code === 'email_not_confirmed' || /not confirmed/i.test(error.message)) {
+        setUnconfirmed(true)
+      } else {
+        setError('Invalid email or password. Please try again.')
+      }
       setLoading(false)
     } else {
       router.push('/dashboard')
     }
+  }
+
+  const resendConfirmation = async () => {
+    setResend('sending')
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    })
+    setResend(error ? 'failed' : 'sent')
   }
 
   return (
@@ -37,6 +56,23 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-4">
           {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
+          {unconfirmed && (
+            <div role="status" className="text-sm bg-accent/10 border border-accent/25 rounded-lg p-3 text-paper">
+              <p>Please confirm your email first. We sent a confirmation link to <span className="font-semibold">{email}</span> when you signed up.</p>
+              {resend === 'sent' ? (
+                <p className="mt-2 text-accent-text">New link sent. Check your inbox (and spam).</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={resendConfirmation}
+                  disabled={resend === 'sending'}
+                  className="mt-2 text-accent-text font-semibold hover:underline disabled:opacity-50"
+                >
+                  {resend === 'sending' ? 'Sending...' : resend === 'failed' ? 'Could not send. Try again' : 'Resend the link'}
+                </button>
+              )}
+            </div>
+          )}
           <div>
             <label className="text-sm text-muted mb-1.5 block">Email</label>
             <input
