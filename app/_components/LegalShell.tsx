@@ -1,7 +1,7 @@
 // Shared frame for Privacy and Terms: the landing page's nav and footer around readable prose.
 import Link from 'next/link'
 
-export const CONTACT_EMAIL = 'admin@voxabase.com'
+export const CONTACT_EMAIL = 'support@voxabase.com'
 
 export default function LegalShell({ title, updated, other, children }: {
   title: string
