@@ -10,6 +10,7 @@ export default function StripeSetupContent() {
   const success = searchParams.get('success')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<'loading' | 'idle' | 'connected' | 'incomplete'>('loading')
+  const [verifying, setVerifying] = useState(false)
   const [sidebar, setSidebar] = useState<{
     counts: { all: number; active: number; completed: number }
     usedBytes: number
@@ -33,19 +34,16 @@ export default function StripeSetupContent() {
         .eq('id', user.id)
         .single()
 
+      // Ask Stripe for the real status: coming back from onboarding doesn't mean it's finished
       let connected = false
-      if (success && profile?.stripe_account_id) {
-        await supabase
-          .from('profiles')
-          .update({ stripe_onboarding_complete: true })
-          .eq('id', user.id)
-        setStatus('connected')
-        connected = true
-      } else if (profile?.stripe_onboarding_complete) {
-        setStatus('connected')
-        connected = true
-      } else if (profile?.stripe_account_id) {
-        setStatus('incomplete')
+      if (profile?.stripe_account_id) {
+        const res = await fetch('/api/stripe-connect/status', { cache: 'no-store' })
+        const data = await res.json().catch(() => null)
+        if (res.ok && data?.status === 'connected') {
+          setStatus('connected'); connected = true
+        } else {
+          setStatus('incomplete'); setVerifying(!!data?.verifying)
+        }
       } else {
         setStatus('idle')
       }
@@ -190,9 +188,13 @@ export default function StripeSetupContent() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold mb-3 tracking-tight">Connect your Stripe account</h1>
+              <h1 className="text-2xl font-bold mb-3 tracking-tight">{status === 'incomplete' ? 'Finish your Stripe setup' : 'Connect your Stripe account'}</h1>
               <p className="text-muted text-sm mb-8">
-                Connect Stripe so your clients can pay invoices directly to your bank. Takes about 5 minutes.
+                {status === 'incomplete'
+                  ? verifying
+                    ? 'Stripe is still verifying your details. Clients can pay invoices as soon as it’s done. Check back soon, or open Stripe to see if anything else is needed.'
+                    : 'Stripe still needs a few details before clients can pay your invoices. Pick up where you left off.'
+                  : 'Connect Stripe so your clients can pay invoices directly to your bank. Takes about 5 minutes.'}
               </p>
               <div className="bg-ink-2 border border-rule rounded-xl p-6 mb-6 text-left">
                 {[

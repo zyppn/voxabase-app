@@ -93,6 +93,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url })
   } catch (error: unknown) {
+    // The owner's Stripe account can't receive payouts yet (onboarding unfinished or under review)
+    if ((error as { code?: string })?.code === 'insufficient_capabilities_for_transfer') {
+      return NextResponse.json({ error: 'Payments aren’t set up for this portal yet. Please let the sender know.' }, { status: 400 })
+    }
     console.error('[checkout] failed', error)
     return NextResponse.json({ error: 'We could not start the payment. Please try again.' }, { status: 500 })
   }
