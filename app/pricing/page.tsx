@@ -4,9 +4,10 @@ import { createClient } from '@/utils/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
+import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 
 // Listed on the Agency plan but not built yet: shown with a "Soon" tag
-const COMING_SOON = new Set(['Team member seats', 'White-label portal domain'])
+const COMING_SOON = new Set(['White-label portal domain'])
 
 function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null)
@@ -38,13 +39,14 @@ function PricingContent() {
         .single()
       if (profile?.plan) setCurrentPlan(profile.plan)
 
-      // Sidebar data
+      // Sidebar shows the current workspace (yours, or an Agency team you're in)
+      const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
       const { data: allPortals } = await supabase
         .from('portals')
         .select('invoice_amount, invoice_paid')
-        .eq('user_id', user.id)
+        .eq('user_id', sideWs.ownerId)
       const all = allPortals || []
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
       const label = profile?.business_name || profile?.full_name || 'Your'
       const init = (() => {
         const base = profile?.business_name || profile?.full_name
@@ -58,7 +60,7 @@ function PricingContent() {
           completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
         },
         usedBytes: storageData || 0,
-        plan: profile?.plan || 'free',
+        plan: sideWs.owner?.plan || 'free',
         displayLabel: label,
         email: user.email || '',
         initials: init,
@@ -128,9 +130,9 @@ function PricingContent() {
       features: [
         'Everything in Pro',
         '250 GB file storage',
-        'Team member seats',
+        'Invite up to 4 teammates',
         'White-label portal domain',
-        'Client approval workflows',
+        'Client approvals',
         'Dedicated support',
       ],
       monthly: { price: '$49', suffix: '/mo', note: 'Billed monthly', priceId: process.env.NEXT_PUBLIC_STRIPE_AGENCY_PRICE_ID },

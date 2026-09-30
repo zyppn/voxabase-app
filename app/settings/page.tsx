@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react'
 import TwoStepCard from './TwoStepCard'
 import SessionsCard from './SessionsCard'
+import TeamCard from './TeamCard'
 import { verifyPassword } from '@/lib/verifyPassword'
 import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import AppShell from '../dashboard/AppShell'
+import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 
 const PRESET_COLORS = [
   { label: 'Voxabase Purple', value: '#865fd9' },
@@ -78,13 +80,14 @@ function SettingsContent() {
         setBrandDisplay(profile.brand_display || 'both')
       }
 
-      // Sidebar data
+      // Sidebar shows the current workspace (yours, or an Agency team you're in)
+      const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
       const { data: allPortals } = await supabase
         .from('portals')
         .select('invoice_amount, invoice_paid')
-        .eq('user_id', user.id)
+        .eq('user_id', sideWs.ownerId)
       const all = allPortals || []
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
       const label = profile?.business_name || profile?.full_name || 'Your'
       const init = (() => {
         const base = profile?.business_name || profile?.full_name
@@ -98,7 +101,7 @@ function SettingsContent() {
           completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
         },
         usedBytes: storageData || 0,
-        plan: profile?.plan || 'free',
+        plan: sideWs.owner?.plan || 'free',
         displayLabel: label,
         email: user.email || '',
         initials: init,
@@ -520,6 +523,9 @@ function SettingsContent() {
           <TwoStepCard />
           <SessionsCard />
         </div>
+
+        {/* ── Team seats (Agency) ── */}
+        <TeamCard plan={plan} />
 
         {/* ── Membership / Plan & Billing — full width ── */}
         <div className="mt-5 bg-ink-2 border border-rule rounded-xl p-6">

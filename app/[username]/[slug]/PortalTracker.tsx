@@ -16,6 +16,14 @@ export default function PortalTracker({ portalId, ownerUsername }: { portalId: s
           .eq('id', user.id)
           .single()
         if (profile?.username === ownerUsername) return
+        // Teammates of the owner don't count either
+        const { count } = await supabase
+          .from('team_members')
+          .select('id', { count: 'exact', head: true })
+          .eq('member_id', user.id)
+          .eq('owner_username', ownerUsername)
+          .eq('status', 'active')
+        if (count) return
       }
 
       await fetch('/api/track-view', {

@@ -1,6 +1,10 @@
 'use client'
 import { useState, useEffect, useRef, ReactNode } from 'react'
 import { useIdleSignOut } from '@/lib/useIdleSignOut'
+import { createClient } from '@/utils/supabase/client'
+import { readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+
+type Team = { owner_id: string; owner_label: string | null }
 
 interface AppShellProps {
   counts: { all: number; active: number; completed: number }
@@ -35,6 +39,33 @@ export default function AppShell({
   useIdleSignOut()
 
   useEffect(() => { setMounted(true) }, [])
+
+  // Agency teams this person belongs to (for the workspace switcher)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [currentWs, setCurrentWs] = useState<string | null>(null)
+  useEffect(() => {
+    let active = true
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user || !active) return
+      const { data } = await supabase
+        .from('team_members')
+        .select('owner_id, owner_label')
+        .eq('member_id', user.id)
+        .eq('status', 'active')
+      if (!active) return
+      const list = (data || []) as Team[]
+      setTeams(list)
+      const cookie = readWorkspaceCookie()
+      setCurrentWs(list.some(t => t.owner_id === cookie) ? cookie : null)
+    })
+    return () => { active = false }
+  }, [])
+  const currentTeam = teams.find(t => t.owner_id === currentWs) || null
+  const switchWorkspace = (ownerId: string | null) => {
+    setWorkspaceCookie(ownerId)
+    window.location.assign('/dashboard')
+  }
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -89,6 +120,14 @@ export default function AppShell({
           </button>
         </div>
 
+        {currentTeam && (
+          <button onClick={() => setMenuOpen(true)} title={`Working in ${currentTeam.owner_label || 'team'} workspace`}
+            className={`-mt-3 mb-4 flex items-center gap-2 rounded-lg border border-rule-2 bg-ink-2 text-xs text-muted hover:text-paper overflow-hidden ${collapsed ? 'justify-center px-0 py-2' : 'px-2.5 py-2'}`}>
+            <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+            {!collapsed && <span className="truncate">{currentTeam.owner_label || 'Team'} <span className="text-faint">· team</span></span>}
+          </button>
+        )}
+
         <nav className="flex flex-col gap-1">
           {/* New Portal */}
           <a href="/dashboard/new" title="New Portal"
@@ -135,6 +174,20 @@ export default function AppShell({
                     <div className="h-px bg-ink-4 my-1 mx-2" />
                   </>
                 )}
+                {teams.length > 0 && (
+                  <>
+                    <p className="px-3 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-faint">Workspace</p>
+                    {[{ id: null as string | null, label: displayLabel === 'Your' ? 'Personal' : `${displayLabel} (personal)` },
+                      ...teams.map(t => ({ id: t.owner_id as string | null, label: t.owner_label || 'Team' }))].map(w => (
+                      <button key={w.id || 'personal'} onClick={() => w.id !== currentWs && switchWorkspace(w.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper text-left">
+                        <span className="w-4 flex-shrink-0 text-paper">{w.id === currentWs ? '✓' : ''}</span>
+                        <span className="truncate">{w.label}</span>
+                      </button>
+                    ))}
+                    <div className="h-px bg-ink-4 my-1 mx-2" />
+                  </>
+                )}
                 <a href="/stripe-setup" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
                   <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
                   {stripeConnected ? 'Stripe account' : 'Connect Stripe'}
@@ -176,6 +229,13 @@ export default function AppShell({
         <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-rule sticky top-0 bg-ink/85 backdrop-blur-sm z-20">
           <a href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
           <div className="flex items-center gap-2">
+            {teams.length > 0 && (
+              <select aria-label="Workspace" value={currentWs || ''} onChange={(e) => switchWorkspace(e.target.value || null)}
+                className="max-w-[150px] truncate rounded-lg border border-rule-2 bg-ink-2 px-2.5 py-2 text-xs text-muted focus:outline-none">
+                <option value="">Personal</option>
+                {teams.map(t => <option key={t.owner_id} value={t.owner_id}>{t.owner_label || 'Team'}</option>)}
+              </select>
+            )}
             <a href="/settings" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></a>
             <a href="/api/auth/signout" className="p-2 rounded-lg border border-rule-2 text-muted"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg></a>
           </div>

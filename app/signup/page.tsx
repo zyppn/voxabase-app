@@ -1,7 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
+import { joinNext } from '@/lib/joinNext'
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0
@@ -18,6 +19,17 @@ function getPasswordStrength(password: string): { score: number; label: string; 
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
+  // Opened from a team invite: keep the invite through sign-up, prefill its email
+  const [authQ, setAuthQ] = useState('')
+  useEffect(() => {
+    const next = joinNext()
+    if (!next) return
+    // Reading the URL once on mount; the server render can't know it
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuthQ(`?next=${encodeURIComponent(next)}`)
+    const invited = new URLSearchParams(window.location.search).get('email')
+    if (invited) setEmail((e) => e || invited)
+  }, [])
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -71,7 +83,7 @@ export default function SignupPage() {
       password,
       options: {
         data: { full_name: fullName, business_name: businessName, username },
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        emailRedirectTo: `${window.location.origin}/auth/callback${joinNext() ? `?next=${encodeURIComponent(joinNext()!)}` : ''}`
       }
     })
     if (error) {
@@ -104,7 +116,7 @@ export default function SignupPage() {
           <p className="text-muted mb-2">We sent a confirmation link to <span className="text-paper">{email}</span>.</p>
           <p className="text-faint text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="text-accent-text hover:underline">Sign in instead</Link>
+            <Link href={`/login${authQ}`} className="text-accent-text hover:underline">Sign in instead</Link>
           </p>
         </div>
       </main>
@@ -126,7 +138,7 @@ export default function SignupPage() {
             <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
               {error}
               {error.includes('already exists') && (
-                <span> <Link href="/login" className="underline font-semibold">Sign in here</Link></span>
+                <span> <Link href={`/login${authQ}`} className="underline font-semibold">Sign in here</Link></span>
               )}
             </div>
           )}
@@ -251,7 +263,7 @@ export default function SignupPage() {
 
           <p className="text-center text-faint text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="text-accent-text hover:underline font-medium">Sign in</Link>
+            <Link href={`/login${authQ}`} className="text-accent-text hover:underline font-medium">Sign in</Link>
           </p>
         </form>
       </div>

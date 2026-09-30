@@ -28,12 +28,15 @@ interface Props {
   totalInvoiced: number
   totalPaid: number
   hasFiles: boolean
+  /** Set when working in an Agency team you belong to (not your own workspace). */
+  teamName?: string | null
 }
 
 export default function DashboardShell({
   email, username, businessName, fullName, plan, stripeConnected,
-  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles,
+  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles, teamName = null,
 }: Props) {
+  const isTeam = !!teamName
   const searchParams = useSearchParams()
   const initialFilter = (searchParams.get('filter') as 'all' | 'active' | 'completed') || 'all'
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>(
@@ -103,15 +106,29 @@ export default function DashboardShell({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-paper">Portals</h1>
-            <p className="text-faint text-sm mt-1">Your portals live at <span className="text-muted">voxabase.com/{username}/</span></p>
+            <p className="text-faint text-sm mt-1">
+              {isTeam ? <>{teamName}’s portals live at </> : <>Your portals live at </>}
+              <span className="text-muted">voxabase.com/{username}/</span>
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
+            {isTeam ? (
+              <span className="whitespace-nowrap text-xs font-semibold px-3 py-1.5 rounded-full border border-rule-2 text-muted">Team member</span>
+            ) : (
+              <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${planBadge.cls}`}>{planBadge.label}</span>
+            )}
           </div>
         </div>
 
-        {/* Getting started (falls back to the Stripe reminder once hidden) */}
-        <OnboardingChecklist
+        {isTeam && searchParams.get('joined') === '1' && (
+          <div role="status" className="bg-ink-2 border border-rule rounded-xl px-5 py-4 mb-7 flex items-center gap-3 text-sm">
+            <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+            <p className="text-paper">You joined {teamName}. <span className="text-muted">You can switch back to your own workspace anytime from the menu at the bottom left.</span></p>
+          </div>
+        )}
+
+        {/* Getting started (falls back to the Stripe reminder once hidden). Owners only. */}
+        {!isTeam && <OnboardingChecklist
           hasPortal={portals.length > 0}
           hasFiles={hasFiles}
           stripeConnected={stripeConnected}
@@ -131,7 +148,7 @@ export default function DashboardShell({
             <a href="/stripe-setup" className="flex-shrink-0 bg-paper hover:bg-white text-ink font-semibold px-4 py-2 rounded-lg text-xs">Set up</a>
           </div>
           ) : null}
-        />
+        />}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-9">

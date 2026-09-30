@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PortalDetailSkeleton from './PortalDetailSkeleton'
 import AppShell from '../../AppShell'
+import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 
 interface Portal {
   id: string
+  user_id: string
   name: string
   slug: string
   description: string | null
@@ -56,6 +58,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [deleting, setDeleting] = useState(false)
   const [togglingReady, setTogglingReady] = useState(false)
   const [savingApproval, setSavingApproval] = useState(false)
+  // Teammates work in the owner's workspace; only the owner can delete a portal
+  const [isOwner, setIsOwner] = useState(true)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -80,14 +84,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('plan, full_name, business_name, stripe_onboarding_complete')
-        .eq('id', user.id)
-        .single()
-      if (profileData?.plan) setUserPlan(profileData.plan)
+      const ws = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
+      const profileData = ws.me
+      if (ws.owner?.plan) setUserPlan(ws.owner.plan)
+      setIsOwner(ws.isOwner)
 
-      const { data: portalData } = await supabase.from('portals').select('*').eq('id', id).eq('user_id', user.id).single()
+      const { data: portalData } = await supabase.from('portals').select('*').eq('id', id).eq('user_id', ws.ownerId).single()
       if (!portalData) { router.push('/dashboard'); return }
       setPortal(portalData)
       setEditName(portalData.name)
@@ -99,7 +101,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         .from('files')
         .select('*')
         .eq('portal_id', id)
-        .eq('user_id', user.id)
+        .eq('user_id', ws.ownerId)
         .order('sort_order', { ascending: true })
       setFiles(filesData || [])
 
@@ -118,12 +120,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       const { data: allPortals } = await supabase
         .from('portals')
         .select('invoice_amount, invoice_paid')
-        .eq('user_id', user.id)
+        .eq('user_id', ws.ownerId)
       const all = allPortals || []
       const activeCount = all.filter(p => !p.invoice_paid || !p.invoice_amount).length
       const completedCount = all.filter(p => p.invoice_paid && p.invoice_amount).length
 
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: ws.ownerId })
 
       const label = profileData?.business_name || profileData?.full_name || 'Your'
       const init = (() => {
@@ -135,7 +137,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       setSidebar({
         counts: { all: all.length, active: activeCount, completed: completedCount },
         usedBytes: storageData || 0,
-        plan: profileData?.plan || 'free',
+        plan: ws.owner?.plan || 'free',
         displayLabel: label,
         email: user.email || '',
         initials: init,
@@ -210,7 +212,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     if (!user) { setUploading(false); return }
 
     // Check storage limit
-    const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+    const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: portal.user_id })
     const usedBytes = storageData || 0
     const limitBytes = STORAGE_LIMITS[userPlan] || STORAGE_LIMITS.free
     const incomingBytes = Array.from(fileList).reduce((sum, f) => sum + f.size, 0)
@@ -233,7 +235,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         failures.push(`"${file.name}" is ${(file.size / 1048576).toFixed(0)} MB. File size cannot exceed ${MAX_FILE_MB} MB.`)
         continue
       }
-      const filePath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
+      const filePath = `${portal.user_id}/${portal.id}/${Date.now()}-${file.name}`
       const { error: upErr } = await supabase.storage.from('deliverables').upload(filePath, file)
       if (upErr) {
         failures.push(describeUploadError(upErr, file.name, file.size))
@@ -241,7 +243,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       }
       await supabase.from('files').insert({
         portal_id: portal.id,
-        user_id: user.id,
+        user_id: portal.user_id,
         name: file.name,
         file_path: filePath,
         file_size: file.size,
@@ -250,7 +252,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       })
     }
     if (failures.length) setUploadError(failures.join(' '))
-    const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', user.id).order('sort_order', { ascending: true })
+    const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', portal.user_id).order('sort_order', { ascending: true })
     setFiles(filesData || [])
     setUploading(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -285,11 +287,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     await supabase.storage.from('deliverables').remove([existingFile.file_path])
-    const newPath = `${user.id}/${portal.id}/${Date.now()}-${file.name}`
+    const newPath = `${portal.user_id}/${portal.id}/${Date.now()}-${file.name}`
     const { error: upErr } = await supabase.storage.from('deliverables').upload(newPath, file)
     if (!upErr) {
       await supabase.from('files').update({ name: file.name, file_path: newPath, file_size: file.size, file_type: file.type }).eq('id', replacingId)
-      const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', user.id).order('sort_order', { ascending: true })
+      const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', portal.user_id).order('sort_order', { ascending: true })
       setFiles(filesData || [])
     } else {
       setUploadError(describeUploadError(upErr, file.name, file.size))
@@ -440,8 +442,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-48 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
                   <a role="menuitem" href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
                     className="block text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Open client view</a>
+                  {isOwner && (
                   <button role="menuitem" onClick={() => { setMoreOpen(false); setShowDeleteModal(true) }}
                     className="w-full text-left text-sm text-red-400 hover:bg-red-400/10 rounded-lg px-3 py-2">Delete portal</button>
+                  )}
                 </div>
               </>
             )}

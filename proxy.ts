@@ -45,5 +45,6 @@ export const config = {
     '/api/subscription/:path*',
     '/api/stripe-connect/:path*',
     '/api/verify-password',
+    '/api/team/:path*',
   ],
 }

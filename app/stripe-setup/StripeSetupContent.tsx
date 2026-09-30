@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import AppShell from '../dashboard/AppShell'
+import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 
 export default function StripeSetupContent() {
   const searchParams = useSearchParams()
@@ -49,13 +50,14 @@ export default function StripeSetupContent() {
         setStatus('idle')
       }
 
-      // Sidebar data
+      // Sidebar shows the current workspace (yours, or an Agency team you're in)
+      const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
       const { data: allPortals } = await supabase
         .from('portals')
         .select('invoice_amount, invoice_paid')
-        .eq('user_id', user.id)
+        .eq('user_id', sideWs.ownerId)
       const all = allPortals || []
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
       const label = profile?.business_name || profile?.full_name || 'Your'
       const init = (() => {
         const base = profile?.business_name || profile?.full_name
@@ -69,7 +71,7 @@ export default function StripeSetupContent() {
           completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
         },
         usedBytes: storageData || 0,
-        plan: profile?.plan || 'free',
+        plan: sideWs.owner?.plan || 'free',
         displayLabel: label,
         email: user.email || '',
         initials: init,

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import CodeInput from '@/app/_components/CodeInput'
+import { joinNext } from '@/lib/joinNext'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -22,6 +23,17 @@ export default function LoginPage() {
     return ''
   })
   const router = useRouter()
+  // Opened from a team invite: keep the invite through sign-in, prefill its email
+  const [authQ, setAuthQ] = useState('')
+  useEffect(() => {
+    const next = joinNext()
+    if (!next) return
+    // Reading the URL once on mount; the server render can't know it
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuthQ(`?next=${encodeURIComponent(next)}`)
+    const invited = new URLSearchParams(window.location.search).get('email')
+    if (invited) setEmail((e) => e || invited)
+  }, [])
   const supabase = createClient()
 
   // Accounts with two-step verification need a code after the password
@@ -58,7 +70,7 @@ export default function LoginPage() {
       setMfaCode('')
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      router.push(joinNext() || '/dashboard')
     }
   }
 
@@ -91,7 +103,7 @@ export default function LoginPage() {
     } else if (await needsSecondStep()) {
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      router.push(joinNext() || '/dashboard')
     }
   }
 
@@ -197,7 +209,7 @@ export default function LoginPage() {
           </button>
           <p className="text-center text-faint text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-accent-text hover:underline font-medium">Create one</Link>
+            <Link href={`/signup${authQ}`} className="text-accent-text hover:underline font-medium">Create one</Link>
           </p>
         </form>
         )}

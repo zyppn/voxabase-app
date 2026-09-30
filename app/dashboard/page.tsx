@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import DashboardShell from './DashboardShell'
+import { WS_COOKIE, loadWorkspace } from '@/lib/workspace'
 
 export default async function DashboardPage() {
   const cookieStore = await cookies()
@@ -10,16 +11,14 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username, full_name, business_name, stripe_account_id, stripe_onboarding_complete, plan')
-    .eq('id', user.id)
-    .single()
+  // Your own workspace, or an Agency team you've switched into
+  const ws = await loadWorkspace(supabase, user.id, cookieStore.get(WS_COOKIE)?.value)
+  const profile = ws.owner
 
   const { data: portals } = await supabase
     .from('portals')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', ws.ownerId)
     .order('created_at', { ascending: false })
 
   const portalIds = portals?.map(p => p.id) || []
@@ -30,9 +29,9 @@ export default async function DashboardPage() {
   const { count: fileCount } = await supabase
     .from('files')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
+    .eq('user_id', ws.ownerId)
 
-  const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
+  const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: ws.ownerId })
   const usedBytes = storageData || 0
 
   const viewMap: Record<string, { count: number; lastViewed: string | null }> = {}
@@ -52,16 +51,17 @@ export default async function DashboardPage() {
     <DashboardShell
       email={user.email || ''}
       username={profile?.username || ''}
-      businessName={profile?.business_name || ''}
-      fullName={profile?.full_name || ''}
+      businessName={ws.me?.business_name || ''}
+      fullName={ws.me?.full_name || ''}
       plan={planKey}
-      stripeConnected={profile?.stripe_onboarding_complete === true}
+      stripeConnected={ws.me?.stripe_onboarding_complete === true}
       portals={portals || []}
       viewMap={viewMap}
       usedBytes={usedBytes}
       totalInvoiced={totalInvoiced}
       totalPaid={totalPaid}
       hasFiles={(fileCount || 0) > 0}
+      teamName={ws.isOwner ? null : (profile?.business_name || profile?.full_name || profile?.username || 'Team')}
     />
   )
 }

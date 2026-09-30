@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import AppShell from '../AppShell'
+import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
 
 function generateRandomSlug(name: string) {
   const random = Math.random().toString(36).slice(2, 7)
@@ -19,6 +20,7 @@ export default function NewPortalPage() {
   const [portalPassword, setPortalPassword] = useState('')
   const [username, setUsername] = useState('')
   const [plan, setPlan] = useState('free')
+  const [ownerId, setOwnerId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [profileLoading, setProfileLoading] = useState(true)
@@ -38,11 +40,11 @@ export default function NewPortalPage() {
     const getProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username, plan, full_name, business_name, stripe_onboarding_complete')
-        .eq('id', user.id)
-        .single()
+      // Portals are created in the current workspace (yours, or your Agency team's)
+      const ws = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
+      setOwnerId(ws.ownerId)
+      const profile = ws.owner
+      const me = ws.me
       if (profile?.username) setUsername(profile.username)
       if (profile?.plan) setPlan(profile.plan)
 
@@ -50,12 +52,12 @@ export default function NewPortalPage() {
       const { data: allPortals } = await supabase
         .from('portals')
         .select('invoice_amount, invoice_paid')
-        .eq('user_id', user.id)
+        .eq('user_id', ws.ownerId)
       const all = allPortals || []
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: user.id })
-      const label = profile?.business_name || profile?.full_name || 'Your'
+      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: ws.ownerId })
+      const label = me?.business_name || me?.full_name || 'Your'
       const init = (() => {
-        const base = profile?.business_name || profile?.full_name
+        const base = me?.business_name || me?.full_name
         if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
         return (user.email?.[0] || 'U').toUpperCase()
       })()
@@ -70,7 +72,7 @@ export default function NewPortalPage() {
         displayLabel: label,
         email: user.email || '',
         initials: init,
-        stripeConnected: profile?.stripe_onboarding_complete === true,
+        stripeConnected: me?.stripe_onboarding_complete === true,
       })
 
       setProfileLoading(false)
@@ -94,12 +96,13 @@ export default function NewPortalPage() {
     setError('')
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
+    const workspaceOwner = ownerId || user.id
 
     if (plan === 'free') {
       const { count } = await supabase
         .from('portals')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', workspaceOwner)
       if (count !== null && count >= 3) {
         setError('Free plan is limited to 3 portals. Upgrade to Pro for unlimited portals.')
         setLoading(false)
@@ -110,7 +113,7 @@ export default function NewPortalPage() {
     const finalSlug = isPro && useCustomSlug && customSlug ? customSlug : slug
 
     const { error } = await supabase.from('portals').insert({
-      user_id: user.id,
+      user_id: workspaceOwner,
       name,
       slug: finalSlug,
       description: description || null,
