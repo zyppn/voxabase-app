@@ -24,6 +24,7 @@ export async function GET() {
 
     const account = await stripe.accounts.retrieve(profile.stripe_account_id)
     const ready = account.details_submitted === true && account.capabilities?.transfers === 'active'
+      && account.capabilities?.card_payments === 'active'
 
     if (profile.stripe_onboarding_complete !== ready) {
       await supabase.from('profiles').update({ stripe_onboarding_complete: ready }).eq('id', user.id)

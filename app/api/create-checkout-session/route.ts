@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('stripe_account_id, stripe_onboarding_complete, plan')
+      .select('stripe_account_id, stripe_onboarding_complete, plan, business_name, full_name')
       .eq('id', portal.user_id)
       .single()
     if (!profile?.stripe_account_id || !profile?.stripe_onboarding_complete) {
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
             currency: 'usd',
             product_data: {
               name: portal.name,
-              description: 'Invoice payment via Voxabase',
+              description: `Invoice from ${profile.business_name || profile.full_name || 'your service provider'}`,
             },
             unit_amount: cents,
           },
@@ -81,6 +81,9 @@ export async function POST(request: Request) {
       cancel_url: `${base}${portalPath}`,
       payment_intent_data: {
         ...(platformFeeAmount > 0 ? { application_fee_amount: platformFeeAmount } : {}),
+        // The studio is the merchant of record: Checkout and the client's card
+        // statement show their business, not Voxabase. Fees and payouts are unchanged.
+        on_behalf_of: profile.stripe_account_id,
         transfer_data: {
           destination: profile.stripe_account_id,
         },
@@ -95,7 +98,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url })
   } catch (error: unknown) {
     // The owner's Stripe account can't receive payouts yet (onboarding unfinished or under review)
-    if ((error as { code?: string })?.code === 'insufficient_capabilities_for_transfer') {
+    const code = (error as { code?: string })?.code || ''
+    if (code === 'insufficient_capabilities_for_transfer' || code.includes('capabilit')) {
       return NextResponse.json({ error: 'Payments aren’t set up for this portal yet. Please let the sender know.' }, { status: 400 })
     }
     console.error('[checkout] failed', error)
