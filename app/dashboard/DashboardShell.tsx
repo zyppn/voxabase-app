@@ -131,9 +131,9 @@ export default function DashboardShell({
     return (
       <button type="button" key={k} onClick={() => sortBy(k)}
         aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-        className={`inline-flex items-center gap-1 uppercase tracking-wide font-semibold transition-colors ${right ? 'justify-self-end' : ''} ${active ? 'text-paper' : 'text-faint hover:text-muted'}`}>
+        className={`relative inline-flex items-center uppercase tracking-wide font-semibold transition-colors ${right ? 'justify-self-end' : ''} ${active ? 'text-paper' : 'text-faint hover:text-muted'}`}>
         {label}
-        <svg className={`w-3 h-3 transition-transform ${active ? 'opacity-100' : 'opacity-0'} ${active && sort.dir === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        <svg className={`absolute ${right ? '-left-4' : '-right-4'} w-3 h-3 transition-transform ${active ? 'opacity-100' : 'opacity-0'} ${active && sort.dir === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
       </button>
     )
   }
@@ -280,11 +280,11 @@ export default function DashboardShell({
           <div className="border border-rule rounded-xl overflow-hidden">
             <div className="hidden md:grid grid-cols-[20px_1fr_90px_130px_110px_110px] gap-4 pl-3 pr-4 py-2.5 bg-ink border-b border-rule text-[11px]">
               <span aria-hidden="true" />
-              <span className="pl-11">{sortHead('name', 'Name')}</span>
+              {sortHead('name', 'Name')}
               {sortHead('created', 'Created')}
               {sortHead('views', 'Views')}
               {sortHead('amount', 'Amount', true)}
-              {sortHead('status', 'Status', true)}
+              <span className="justify-self-end mr-[26px]">{sortHead('status', 'Status', true)}</span>
             </div>
             <div className="divide-y divide-ink-2">
               {shown.map(portal => {
