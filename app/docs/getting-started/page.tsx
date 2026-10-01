@@ -22,10 +22,10 @@ export default function Page() {
         <li>Sending a revision? Use <strong>Replace</strong> on a file to swap in the new version without changing the link.</li>
       </ul>
 
-      <h2>3. Mark the files as ready</h2>
+      <h2>3. Publish the files</h2>
       <p>
-        Until you flip the <strong>Files ready</strong> switch, your client sees a “Your files are being prepared” message instead of
-        the downloads. That lets you upload in peace and send the link early. When everything’s in, flip it on.
+        Until you click <strong>Publish files</strong>, your client sees a “Your files are being prepared” message instead of
+        the downloads. That lets you upload in peace and send the link early. When everything’s in, publish.
       </p>
 
       <h2>4. Send the link</h2>
