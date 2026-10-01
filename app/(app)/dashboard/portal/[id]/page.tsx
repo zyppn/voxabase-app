@@ -373,15 +373,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     e.dataTransfer.setData(REORDER_TYPE, fileId)
   }
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault()
-    if (!draggingId) return
-    e.dataTransfer.dropEffect = 'move'
-    // Top half of a row: the gap above it; bottom half: the gap below
-    const box = e.currentTarget.getBoundingClientRect()
-    setDropAt(e.clientY < box.top + box.height / 2 ? index : index + 1)
-  }
-
   // Move one file to a new position and save the order
   const moveFile = async (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex || toIndex < 0 || toIndex >= files.length) return
@@ -400,35 +391,51 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     return gap !== from && gap !== from + 1
   }
 
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault()
-    // Handled here: don't let the upload area below treat it as new files
-    e.stopPropagation()
-    const from = files.findIndex(f => f.id === draggingId)
-    const gap = dropAtRef.current
-    setDraggingId(null)
-    setDropAt(null)
-    if (from === -1 || gap === null) return
-    // Gaps count positions with the dragged file still in place
-    await moveFile(from, gap > from ? gap - 1 : gap)
+  // While reordering, the whole page is the drop area: only the cursor's height
+  // matters (drift onto the sidebar or the right column and it still works).
+  // The gap is the number of files whose middle is above the cursor.
+  const gapAt = (y: number) => {
+    let gap = 0
+    document.querySelectorAll('[data-file-row]').forEach(r => {
+      const b = r.getBoundingClientRect()
+      if (y > b.top + b.height / 2) gap++
+    })
+    return gap
   }
 
-  // Past the ends of the list (the Files header above, "Add more files" below)
-  // still counts: the file goes to the top or the end, where the line shows.
-  const handleCardDragOver = (e: React.DragEvent) => {
-    if (!draggingId || (e.target as HTMLElement).closest('[data-file-row]')) return
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    const rows = e.currentTarget.querySelectorAll('[data-file-row]')
-    if (!rows.length) return
-    if (e.clientY <= rows[0].getBoundingClientRect().top) setDropAt(0)
-    else if (e.clientY >= rows[rows.length - 1].getBoundingClientRect().bottom) setDropAt(files.length)
-  }
+  useEffect(() => {
+    if (!draggingId) return
+    const over = (e: DragEvent) => {
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+      setDropAt(gapAt(e.clientY))
+    }
+    const drop = async (e: DragEvent) => {
+      e.preventDefault()
+      const from = files.findIndex(f => f.id === draggingId)
+      const gap = dropAtRef.current
+      setDraggingId(null)
+      setDropAt(null)
+      if (from === -1 || gap === null) return
+      // Gaps count positions with the dragged file still in place
+      await moveFile(from, gap > from ? gap - 1 : gap)
+    }
+    window.addEventListener('dragover', over)
+    window.addEventListener('drop', drop)
+    return () => { window.removeEventListener('dragover', over); window.removeEventListener('drop', drop) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rebinds per drag; moveFile reads the current files
+  }, [draggingId, files])
 
-  const handleCardDrop = (e: React.DragEvent) => {
-    // A drop on a row is handled by the row; uploads by the upload area
-    if (draggingId) handleDrop(e)
-  }
+  // Files dragged in from the computer: drop anywhere on the page to upload
+  const [pageDrop, setPageDrop] = useState(false)
+  useEffect(() => {
+    const enter = (e: DragEvent) => {
+      const types = e.dataTransfer?.types || []
+      if (types.includes('Files') && !types.includes(REORDER_TYPE)) setPageDrop(true)
+    }
+    window.addEventListener('dragenter', enter)
+    return () => window.removeEventListener('dragenter', enter)
+  }, [])
 
   const startRename = (file: FileRecord) => {
     // "Report final.pdf" → edit "Report final", keep ".pdf"
@@ -574,7 +581,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             the right. On small screens it's one column: publish and link first. */}
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           {/* Files section */}
-          <div className="order-3 lg:order-none min-w-0 border border-rule rounded-xl" onDragOver={handleCardDragOver} onDrop={handleCardDrop}>
+          <div className="order-3 lg:order-none min-w-0 border border-rule rounded-xl">
             <div className="px-6 py-4 border-b border-rule flex items-center justify-between">
               <div>
                 <h2 className="font-semibold text-paper">
@@ -631,8 +638,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   {files.map((file, index) => (
                     <div key={file.id} draggable data-file-row
                       onDragStart={(e) => handleDragStart(e, file.id)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDrop={handleDrop}
                       onDragEnd={() => { setDraggingId(null); setDropAt(null) }}
                       className={`px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-2 group cursor-grab active:cursor-grabbing hover:bg-ink-3/40 transition-colors relative ${draggingId === file.id ? 'opacity-40' : ''}`}
                     >
@@ -1012,6 +1017,28 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 {deleting ? 'Deleting...' : 'Yes, delete portal'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-page drop target for files from the computer */}
+      {pageDrop && (
+        <div className="fixed inset-0 z-40 bg-ink/85 backdrop-blur-sm p-4 sm:p-8"
+          onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' }}
+          onDragLeave={() => setPageDrop(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setPageDrop(false)
+            if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files)
+          }}>
+          <div className="pointer-events-none h-full rounded-2xl border-2 border-dashed border-accent-mark/70 bg-accent-soft/20 flex flex-col items-center justify-center text-center px-6">
+            <div className="w-14 h-14 rounded-2xl bg-accent-soft border border-accent/40 flex items-center justify-center mb-4">
+              <svg className="w-7 h-7 text-accent-text" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+            </div>
+            <p className="text-lg font-semibold text-paper">Drop files to upload</p>
+            <p className="text-sm text-muted mt-1">to {portal.name} · up to {MAX_FILE_MB} MB each</p>
           </div>
         </div>
       )}
