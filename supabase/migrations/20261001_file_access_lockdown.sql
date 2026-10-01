@@ -11,6 +11,10 @@
 -- their team get through. Owners and teammates keep every access they have
 -- today; other buckets (like logos) are untouched.
 
+-- 0. A rule from the original dashboard setup let anyone with the public anon
+--    key read (and list) every file in the deliverables bucket. Remove it.
+drop policy if exists "Public can read files" on storage.objects;
+
 -- 1. Stored files in the deliverables bucket ("<owner id>/<portal id>/<file>")
 drop policy if exists "lockdown: deliverables owner or team" on storage.objects;
 create policy "lockdown: deliverables owner or team" on storage.objects
