@@ -162,7 +162,7 @@ export default function DashboardShell({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-paper">{isTeam ? teamHeading || teamName : personalSplit ? 'Personal Portals' : 'Portals'}</h1>
+            <h1 className="text-2xl font-bold text-paper">{isTeam ? teamHeading || teamName : personalSplit ? 'Personal portals' : 'Portals'}</h1>
             <p className="text-faint text-sm mt-1">
               {isTeam ? <>Shared with the {teamName} team · live at </> : personalSplit ? <>Only you can see these · live at </> : <>Your portals live at </>}
               <span className="text-muted">{portalHost ? `${portalHost}/` : `${APP_HOST}/${username}/`}</span>
@@ -234,7 +234,7 @@ export default function DashboardShell({
 
         {/* Toolbar: heading + search + sort */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h2 className="text-lg font-semibold">{filter === 'completed' ? 'Completed' : filter === 'active' ? 'Active Portals' : 'All Portals'}</h2>
+          <h2 className="text-lg font-semibold">{filter === 'completed' ? 'Completed' : filter === 'active' ? 'Active portals' : 'All portals'}</h2>
           <div className="flex items-center gap-2">
             <div className="relative flex-1 sm:flex-none">
               <svg className="w-4 h-4 text-faint absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
