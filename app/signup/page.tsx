@@ -149,8 +149,8 @@ export default function SignupPage() {
           )}
 
           <div>
-            <label className="text-sm text-muted mb-1.5 block">Full name</label>
-            <input
+            <label htmlFor="signup-name" className="text-sm text-muted mb-1.5 block">Full name</label>
+            <input id="signup-name"
               type="text"
               value={fullName}
               onChange={handleFullNameChange}
@@ -162,12 +162,12 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-sm text-muted mb-1.5 block">
+            <label htmlFor="signup-username" className="text-sm text-muted mb-1.5 block">
               Username <span className="text-faint text-xs">— your portal URL</span>
             </label>
             <div className="flex items-center bg-ink border border-rule rounded-lg px-4 py-3 focus-within:border-accent transition-colors">
               <span className="text-faint text-sm">{APP_HOST}/</span>
-              <input
+              <input id="signup-username"
                 type="text"
                 value={username}
                 onChange={handleUsernameChange}
@@ -184,10 +184,10 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-sm text-muted mb-1.5 block">
+            <label htmlFor="signup-business" className="text-sm text-muted mb-1.5 block">
               Business name <span className="text-faint text-xs">(optional)</span>
             </label>
-            <input
+            <input id="signup-business"
               type="text"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
@@ -197,8 +197,8 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-sm text-muted mb-1.5 block">Email</label>
-            <input
+            <label htmlFor="signup-email" className="text-sm text-muted mb-1.5 block">Email</label>
+            <input id="signup-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -209,8 +209,8 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-sm text-muted mb-1.5 block">Password</label>
-            <input
+            <label htmlFor="signup-password" className="text-sm text-muted mb-1.5 block">Password</label>
+            <input id="signup-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -234,8 +234,8 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-sm text-muted mb-1.5 block">Confirm password</label>
-            <input
+            <label htmlFor="signup-confirm" className="text-sm text-muted mb-1.5 block">Confirm password</label>
+            <input id="signup-confirm"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

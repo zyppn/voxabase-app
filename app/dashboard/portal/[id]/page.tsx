@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { fileLabel } from '@/lib/files'
+import FileThumb from '@/app/_components/FileThumb'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -59,6 +59,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [deleteFileId, setDeleteFileId] = useState<string | null>(null)
   // Which file's ⋯ menu (Replace, Delete) is open
   const [fileMenuId, setFileMenuId] = useState<string | null>(null)
+  // Rename: the name your client sees and downloads get. The extension stays put.
+  const [renaming, setRenaming] = useState<{ id: string; base: string; ext: string } | null>(null)
+  const [renameError, setRenameError] = useState('')
+  const [savingName, setSavingName] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editInvoice, setEditInvoice] = useState('')
@@ -386,20 +390,48 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setDragOverId(fileId)
   }
 
+  // Move one file to a new position and save the order
+  const moveFile = async (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || toIndex < 0 || toIndex >= files.length) return
+    const newFiles = [...files]
+    const [removed] = newFiles.splice(fromIndex, 1)
+    newFiles.splice(toIndex, 0, removed)
+    const updated = newFiles.map((f, i) => ({ ...f, sort_order: i }))
+    setFiles(updated)
+    await Promise.all(updated.map(f => supabase.from('files').update({ sort_order: f.sort_order }).eq('id', f.id)))
+  }
+
   const handleDrop = async (e: React.DragEvent, targetId: string) => {
     e.preventDefault()
     if (!draggingId || draggingId === targetId) return
     const dragIndex = files.findIndex(f => f.id === draggingId)
     const targetIndex = files.findIndex(f => f.id === targetId)
-    if (dragIndex === -1 || targetIndex === -1) return
-    const newFiles = [...files]
-    const [removed] = newFiles.splice(dragIndex, 1)
-    newFiles.splice(targetIndex, 0, removed)
-    const updated = newFiles.map((f, i) => ({ ...f, sort_order: i }))
-    setFiles(updated)
     setDraggingId(null)
     setDragOverId(null)
-    await Promise.all(updated.map(f => supabase.from('files').update({ sort_order: f.sort_order }).eq('id', f.id)))
+    if (dragIndex === -1 || targetIndex === -1) return
+    await moveFile(dragIndex, targetIndex)
+  }
+
+  const startRename = (file: FileRecord) => {
+    // "Report final.pdf" → edit "Report final", keep ".pdf"
+    const dot = file.name.lastIndexOf('.')
+    const ext = dot > 0 && file.name.length - dot <= 10 ? file.name.slice(dot) : ''
+    setRenaming({ id: file.id, base: ext ? file.name.slice(0, dot) : file.name, ext })
+    setRenameError('')
+  }
+
+  const handleRename = async () => {
+    if (!renaming) return
+    // Slashes would turn into folders inside the Download all zip
+    const base = renaming.base.replace(/[\\/]/g, '-').trim()
+    if (!base) { setRenameError('Enter a name'); return }
+    const name = base + renaming.ext
+    setSavingName(true)
+    const { error } = await supabase.from('files').update({ name }).eq('id', renaming.id)
+    setSavingName(false)
+    if (error) { setRenameError('Couldn’t rename the file. Try again.'); return }
+    setFiles(fs => fs.map(f => (f.id === renaming.id ? { ...f, name } : f)))
+    setRenaming(null)
   }
 
   const handleEditSave = async () => {
@@ -587,7 +619,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 </div>
               ) : (
                 <div className="divide-y divide-rule">
-                  {files.map((file) => (
+                  {files.map((file, index) => (
                     <div key={file.id} draggable
                       onDragStart={(e) => handleDragStart(e, file.id)}
                       onDragOver={(e) => handleDragOver(e, file.id)}
@@ -601,15 +633,14 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
                           </svg>
                         </div>
-                        <div className="w-9 h-9 bg-ink-3 border border-rule-2 rounded-lg flex items-center justify-center text-[10px] font-bold text-accent-text flex-shrink-0">
-                          {fileLabel(file)}
-                        </div>
+                        <FileThumb file={file}
+                          className="w-9 h-9 bg-ink-3 border border-rule-2 rounded-lg flex items-center justify-center text-[10px] font-bold text-accent-text flex-shrink-0" />
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-paper truncate">{file.name}</p>
                           <p className="text-xs text-faint mt-0.5">{formatSize(file.file_size)}</p>
                         </div>
                       </div>
-                      {/* View stays in reach; Replace and Delete sit in the ⋯ menu */}
+                      {/* View stays in reach; everything else sits in the ⋯ menu */}
                       <div className="relative flex items-center gap-1 ml-auto flex-shrink-0">
                         <a href={`/api/file/${file.id}?view=1`}
                           target="_blank" rel="noopener noreferrer"
@@ -625,6 +656,17 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                           <>
                             <button aria-hidden="true" tabIndex={-1} className="fixed inset-0 z-20 cursor-default" onClick={() => setFileMenuId(null)} />
                             <div role="menu" className="absolute right-0 top-full mt-1 z-30 w-44 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
+                              <button role="menuitem" onClick={() => { setFileMenuId(null); startRename(file) }}
+                                className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Rename</button>
+                              {/* Reordering without dragging (phones, keyboards) */}
+                              {index > 0 && (
+                                <button role="menuitem" onClick={() => { setFileMenuId(null); moveFile(index, index - 1) }}
+                                  className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Move up</button>
+                              )}
+                              {index < files.length - 1 && (
+                                <button role="menuitem" onClick={() => { setFileMenuId(null); moveFile(index, index + 1) }}
+                                  className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Move down</button>
+                              )}
                               <button role="menuitem" onClick={() => { setFileMenuId(null); setReplacingId(file.id); replaceInputRef.current?.click() }}
                                 className="w-full text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Replace file</button>
                               <button role="menuitem" onClick={() => { setFileMenuId(null); setDeleteFileId(file.id) }}
@@ -824,37 +866,37 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             <h2 className="text-lg font-bold mb-6">Edit portal</h2>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-sm text-muted mb-1.5 block">Portal name</label>
-                <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                <label htmlFor="edit-name" className="text-sm text-muted mb-1.5 block">Portal name</label>
+                <input id="edit-name" type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
                   className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm" />
               </div>
               <div>
-                <label className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
-                <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
+                <label htmlFor="edit-description" className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
+                <input id="edit-description" type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
                   className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm"
                   placeholder="Optional note for your client" />
               </div>
               <div>
-                <label className="text-sm text-muted mb-1.5 block">
+                <label htmlFor="edit-invoice" className="text-sm text-muted mb-1.5 block">
                   Invoice amount <span className="text-faint">(optional)</span>
                   {portal.invoice_paid && <span className="ml-2 text-xs text-yellow-400">Locked — invoice already paid</span>}
                 </label>
                 <div className={`flex items-center bg-ink border rounded-lg px-4 py-3 focus-within:border-accent ${portal.invoice_paid ? 'border-rule-3 opacity-50' : 'border-rule-2'}`}>
                   <span className="text-faint text-sm mr-1">$</span>
-                  <input type="number" value={editInvoice} onChange={(e) => setEditInvoice(e.target.value)}
+                  <input id="edit-invoice" type="number" value={editInvoice} onChange={(e) => setEditInvoice(e.target.value)}
                     disabled={portal.invoice_paid}
                     className="flex-1 bg-transparent text-paper focus:outline-none text-sm disabled:cursor-not-allowed"
                     placeholder="0.00" min="0" step="0.01" />
                 </div>
               </div>
               <div>
-                <label className="text-sm text-muted mb-1.5 block">
+                <label htmlFor="edit-password" className="text-sm text-muted mb-1.5 block">
                   Portal password <span className="text-faint">(optional)</span>
                   {!isPro && <span className="ml-2 text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Pro</span>}
                 </label>
                 {isPro ? (
                   <>
-                    <input type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
+                    <input id="edit-password" type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
                       className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm"
                       placeholder="Leave blank to remove password" />
                     <p className="text-xs text-faint mt-1">Clients must enter this password to view the portal</p>
@@ -921,6 +963,32 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Rename file */}
+      {renaming && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <form role="dialog" aria-modal="true" aria-labelledby="rename-title"
+            onSubmit={(e) => { e.preventDefault(); handleRename() }}
+            className="bg-ink-2 border border-rule-2 rounded-xl p-8 w-full max-w-md">
+            <h2 id="rename-title" className="text-lg font-bold mb-1">Rename file</h2>
+            <p className="text-muted text-sm mb-5">Your client sees this name, and downloads use it.</p>
+            <label htmlFor="rename-file" className="text-sm text-muted mb-1.5 block">File name</label>
+            <div className="flex items-center bg-ink border border-rule-2 rounded-lg focus-within:border-accent">
+              <input id="rename-file" type="text" autoFocus maxLength={200} value={renaming.base}
+                onChange={(e) => setRenaming({ ...renaming, base: e.target.value })}
+                className="flex-1 min-w-0 bg-transparent px-3.5 py-2.5 text-paper text-sm focus:outline-none" />
+              {renaming.ext && <span className="pr-3.5 text-sm text-faint">{renaming.ext}</span>}
+            </div>
+            {renameError && <p role="alert" className="text-red-400 text-sm mt-2">{renameError}</p>}
+            <div className="flex gap-3 mt-6">
+              <button type="button" onClick={() => setRenaming(null)} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
+              <button type="submit" disabled={savingName} className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+                {savingName ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

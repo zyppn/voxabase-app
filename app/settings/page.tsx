@@ -317,14 +317,14 @@ function SettingsContent() {
               <h2 className="font-semibold text-paper mb-5">Profile</h2>
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-sm text-muted mb-1.5 block">Full name</label>
-                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={MIN_NAME_LENGTH}
+                  <label htmlFor="profile-name" className="text-sm text-muted mb-1.5 block">Full name</label>
+                  <input id="profile-name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={MIN_NAME_LENGTH}
                     className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your full name" />
                 </div>
                 <div>
-                  <label className="text-sm text-muted mb-1.5 block">Business name <span className="text-faint">(optional)</span></label>
-                  <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
+                  <label htmlFor="profile-business" className="text-sm text-muted mb-1.5 block">Business name <span className="text-faint">(optional)</span></label>
+                  <input id="profile-business" type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
                     className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your studio or business name" />
                 </div>
@@ -347,8 +347,8 @@ function SettingsContent() {
               <h2 className="font-semibold text-paper mb-5">Email address</h2>
               <div className="flex flex-col gap-4 flex-1">
                 <div>
-                  <label className="text-sm text-muted mb-1.5 block">Email</label>
-                  <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
+                  <label htmlFor="settings-email" className="text-sm text-muted mb-1.5 block">Email</label>
+                  <input id="settings-email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
                     className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm" />
                   <p className="text-xs text-faint mt-1.5">You'll receive a confirmation email at the new address</p>
                 </div>
@@ -492,14 +492,14 @@ function SettingsContent() {
                 <label className="w-8 h-8 rounded-full cursor-pointer relative overflow-hidden border border-rule-3 flex items-center justify-center"
                   style={{ background: 'conic-gradient(from 0deg, #f43f5e, #f59e0b, #10b981, #06b6d4, #3b82f6, #8b3cf7, #f43f5e)' }}
                   title="Custom color">
-                  <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)}
+                  <input type="color" aria-label="Custom color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)}
                     className="absolute inset-0 opacity-0 cursor-pointer" />
                   <svg className="w-3.5 h-3.5 text-paper drop-shadow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 </label>
               </div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-xs text-faint">Hex</span>
-                <input type="text" value={brandColor}
+                <label htmlFor="brand-hex" className="text-xs text-faint">Hex</label>
+                <input id="brand-hex" type="text" value={brandColor}
                   onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
                   className="w-28 bg-ink border border-rule-2 rounded-lg px-3 py-1.5 text-paper focus:outline-none focus:border-accent text-xs font-mono" />
               </div>
