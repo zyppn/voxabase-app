@@ -8,6 +8,8 @@ import AppSkeleton from '../../AppSkeleton'
 import AppShell from '../../AppShell'
 import { hasTeams, loadWorkspace, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
 import { APP_HOST } from '@/lib/appHost'
+import { portalUrl } from '@/lib/portalUrl'
+import { markLinkCopied } from '../../OnboardingChecklist'
 
 interface Portal {
   id: string
@@ -45,6 +47,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  // "Uploading 2 of 5…" while a batch goes up
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null)
+  // Upload blocked by the plan's storage limit: the error offers an upgrade
+  const [storageFull, setStorageFull] = useState(false)
   const [replacingId, setReplacingId] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
@@ -256,6 +262,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const uploadFiles = async (fileList: FileList) => {
     if (!portal) return
     setUploadError(null)
+    setStorageFull(false)
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setUploading(false); return }
@@ -269,7 +276,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     if (usedBytes + incomingBytes > limitBytes) {
       const usedGB = (usedBytes / 1_073_741_824).toFixed(2)
       const limitGB = (limitBytes / 1_073_741_824).toFixed(0)
-      alert(`Storage limit reached. You've used ${usedGB}GB of your ${limitGB}GB limit. Upgrade your plan to upload more files.`)
+      setUploadError(`Not enough storage for ${fileList.length === 1 ? 'this file' : 'these files'}. You've used ${usedGB} GB of your ${limitGB} GB.`)
+      setStorageFull(true)
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
@@ -278,7 +286,9 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const maxOrder = files.length > 0 ? Math.max(...files.map(f => f.sort_order || 0)) : 0
     let orderCounter = maxOrder + 1
     const failures: string[] = []
-    for (const file of Array.from(fileList)) {
+    const batch = Array.from(fileList)
+    for (const [i, file] of batch.entries()) {
+      setUploadProgress({ done: i, total: batch.length })
       // Block oversized files up front so the user gets an instant, clean message.
       if (file.size > MAX_FILE_BYTES) {
         failures.push(tooLarge(file.name, file.size))
@@ -304,6 +314,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', portal.user_id).order('sort_order', { ascending: true })
     setFiles(filesData || [])
     setUploading(false)
+    setUploadProgress(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -449,13 +460,12 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   if (loading) return <AppSkeleton variant="detail" />
   if (!portal) return null
 
-  const portalUrl = liveDomain
-    ? `https://${liveDomain}/${portal.slug}`
-    : typeof window !== 'undefined'
-    ? `${window.location.origin}/${portal.owner_username}/${portal.slug}`
-    : `${APP_HOST}/${portal.owner_username}/${portal.slug}`
+  const shareUrl = portalUrl(portal, liveDomain)
 
   const canToggleReady = files.length > 0
+  const uploadLabel = uploadProgress && uploadProgress.total > 1
+    ? `Uploading ${uploadProgress.done + 1} of ${uploadProgress.total}…`
+    : 'Uploading…'
   const isPro = userPlan === 'pro' || userPlan === 'agency'
 
   return (
@@ -524,13 +534,13 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <svg className="w-4 h-4 text-faint flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
               </svg>
-              <span className="text-sm text-paper truncate">{portalUrl.replace(/^https?:\/\//, '')}</span>
+              <span className="text-sm text-paper truncate">{shareUrl.replace(/^https?:\/\//, '')}</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(portalUrl)
-                  try { localStorage.setItem('vb_link_copied', '1') } catch { /* ignore */ }
+                  navigator.clipboard.writeText(shareUrl)
+                  markLinkCopied()
                   setCopied(true)
                   setTimeout(() => setCopied(false), 2000)
                 }}
@@ -605,7 +615,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             </div>
             <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
               className="text-sm font-semibold bg-paper hover:bg-white text-ink px-3.5 py-2 rounded-lg disabled:opacity-50">
-              {uploading ? 'Uploading...' : 'Upload files'}
+              {uploading ? uploadLabel : 'Upload files'}
             </button>
             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
             <input ref={replaceInputRef} type="file" onChange={handleReplace} className="hidden" />
@@ -616,8 +626,13 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008M10.34 3.94l-7.5 12.99A1.5 1.5 0 004.14 20.25h15.72a1.5 1.5 0 001.3-2.32l-7.5-12.99a1.5 1.5 0 00-2.6 0z" />
               </svg>
-              <span className="flex-1">{uploadError}</span>
-              <button onClick={() => setUploadError(null)} className="text-red-400/70 hover:text-red-300 flex-shrink-0" aria-label="Dismiss">
+              <span className="flex-1">
+                {uploadError}
+                {storageFull && (isOwner
+                  ? <> <Link href="/pricing" className="font-semibold text-paper underline underline-offset-2 hover:text-white">Upgrade plan</Link></>
+                  : ' Ask the team owner to upgrade for more space.')}
+              </span>
+              <button onClick={() => { setUploadError(null); setStorageFull(false) }} className="text-red-400/70 hover:text-red-300 flex-shrink-0" aria-label="Dismiss">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -636,7 +651,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                   </svg>
                 </div>
-                <p className="text-muted text-sm font-medium">Click or drag files here to upload</p>
+                <p className="text-muted text-sm font-medium">{uploading ? uploadLabel : 'Click or drag files here to upload'}</p>
                 <p className="text-faint text-xs mt-1">PDFs, images, videos, zips, any file type · up to {MAX_FILE_MB} MB each</p>
               </div>
             ) : (
@@ -682,7 +697,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 ))}
                 <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
                   className="w-full text-sm text-faint hover:text-paper hover:bg-ink-3/40 text-left px-4 sm:px-6 py-3.5">
-                  {uploading ? 'Uploading...' : `+ Add more files (or drop them here) · up to ${MAX_FILE_MB} MB each`}
+                  {uploading ? uploadLabel : `+ Add more files (or drop them here) · up to ${MAX_FILE_MB} MB each`}
                 </button>
               </div>
             )}

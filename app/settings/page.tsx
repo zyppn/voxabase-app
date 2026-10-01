@@ -287,19 +287,26 @@ function SettingsContent() {
         <h1 className="text-2xl font-bold mb-1 tracking-tight">Account settings</h1>
         <p className="text-muted text-sm mb-7">Manage your profile, branding, and billing</p>
 
-        {successMessage && (
-          <div className="bg-ink-2 border border-rule text-paper text-sm rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            {successMessage}
-          </div>
-        )}
-        {errorMessage && (
-          <div className="bg-red-400/10 border border-red-400/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-5">
-            {errorMessage}
-          </div>
-        )}
+        {/* Save results float at the bottom of the screen, so they're seen
+            whichever card's button was clicked */}
+        <div aria-live="polite" className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md flex flex-col gap-2 pointer-events-none">
+          {successMessage && (
+            <div className="pointer-events-auto bg-ink-2 border border-rule-2 text-paper text-sm rounded-xl px-4 py-3 flex items-center gap-2 shadow-xl shadow-black/40">
+              <svg className="w-4 h-4 flex-shrink-0 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              {successMessage}
+            </div>
+          )}
+          {errorMessage && (
+            <div role="alert" className="pointer-events-auto bg-ink-2 border border-red-400/30 text-red-400 text-sm rounded-xl px-4 py-3 flex items-start gap-2 shadow-xl shadow-black/40">
+              <span className="flex-1">{errorMessage}</span>
+              <button onClick={() => setErrorMessage('')} aria-label="Dismiss" className="text-red-400/70 hover:text-red-300 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Two-column grid */}
         <div className="grid lg:grid-cols-2 gap-5 items-stretch">

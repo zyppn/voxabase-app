@@ -2,7 +2,7 @@
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function PaymentSuccessContent() {
+export default function PaymentSuccessContent({ whiteLabel }: { whiteLabel: boolean }) {
   const searchParams = useSearchParams()
   const username = searchParams.get('username')
   const slug = searchParams.get('slug')
@@ -28,7 +28,7 @@ export default function PaymentSuccessContent() {
             Back to portal
           </Link>
         )}
-        <p className="text-xs text-faint mt-6">Powered by Stripe · Voxabase</p>
+        <p className="text-xs text-faint mt-6">Powered by Stripe{whiteLabel ? '' : ' · Voxabase'}</p>
       </div>
     </main>
   )

@@ -1,3 +1,5 @@
+import { cache } from 'react'
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import PortalTracker from './PortalTracker'
@@ -10,13 +12,13 @@ import { canOpenPortal } from '@/lib/portalAccess'
 
 export const revalidate = 0
 
+type Params = { params: Promise<{ username: string; slug: string }> }
 
-export default async function PortalPage({ params }: { params: Promise<{ username: string; slug: string }> }) {
-  const { username, slug } = await params
-  // Portals aren't publicly readable in the database; this server page reads
-  // them and only sends the browser what the visitor is allowed to see.
+// Portals aren't publicly readable in the database; this server page reads
+// them and only sends the browser what the visitor is allowed to see.
+// Cached so the page and its metadata share one lookup per request.
+const loadPortal = cache(async (username: string, slug: string) => {
   const admin = supabaseAdmin()
-
   // select('*') so a column that hasn't been added yet can't break every portal
   const { data: portal, error } = await admin
     .from('portals')
@@ -25,17 +27,35 @@ export default async function PortalPage({ params }: { params: Promise<{ usernam
     .eq('owner_username', username)
     .eq('is_active', true)
     .maybeSingle()
-
   if (error) console.error('[portal page] lookup failed', error.message)
-  if (!portal) notFound()
+  if (!portal) return null
 
   const { data: profile } = await admin
     .from('profiles')
     .select('business_name, full_name, brand_color, logo_url, brand_display, plan')
     .eq('username', username)
     .single()
+  return { portal, profile, displayName: (profile?.business_name || profile?.full_name || username) as string }
+})
 
-  const displayName = profile?.business_name || profile?.full_name || username
+// The browser tab and link previews (iMessage, Slack, email) name the portal
+// and its owner, never Voxabase: this is the owner's page, seen by their client.
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { username, slug } = await params
+  const hit = await loadPortal(username, slug)
+  if (!hit) return {}
+  const title = `${hit.portal.name} · ${hit.displayName}`
+  // A locked portal's description stays behind its password
+  const description = (!hit.portal.password_protected && hit.portal.description) || `Files from ${hit.displayName}`
+  return { title, description, openGraph: { title, description, siteName: hit.displayName } }
+}
+
+export default async function PortalPage({ params }: Params) {
+  const { username, slug } = await params
+  const admin = supabaseAdmin()
+  const hit = await loadPortal(username, slug)
+  if (!hit) notFound()
+  const { portal, profile, displayName } = hit
   const ownerPlan = profile?.plan || 'free'
   const ownerIsPro = ownerPlan === 'pro' || ownerPlan === 'agency'
   // Branding is a Pro feature. Free owners' saved color/logo stay in the DB
