@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import FileThumb from '@/app/_components/FileThumb'
+import FilePreview from './FilePreview'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -32,6 +33,9 @@ interface Portal {
   approval_at?: string | null
 }
 
+// Marks a drag as a reorder of the file list (not files from outside)
+const REORDER_TYPE = 'application/x-voxabase-reorder'
+
 interface FileRecord {
   id: string
   name: string
@@ -58,6 +62,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [copied, setCopied] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [deleteFileId, setDeleteFileId] = useState<string | null>(null)
+  // Which file is open in the preview (View)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   // Which file's ⋯ menu (Replace, Delete) is open
   const [fileMenuId, setFileMenuId] = useState<string | null>(null)
   // Rename: the name your client sees and downloads get. The extension stays put.
@@ -284,10 +290,14 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     await uploadFiles(e.target.files)
   }
 
+  // Reordering drags a row within the list; only files dragged in from
+  // outside the page are uploads
+  const isUpload = (e: React.DragEvent) => !draggingId && !e.dataTransfer.types.includes(REORDER_TYPE) && e.dataTransfer.types.includes('Files')
+
   const handleDropZone = async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    if (e.dataTransfer.files.length > 0) await uploadFiles(e.dataTransfer.files)
+    if (isUpload(e) && e.dataTransfer.files.length > 0) await uploadFiles(e.dataTransfer.files)
   }
 
   const handleReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,6 +347,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const handleDragStart = (e: React.DragEvent, fileId: string) => {
     setDraggingId(fileId)
     e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData(REORDER_TYPE, fileId)
   }
 
   const handleDragOver = (e: React.DragEvent, fileId: string) => {
@@ -358,6 +369,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
 
   const handleDrop = async (e: React.DragEvent, targetId: string) => {
     e.preventDefault()
+    // Handled here: don't let the upload area below treat it as new files
+    e.stopPropagation()
     if (!draggingId || draggingId === targetId) return
     const dragIndex = files.findIndex(f => f.id === draggingId)
     const targetIndex = files.findIndex(f => f.id === targetId)
@@ -548,7 +561,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             )}
 
             <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(isUpload(e)) }}
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDropZone}
               className={`rounded-b-xl ${isDragOver ? 'bg-accent-soft/40' : ''}`}
@@ -588,11 +601,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                       </div>
                       {/* View stays in reach; everything else sits in the ⋯ menu */}
                       <div className="relative flex items-center gap-1 ml-auto flex-shrink-0">
-                        <a href={`/api/file/${file.id}?view=1`}
-                          target="_blank" rel="noopener noreferrer"
+                        <button onClick={() => setPreviewIndex(index)}
                           className="text-xs font-medium text-muted hover:text-paper hover:bg-ink-3 px-2.5 py-1.5 rounded-md">
                           View
-                        </a>
+                        </button>
                         <button onClick={() => setFileMenuId(m => (m === file.id ? null : file.id))}
                           aria-label={`More actions for ${file.name}`} aria-haspopup="menu" aria-expanded={fileMenuId === file.id}
                           className="text-muted hover:text-paper hover:bg-ink-3 w-8 h-8 rounded-md flex items-center justify-center">
@@ -910,6 +922,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
+      )}
+
+      {previewIndex !== null && files[previewIndex] && (
+        <FilePreview files={files} index={previewIndex} onIndex={setPreviewIndex} onClose={() => setPreviewIndex(null)} />
       )}
 
       {/* Rename file */}
