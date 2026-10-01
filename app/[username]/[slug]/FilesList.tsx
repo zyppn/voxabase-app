@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { brandInk, brandLine, brandSurface, DEFAULT_BRAND } from '@/lib/brand'
-import { fileLabel } from '@/lib/files'
+import FileThumb from '@/app/_components/FileThumb'
 
 export interface PortalFile {
   id: string
@@ -29,12 +29,11 @@ function FileRow({ file, brandColor }: { file: PortalFile; brandColor: string })
 
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
-      <span
+      <FileThumb
+        file={file}
         className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
         style={{ background: brandSurface(brandColor), color: brandInk(brandColor), borderColor: brandLine(brandColor) }}
-      >
-        {fileLabel(file)}
-      </span>
+      />
       <span className="min-w-0 truncate text-sm font-medium text-paper" title={file.name}>{file.name}</span>
       <span className="hidden text-xs text-faint sm:block">{size}</span>
       <a

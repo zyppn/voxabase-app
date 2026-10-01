@@ -179,8 +179,8 @@ export default function NewPortalPage() {
             )}
 
             <div>
-              <label className="text-sm text-muted mb-1.5 block">Client / Project name</label>
-              <input
+              <label htmlFor="portal-name" className="text-sm text-muted mb-1.5 block">Client / Project name</label>
+              <input id="portal-name"
                 type="text"
                 value={name}
                 onChange={handleNameChange}
@@ -224,8 +224,8 @@ export default function NewPortalPage() {
             </div>
 
             <div>
-              <label className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
-              <input
+              <label htmlFor="portal-description" className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
+              <input id="portal-description"
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -235,10 +235,10 @@ export default function NewPortalPage() {
             </div>
 
             <div>
-              <label className="text-sm text-muted mb-1.5 block">Invoice amount <span className="text-faint">(optional)</span></label>
+              <label htmlFor="portal-invoice" className="text-sm text-muted mb-1.5 block">Invoice amount <span className="text-faint">(optional)</span></label>
               <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 focus-within:border-accent">
                 <span className="text-faint text-sm mr-1">$</span>
-                <input
+                <input id="portal-invoice"
                   type="number"
                   value={invoiceAmount}
                   onChange={(e) => setInvoiceAmount(e.target.value)}
@@ -251,13 +251,13 @@ export default function NewPortalPage() {
             </div>
 
             <div>
-              <label className="text-sm text-muted mb-1.5 block">
+              <label htmlFor="portal-password" className="text-sm text-muted mb-1.5 block">
                 Portal password <span className="text-faint">(optional)</span>
                 {!isPro && <span className="ml-2 text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Pro</span>}
               </label>
               {isPro ? (
                 <>
-                  <input
+                  <input id="portal-password"
                     type="text"
                     value={portalPassword}
                     onChange={(e) => setPortalPassword(e.target.value)}

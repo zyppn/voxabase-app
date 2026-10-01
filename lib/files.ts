@@ -13,3 +13,7 @@ export function fileLabel(file: NamedFile) {
   if (fromType && /^[a-z0-9]{1,5}$/i.test(fromType)) return fromType.toUpperCase()
   return 'FILE'
 }
+
+// Image types Storage can resize into a preview thumbnail
+const THUMB_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
+export const hasThumbnail = (file: { file_type: string | null }) => !!file.file_type && THUMB_TYPES.has(file.file_type)

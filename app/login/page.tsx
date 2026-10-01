@@ -176,8 +176,8 @@ export default function LoginPage() {
             </div>
           )}
           <div>
-            <label className="text-sm text-muted mb-1.5 block">Email</label>
-            <input
+            <label htmlFor="login-email" className="text-sm text-muted mb-1.5 block">Email</label>
+            <input id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -188,10 +188,10 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm text-muted">Password</label>
+              <label htmlFor="login-password" className="text-sm text-muted">Password</label>
               <Link href="/forgot-password" className="text-xs text-accent-text hover:underline">Forgot password?</Link>
             </div>
-            <input
+            <input id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
