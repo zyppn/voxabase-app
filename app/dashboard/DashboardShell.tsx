@@ -218,17 +218,16 @@ export default function DashboardShell({
           ) : null}
         />}
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-9">
+        {/* Money at a glance. Portal counts live in the sidebar (and the filter tabs on phones). */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { label: 'Portals', value: String(portals.length), green: false },
-            { label: 'Active', value: String(activePortals.length), green: false },
-            { label: 'Invoiced', value: `$${totalInvoiced.toLocaleString()}`, green: false },
-            { label: 'Collected', value: `$${totalPaid.toLocaleString()}`, green: true },
+            { label: 'Invoiced', value: totalInvoiced },
+            { label: 'Collected', value: totalPaid },
+            { label: 'Outstanding', value: totalInvoiced - totalPaid },
           ].map((stat) => (
-            <div key={stat.label} className="bg-ink-2 border border-rule rounded-xl px-5 py-4">
-              <p className="text-[13px] text-muted mb-1">{stat.label}</p>
-              <p className={`text-2xl font-bold tracking-tight text-paper`}>{stat.value}</p>
+            <div key={stat.label} className="border border-rule rounded-xl px-4 py-3 min-w-0">
+              <p className="text-xs text-muted">{stat.label}</p>
+              <p className="text-xl font-bold tracking-tight text-paper mt-0.5 truncate">${stat.value.toLocaleString()}</p>
             </div>
           ))}
         </div>
