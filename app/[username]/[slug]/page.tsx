@@ -9,6 +9,7 @@ import { DEFAULT_BRAND, normalizeBrand } from '@/lib/brand'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal } from '@/lib/portalAccess'
+import { awaitingPayment } from '@/lib/paywall'
 
 export const revalidate = 0
 
@@ -97,8 +98,11 @@ export default async function PortalPage({ params }: Params) {
         invoicePaid={portal.invoice_paid}
         username={username}
         slug={slug}
-        // Client approvals are an Agency feature; turning the plan off hides them.
-        approvalRequired={!!portal.approval_required && ownerPlan === 'agency'}
+        // Files unlock after payment: the list shows, the files don't
+        locked={awaitingPayment(portal)}
+        // Client approvals are an Agency feature; turning the plan off hides
+        // them. A locked portal asks for approval once it's paid and unlocked.
+        approvalRequired={!!portal.approval_required && ownerPlan === 'agency' && !awaitingPayment(portal)}
         approvalStatus={(portal.approval_status ?? null) as 'approved' | 'changes_requested' | null}
         approvalNote={portal.approval_note ?? null}
         approvalName={portal.approval_name ?? null}

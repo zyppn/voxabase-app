@@ -4,7 +4,7 @@ import DownloadAllButton from './DownloadAllButton'
 import FilesList, { type PortalFile } from './FilesList'
 import PayInvoiceButton from './PayInvoiceButton'
 import ApprovalPanel from './ApprovalPanel'
-import { brandInk, textOnBrand } from '@/lib/brand'
+import { brandInk, brandLine, brandSurface, textOnBrand } from '@/lib/brand'
 
 export interface PortalViewProps {
   portalId: string
@@ -29,6 +29,8 @@ export interface PortalViewProps {
   approvalAt?: string | null
   /** On the owner's own domain: hide "Delivered via Voxabase". */
   whiteLabel?: boolean
+  /** Files unlock after payment: the invoice is unpaid, so files can't be opened yet */
+  locked?: boolean
 }
 
 export function PortalBrand({ ownerIsPro, brandDisplay, logoUrl, displayName, brandInitial, brandColor, centered = false }: {
@@ -94,7 +96,7 @@ export default function PortalView(p: PortalViewProps) {
           {p.portalDescription && <p className="mt-1.5 text-sm leading-relaxed text-muted">{p.portalDescription}</p>}
           <p className="mt-1.5 text-xs text-faint">
             {fileCount} file{fileCount !== 1 ? 's' : ''}
-            {p.isReady && fileCount > 0 ? ' · Ready to download' : ' · In progress'}
+            {p.isReady && fileCount > 0 ? (p.locked ? ' · Unlock after payment' : ' · Ready to download') : ' · In progress'}
           </p>
         </div>
 
@@ -113,8 +115,20 @@ export default function PortalView(p: PortalViewProps) {
           <p className="px-6 py-12 text-center text-sm text-faint">No files have been added yet.</p>
         ) : (
           <>
-            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} />
-            {fileCount > 1 && <DownloadAllButton portalId={p.portalId} portalName={p.portalName} />}
+            {p.locked && (
+              <div className="mx-3 mb-2 flex items-center gap-3 rounded-[10px] border px-3.5 py-3"
+                style={{ background: brandSurface(p.brandColor), borderColor: brandLine(p.brandColor) }}>
+                <svg className="h-5 w-5 flex-none" style={{ color: brandInk(p.brandColor) }} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-paper">Files unlock after payment</p>
+                  <p className="text-xs text-muted">Pay the invoice below to download {fileCount === 1 ? 'your file' : `all ${fileCount} files`}.</p>
+                </div>
+              </div>
+            )}
+            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} locked={p.locked} />
+            {fileCount > 1 && !p.locked && <DownloadAllButton portalId={p.portalId} portalName={p.portalName} />}
           </>
         )}
 

@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
+import { awaitingPayment } from '@/lib/paywall'
 
 export async function GET(request: Request) {
   const portalId = new URL(request.url).searchParams.get('portalId')
@@ -9,13 +10,16 @@ export async function GET(request: Request) {
 
   const admin = supabaseAdmin()
   const { data: portal } = await admin
-    .from('portals').select('id, user_id, name, is_active, files_ready, password_protected').eq('id', portalId).maybeSingle()
+    .from('portals').select('*').eq('id', portalId).maybeSingle()
   if (!portal) return NextResponse.json({ error: 'No files found' }, { status: 404 })
 
   const viewer = await viewerId()
   const team = await isOwnerOrTeam(admin, viewer, portal.user_id)
   if (!team && (!portal.files_ready || !(await canOpenPortal(admin, portal, viewer)))) {
     return NextResponse.json({ error: 'No files found' }, { status: 404 })
+  }
+  if (!team && awaitingPayment(portal)) {
+    return NextResponse.json({ error: 'Pay the invoice to unlock these files' }, { status: 402 })
   }
 
   const { data: files } = await admin.from('files').select('name, file_path').eq('portal_id', portalId).order('sort_order')

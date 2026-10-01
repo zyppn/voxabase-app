@@ -26,8 +26,18 @@ export default function Page() {
       <h2>3. Get paid</h2>
       <ul>
         <li>When your client pays, the portal is marked <strong>Paid</strong> automatically, and your dashboard shows it.</li>
-        <li>After payment the invoice is locked, so the amount can’t be changed by mistake.</li>
+        <li>After payment the invoice amount can’t be changed, so it can’t be edited by mistake.</li>
         <li>Stripe pays out to your bank on its usual schedule, typically a couple of business days.</li>
+      </ul>
+
+      <h2>Lock files until paid</h2>
+      <p>Turn on <strong>Lock files until paid</strong> in the portal’s Invoice card (or tick it when you create the portal) and your client can’t open or download anything until the invoice is paid.</p>
+      <ul>
+        <li>Your client still sees the portal, the file names and sizes, and the invoice, with a note that the files unlock after payment.</li>
+        <li>The moment the payment goes through, the files unlock on their own. There’s nothing for you to do.</li>
+        <li>You and your team can always open every file.</li>
+        <li>Connect Stripe first: without it your client can’t pay, so the files would stay locked.</li>
+        <li>With <strong>client approvals</strong> on as well, your client is asked to approve once they’ve paid and can see the files.</li>
       </ul>
 
       <h2>Fees</h2>
