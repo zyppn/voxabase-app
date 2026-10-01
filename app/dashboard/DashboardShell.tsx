@@ -143,9 +143,10 @@ export default function DashboardShell({
     return (
       <button type="button" key={k} onClick={() => sortBy(k)}
         aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-        className={`relative inline-flex items-center uppercase tracking-wide font-semibold transition-colors ${right ? 'justify-self-end' : ''} ${active ? 'text-paper' : 'text-faint hover:text-muted'}`}>
+        className={`relative inline-flex items-center uppercase tracking-wide font-semibold transition-colors ${right ? 'justify-self-end' : 'justify-self-start'} ${active ? 'text-paper' : 'text-faint hover:text-muted'}`}>
         {label}
-        <svg className={`absolute ${right ? '-left-4' : '-right-4'} w-3 h-3 transition-transform ${active ? 'opacity-100' : 'opacity-0'} ${active && sort.dir === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        {/* Always just after the label; it sits outside the button so the label stays lined up with its column */}
+        <svg className={`absolute -right-4 w-3 h-3 transition-transform ${active ? 'opacity-100' : 'opacity-0'} ${active && sort.dir === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
       </button>
     )
   }
