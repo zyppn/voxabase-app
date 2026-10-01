@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import DashboardShell from './DashboardShell'
 import { WS_COOKIE, loadWorkspace } from '@/lib/workspace'
-import { teamName } from '@/lib/people'
+import { teamName, teamHeading } from '@/lib/people'
 
 export default async function DashboardPage() {
   const cookieStore = await cookies()
@@ -67,6 +67,7 @@ export default async function DashboardPage() {
       hasFiles={(fileCount || 0) > 0}
       portalHost={liveDomain?.domain ?? null}
       teamName={ws.shared && profile ? teamName(profile) : null}
+      teamHeading={ws.shared && profile ? teamHeading(profile) : null}
       isOwner={ws.isOwner}
       personalSplit={ws.shared === false}
     />
