@@ -179,11 +179,11 @@ export default function AppShell({
         )}
 
         <nav className="flex flex-col gap-1">
-          {/* New Portal */}
-          <Link href="/dashboard/new" title="New Portal"
+          {/* New portal */}
+          <Link href="/dashboard/new" title="New portal"
             className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-sm text-paper/85 hover:text-paper hover:bg-ink-2 overflow-hidden">
             <svg className="w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New Portal</span>
+            <span className={`font-medium whitespace-nowrap ${labelAnim} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>New portal</span>
           </Link>
 
           <div className={`h-px bg-ink-3 my-1.5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
