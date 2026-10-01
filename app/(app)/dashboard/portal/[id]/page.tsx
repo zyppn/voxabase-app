@@ -63,6 +63,9 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [moreOpen, setMoreOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  // Opened from the Invoice card: start in the amount field
+  const [focusInvoice, setFocusInvoice] = useState(false)
+  const openInvoiceEdit = () => { setFocusInvoice(true); setShowEditModal(true) }
   const [deleteFileId, setDeleteFileId] = useState<string | null>(null)
   // Which file is open in the preview (View)
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
@@ -499,7 +502,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             {portal.description && <p className="text-muted text-sm mt-1">{portal.description}</p>}
           </div>
           <div className="relative flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => setShowEditModal(true)}
+            <button onClick={() => { setFocusInvoice(false); setShowEditModal(true) }}
               className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">
               Edit
             </button>
@@ -724,32 +727,32 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             </section>
             {/* Invoice section */}
             <div className="order-4 lg:order-none border border-rule rounded-xl p-5">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="font-semibold text-paper text-sm mb-1.5">Invoice</h2>
-                  {portal.invoice_amount ? (
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-bold text-paper tracking-tight">
-                        ${Number(portal.invoice_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-xs text-muted">
-                        <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.invoice_paid ? 'bg-green-400' : 'bg-amber-400'}`} />
-                        {portal.invoice_paid ? 'Paid' : 'Awaiting payment'}
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-faint text-sm">No invoice yet. Add one and your client can pay right from the portal.</p>
-                  )}
-                </div>
-                {!portal.invoice_paid ? (
-                  <button onClick={() => setShowEditModal(true)}
-                    className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">
-                    {portal.invoice_amount ? 'Edit invoice' : 'Add invoice'}
-                  </button>
-                ) : (
-                  <span className="text-xs text-faint">Paid · can’t be changed</span>
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <h2 className="font-semibold text-paper text-sm">Invoice</h2>
+                {/* Opens the portal's Edit dialog at the amount; locked once paid */}
+                {!!portal.invoice_amount && !portal.invoice_paid && (
+                  <button onClick={openInvoiceEdit} className="text-xs font-medium text-muted hover:text-paper hover:underline underline-offset-2">Edit</button>
                 )}
               </div>
+              {portal.invoice_amount ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-2xl font-bold text-paper tracking-tight">
+                    ${Number(portal.invoice_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted">
+                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.invoice_paid ? 'bg-green-400' : 'bg-amber-400'}`} />
+                    {portal.invoice_paid ? 'Paid' : 'Awaiting payment'}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <p className="text-faint text-sm">No invoice yet. Add one and your client can pay right from the portal.</p>
+                  <button onClick={openInvoiceEdit}
+                    className="mt-3 text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-3.5 py-2 rounded-lg">
+                    Add invoice
+                  </button>
+                </>
+              )}
 
               {/* Files unlock after payment */}
               <div className="mt-4 border-t border-rule pt-4">
@@ -886,7 +889,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 </label>
                 <div className={`flex items-center bg-ink border rounded-lg px-4 py-3 focus-within:border-accent ${portal.invoice_paid ? 'border-rule-3 opacity-50' : 'border-rule-2'}`}>
                   <span className="text-faint text-sm mr-1">$</span>
-                  <input id="edit-invoice" type="number" value={editInvoice} onChange={(e) => setEditInvoice(e.target.value)}
+                  <input id="edit-invoice" autoFocus={focusInvoice} type="number" value={editInvoice} onChange={(e) => setEditInvoice(e.target.value)}
                     disabled={portal.invoice_paid}
                     className="flex-1 bg-transparent text-paper focus:outline-none text-sm disabled:cursor-not-allowed"
                     placeholder="0.00" min="0" step="0.01" />
