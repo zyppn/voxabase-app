@@ -39,6 +39,8 @@ interface Props {
   hasFiles: boolean
   /** Set when working in an Agency team you belong to (not your own workspace). */
   teamName?: string | null
+  /** Heading for the Team workspace (see teamHeading) */
+  teamHeading?: string | null
   /** You own this workspace (false for teammates) */
   isOwner?: boolean
   /** Agency owner's Personal workspace (Team portals live in the other one) */
@@ -49,7 +51,7 @@ interface Props {
 
 export default function DashboardShell({
   email, username, businessName, fullName, plan, stripeConnected,
-  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles, teamName = null, portalHost = null, isOwner = true, personalSplit = false,
+  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles, teamName = null, teamHeading = null, portalHost = null, isOwner = true, personalSplit = false,
 }: Props) {
   const isTeam = !!teamName
   const isMember = isTeam && !isOwner
@@ -160,7 +162,7 @@ export default function DashboardShell({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-paper">{isTeam ? `${teamName} portals` : personalSplit ? 'Personal portals' : 'Portals'}</h1>
+            <h1 className="text-2xl font-bold text-paper">{isTeam ? teamHeading || teamName : personalSplit ? 'Personal portals' : 'Portals'}</h1>
             <p className="text-faint text-sm mt-1">
               {isTeam ? <>Shared with the {teamName} team · live at </> : personalSplit ? <>Only you can see these · live at </> : <>Your portals live at </>}
               <span className="text-muted">{portalHost ? `${portalHost}/` : `${APP_HOST}/${username}/`}</span>

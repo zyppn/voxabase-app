@@ -16,6 +16,11 @@ export function teamName(p: Named) {
   return p.business_name?.trim() || p.full_name?.trim() || p.username || p.email || 'Team'
 }
 
+// Team dashboard heading: the business name on its own, else "<name>'s portals".
+export function teamHeading(p: Named) {
+  return p.business_name?.trim() || `${teamName(p)}'s portals`
+}
+
 /** Active in the last 3 minutes (the app checks in about once a minute). */
 export const isOnline = (lastSeen: string | null | undefined) =>
   !!lastSeen && Date.now() - new Date(lastSeen).getTime() < 3 * 60_000
