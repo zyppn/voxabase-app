@@ -11,7 +11,7 @@ export default function Page() {
       <ol>
         <li>Open the portal.</li>
         <li>Switch on <strong>Client approvals</strong>.</li>
-        <li>Once the files are live, your client sees <strong>Approve</strong> and <strong>Request changes</strong> on the portal. Until they answer, the editor shows “Waiting for your client to review”.</li>
+        <li>Once the files are published, your client sees <strong>Approve</strong> and <strong>Request changes</strong> on the portal. Until they answer, the editor shows “Waiting for your client to review”.</li>
       </ol>
 
       <h2>What happens next</h2>

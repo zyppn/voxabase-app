@@ -21,7 +21,7 @@ export default function Page() {
       </ul>
 
       <h2>Before the files are ready</h2>
-      <p>If you haven’t flipped <strong>Files ready</strong> yet, your client sees a “Your files are being prepared” message. Everything else, like the invoice, still shows.</p>
+      <p>If you haven’t clicked <strong>Publish files</strong> yet, your client sees a “Your files are being prepared” message. Everything else, like the invoice, still shows.</p>
 
       <h2>Paying</h2>
       <p>

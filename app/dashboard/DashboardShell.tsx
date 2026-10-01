@@ -327,7 +327,7 @@ export default function DashboardShell({
                           const notes: { text: string; cls: string }[] = []
                           if (portal.approval_required && portal.approval_status) notes.push(portal.approval_status === 'approved'
                             ? { text: 'Approved', cls: 'text-green-400' } : { text: 'Changes requested', cls: 'text-amber-400' })
-                          if (!portal.files_ready) notes.push({ text: 'Files not live yet', cls: 'text-faint' })
+                          if (!portal.files_ready) notes.push({ text: 'Not published yet', cls: 'text-faint' })
                           if (portal.password_protected) notes.push({ text: 'Password protected', cls: 'text-faint' })
                           return notes.length > 0 && (
                             <p className="text-xs mt-0.5 truncate">
