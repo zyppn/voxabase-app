@@ -1,8 +1,10 @@
 'use client'
 // View a portal's files without leaving the page: images, PDFs, video, audio
 // and plain text show inline; anything else offers a download. ← / → move
-// between files, Esc closes.
-import { useEffect } from 'react'
+// between files, Esc closes. Used by the portal editor and the client portal
+// (with the owner's brand color, and nothing that says Voxabase).
+import { useEffect, type CSSProperties } from 'react'
+import { textOnBrand } from '@/lib/brand'
 
 export interface PreviewFile {
   id: string
@@ -13,7 +15,7 @@ export interface PreviewFile {
 
 type Kind = 'image' | 'pdf' | 'video' | 'audio' | 'text' | 'none'
 
-function kindOf(f: PreviewFile): Kind {
+export function kindOf(f: PreviewFile): Kind {
   const t = f.file_type || ''
   if (t.startsWith('image/')) return 'image'
   if (t === 'application/pdf') return 'pdf'
@@ -23,16 +25,27 @@ function kindOf(f: PreviewFile): Kind {
   return 'none'
 }
 
+// Phones and tablets show only a PDF's first page inside a page, so there a
+// PDF opens in the device's own reader instead
+export const opensNatively = (f: PreviewFile) =>
+  kindOf(f) === 'pdf' && typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
 const size = (b: number | null) => !b ? '' : b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`
 
-export default function FilePreview({ files, index, onIndex, onClose }: {
+export default function FilePreview({ files, index, onIndex, onClose, brandColor }: {
   files: PreviewFile[]
   index: number
   onIndex: (i: number) => void
   onClose: () => void
+  /** The portal owner's color for the main buttons (client portal) */
+  brandColor?: string
 }) {
   const file = files[index]
-  const kind = kindOf(file)
+  const kind = opensNatively(file) ? 'none' : kindOf(file)
+  const isPdf = kindOf(file) === 'pdf'
+  const mainBtn = 'inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg'
+  const mainStyle: CSSProperties | undefined = brandColor ? { background: brandColor, color: textOnBrand(brandColor) } : undefined
+  const mainCls = brandColor ? mainBtn : `${mainBtn} bg-paper hover:bg-white text-ink`
   // Opens inline (the server checks access, then hands out a short-lived link)
   const src = `/api/file/${file.id}?view=1`
   const prev = index > 0 ? index - 1 : null
@@ -97,10 +110,19 @@ export default function FilePreview({ files, index, onIndex, onClose }: {
         )}
         {kind === 'none' && (
           <div className="text-center rounded-xl border border-rule bg-ink-2 px-8 py-10 max-w-sm">
-            <p className="text-paper font-medium mb-1.5">No preview for this file type</p>
-            <p className="text-sm text-faint mb-5">Download it to open it on your computer.</p>
-            <a href={`/api/file/${file.id}`} download={file.name}
-              className="inline-flex items-center gap-2 bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2.5 rounded-lg">Download</a>
+            {isPdf ? (
+              <>
+                <p className="text-paper font-medium mb-1.5">Open this PDF</p>
+                <p className="text-sm text-faint mb-5">It opens in your device’s PDF viewer.</p>
+                <a href={src} target="_blank" rel="noopener noreferrer" className={mainCls} style={mainStyle}>Open PDF</a>
+              </>
+            ) : (
+              <>
+                <p className="text-paper font-medium mb-1.5">No preview for this file type</p>
+                <p className="text-sm text-faint mb-5">Download it to open it on your device.</p>
+                <a href={`/api/file/${file.id}`} download={file.name} className={mainCls} style={mainStyle}>Download</a>
+              </>
+            )}
           </div>
         )}
       </div>

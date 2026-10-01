@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import FileThumb from '@/app/_components/FileThumb'
-import FilePreview from './FilePreview'
+import FilePreview from '@/app/_components/FilePreview'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { brandInk, brandLine, brandSurface, DEFAULT_BRAND } from '@/lib/brand'
 import FileThumb from '@/app/_components/FileThumb'
+import FilePreview, { opensNatively } from '@/app/_components/FilePreview'
 
 export interface PortalFile {
   id: string
@@ -22,19 +23,23 @@ function formatSize(bytes: number | null) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function FileRow({ file, brandColor }: { file: PortalFile; brandColor: string }) {
+function FileRow({ file, brandColor, onView }: { file: PortalFile; brandColor: string; onView: () => void }) {
   const size = formatSize(file.file_size)
   // The server checks access, then hands out a short-lived download link
   const downloadUrl = `/api/file/${file.id}`
 
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
-      <FileThumb
-        file={file}
-        className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
-        style={{ background: brandSurface(brandColor), color: brandInk(brandColor), borderColor: brandLine(brandColor) }}
-      />
-      <span className="min-w-0 truncate text-sm font-medium text-paper" title={file.name}>{file.name}</span>
+      {/* The thumbnail and name open the preview; Download stays the main button */}
+      <button type="button" onClick={onView} aria-label={`Preview ${file.name}`} className="rounded-lg">
+        <FileThumb
+          file={file}
+          className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
+          style={{ background: brandSurface(brandColor), color: brandInk(brandColor), borderColor: brandLine(brandColor) }}
+        />
+      </button>
+      <button type="button" onClick={onView} title={`Preview ${file.name}`}
+        className="min-w-0 truncate text-left text-sm font-medium text-paper hover:underline underline-offset-2">{file.name}</button>
       <span className="hidden text-xs text-faint sm:block">{size}</span>
       <a
         href={downloadUrl}
@@ -53,6 +58,12 @@ function FileRow({ file, brandColor }: { file: PortalFile; brandColor: string })
 
 export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_BRAND }: FilesListProps) {
   const [showAll, setShowAll] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+  const view = (i: number) => {
+    const f = files[i]
+    if (opensNatively(f)) window.open(`/api/file/${f.id}?view=1`, '_blank', 'noopener')
+    else setPreviewIndex(i)
+  }
   const visibleFiles = showAll ? files : files.slice(0, showLimit)
   const hiddenCount = files.length - showLimit
 
@@ -60,7 +71,7 @@ export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_B
     <div className="px-3">
       <ul className="grid gap-1.5">
         {visibleFiles.map((file) => (
-          <FileRow key={file.id} file={file} brandColor={brandColor} />
+          <FileRow key={file.id} file={file} brandColor={brandColor} onView={() => view(files.indexOf(file))} />
         ))}
       </ul>
       {hiddenCount > 0 && (
@@ -72,6 +83,9 @@ export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_B
         >
           {showAll ? 'Show fewer files' : `Show ${hiddenCount} more file${hiddenCount !== 1 ? 's' : ''}`}
         </button>
+      )}
+      {previewIndex !== null && files[previewIndex] && (
+        <FilePreview files={files} index={previewIndex} onIndex={setPreviewIndex} onClose={() => setPreviewIndex(null)} brandColor={brandColor} />
       )}
     </div>
   )
