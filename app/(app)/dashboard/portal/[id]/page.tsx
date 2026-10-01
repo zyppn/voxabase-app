@@ -687,34 +687,43 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 </button>
               )}
             </section>
-            {/* Client link. Copy link is the page's main button once files are published */}
+            {/* Client link: click the link to copy it; Preview sits top right like the Invoice card's Edit */}
             <section aria-label="Client link" className="order-2 lg:order-none border border-rule rounded-xl p-5">
-              <h2 className="font-semibold text-paper text-sm mb-3">Client link</h2>
-              <div className="flex items-center gap-2.5 min-w-0 bg-ink border border-rule rounded-lg px-3.5 py-2.5">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h2 className="font-semibold text-paper text-sm">Client link</h2>
+                <a href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-paper hover:underline underline-offset-2">
+                  Preview
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                </a>
+              </div>
+              <button type="button"
+                onClick={async () => {
+                  try { await navigator.clipboard.writeText(shareUrl) } catch { return }
+                  markLinkCopied()
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+                title="Click to copy"
+                aria-label={copied ? 'Link copied' : `Copy link ${shareUrl}`}
+                className={`group w-full flex items-center gap-2.5 min-w-0 bg-ink border rounded-lg px-3.5 py-2.5 text-left transition-colors ${copied ? 'border-green-400/40' : 'border-rule hover:border-rule-3 hover:bg-ink-2'}`}>
                 <svg className="w-4 h-4 text-faint flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                 </svg>
-                <span className="text-sm text-paper truncate" title={shareUrl}>{shareUrl.replace(/^https?:\/\//, '')}</span>
-              </div>
-              <div className="flex items-center gap-2 mt-2.5">
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(shareUrl)
-                    markLinkCopied()
-                    setCopied(true)
-                    setTimeout(() => setCopied(false), 2000)
-                  }}
-                  className={`flex-1 inline-flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg ${portal.files_ready ? 'bg-paper hover:bg-white text-ink' : 'text-paper border border-rule-2 hover:border-rule-3'}`}
-                >
-                  {copied ? (
-                    <><svg className={`w-4 h-4 ${portal.files_ready ? 'text-green-600' : 'text-green-400'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied</>
-                  ) : 'Copy link'}
-                </button>
-                <a href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 text-center text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-4 py-2.5 rounded-lg">
-                  Preview
-                </a>
-              </div>
+                <span className="flex-1 min-w-0 text-sm text-paper truncate">{shareUrl.replace(/^https?:\/\//, '')}</span>
+                {copied ? (
+                  <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium text-green-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Copied
+                  </span>
+                ) : (
+                  <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium text-faint group-hover:text-paper">
+                    <span className="hidden group-hover:inline">Copy</span>
+                    {/* Always shown: phones have no hover, so this is how they know it copies */}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                  </span>
+                )}
+              </button>
               <p className="flex items-center gap-1.5 text-xs text-faint mt-3">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" />

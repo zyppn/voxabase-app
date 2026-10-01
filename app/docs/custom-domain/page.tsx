@@ -53,7 +53,7 @@ export default function CustomDomainGuide() {
       <h2>3. Check it’s live</h2>
       <ol>
         <li>Back in <Link href="/settings">Settings</Link>, click <strong>Check again</strong>.</li>
-        <li>When it shows <strong>Live</strong>, you’re done. Copy link in each portal now uses your domain, and the “Delivered via Voxabase” line is hidden there.</li>
+        <li>When it shows <strong>Live</strong>, you’re done. Each portal’s client link now uses your domain, and the “Delivered via Voxabase” line is hidden there.</li>
       </ol>
       <p>Most changes go live within minutes. Some providers take up to 48 hours, so if it’s still waiting, check back later. There’s nothing else to do.</p>
 

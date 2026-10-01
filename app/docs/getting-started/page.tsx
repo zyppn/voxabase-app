@@ -30,7 +30,7 @@ export default function Page() {
 
       <h2>4. Send the link</h2>
       <ol>
-        <li>Click <strong>Copy link</strong> and paste it into your email or message.</li>
+        <li>Click the link under <strong>Client link</strong> to copy it, then paste it into your email or message. (You can also copy it from the dashboard: hover a portal and click <strong>Copy link</strong>.)</li>
         <li>Use <strong>Open client view</strong> in the <strong>•••</strong> menu to see exactly what your client will see.</li>
       </ol>
       <p className="note">Your client doesn’t need an account. They just open the link.</p>
