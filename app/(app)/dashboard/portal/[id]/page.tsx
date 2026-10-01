@@ -89,7 +89,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [moveTarget, setMoveTarget] = useState<Team | null>(null)
   const [moving, setMoving] = useState(false)
   const [moveError, setMoveError] = useState('')
-  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  // Reordering: the gap the dragged file would land in (0 = above the first file)
+  const [dropAt, setDropAt] = useState<number | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [viewStats, setViewStats] = useState<{ count: number; lastViewed: string | null }>({ count: 0, lastViewed: null })
@@ -368,10 +369,13 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     e.dataTransfer.setData(REORDER_TYPE, fileId)
   }
 
-  const handleDragOver = (e: React.DragEvent, fileId: string) => {
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault()
+    if (!draggingId) return
     e.dataTransfer.dropEffect = 'move'
-    setDragOverId(fileId)
+    // Top half of a row: the gap above it; bottom half: the gap below
+    const box = e.currentTarget.getBoundingClientRect()
+    setDropAt(e.clientY < box.top + box.height / 2 ? index : index + 1)
   }
 
   // Move one file to a new position and save the order
@@ -385,17 +389,24 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     await Promise.all(updated.map(f => supabase.from('files').update({ sort_order: f.sort_order }).eq('id', f.id)))
   }
 
-  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+  // Only where dropping would change the order (not right above or below the dragged file)
+  const showDropLine = (gap: number) => {
+    if (dropAt !== gap || !draggingId) return false
+    const from = files.findIndex(f => f.id === draggingId)
+    return gap !== from && gap !== from + 1
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     // Handled here: don't let the upload area below treat it as new files
     e.stopPropagation()
-    if (!draggingId || draggingId === targetId) return
-    const dragIndex = files.findIndex(f => f.id === draggingId)
-    const targetIndex = files.findIndex(f => f.id === targetId)
+    const from = files.findIndex(f => f.id === draggingId)
+    const gap = dropAt
     setDraggingId(null)
-    setDragOverId(null)
-    if (dragIndex === -1 || targetIndex === -1) return
-    await moveFile(dragIndex, targetIndex)
+    setDropAt(null)
+    if (from === -1 || gap === null) return
+    // Gaps count positions with the dragged file still in place
+    await moveFile(from, gap > from ? gap - 1 : gap)
   }
 
   const startRename = (file: FileRecord) => {
@@ -599,11 +610,14 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   {files.map((file, index) => (
                     <div key={file.id} draggable
                       onDragStart={(e) => handleDragStart(e, file.id)}
-                      onDragOver={(e) => handleDragOver(e, file.id)}
-                      onDrop={(e) => handleDrop(e, file.id)}
-                      onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
-                      className={`px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-2 group cursor-grab active:cursor-grabbing hover:bg-ink-3/40 transition-colors ${draggingId === file.id ? 'opacity-40' : ''} ${dragOverId === file.id && draggingId !== file.id ? 'bg-accent-soft/50' : ''}`}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={handleDrop}
+                      onDragEnd={() => { setDraggingId(null); setDropAt(null) }}
+                      className={`px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-2 group cursor-grab active:cursor-grabbing hover:bg-ink-3/40 transition-colors relative ${draggingId === file.id ? 'opacity-40' : ''}`}
                     >
+                      {/* Where the dragged file will land: a line in the gap above this row (or below the last one) */}
+                      {showDropLine(index) && <DropLine edge="top" />}
+                      {index === files.length - 1 && showDropLine(files.length) && <DropLine edge="bottom" />}
                       <div className="flex items-center gap-3 min-w-0 flex-1 basis-[13rem]">
                         <div className="text-faint group-hover:text-muted flex-shrink-0">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -1041,5 +1055,15 @@ function Switch({ on, onClick, disabled, labelledBy }: { on: boolean; onClick: (
       className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${on ? 'bg-green-400' : 'bg-[#4a4557]'}`}>
       <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-6' : 'translate-x-1'}`} />
     </button>
+  )
+}
+
+// The reorder marker: a purple line with a dot at its start, on a row's top or bottom edge
+function DropLine({ edge }: { edge: 'top' | 'bottom' }) {
+  return (
+    <span aria-hidden="true" className={`pointer-events-none absolute inset-x-3 z-10 flex items-center ${edge === 'top' ? '-top-[5px]' : '-bottom-[5px]'}`}>
+      <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full border-2 border-accent-mark bg-ink" />
+      <span className="h-[3px] flex-1 rounded-full bg-accent-mark" />
+    </span>
   )
 }
