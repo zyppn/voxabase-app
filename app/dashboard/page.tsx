@@ -5,6 +5,8 @@ import DashboardShell from './DashboardShell'
 import { WS_COOKIE, loadWorkspace } from '@/lib/workspace'
 import { teamName, teamHeading } from '@/lib/people'
 
+export const metadata = { title: 'Portals · Voxabase' }
+
 export default async function DashboardPage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)

@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import OnboardingChecklist from './OnboardingChecklist'
+import OnboardingChecklist, { markLinkCopied } from './OnboardingChecklist'
 import { useSearchParams } from 'next/navigation'
 import AppShell from './AppShell'
 import { APP_HOST } from '@/lib/appHost'
+import { portalUrl } from '@/lib/portalUrl'
 import Link from 'next/link'
 
 interface Portal {
@@ -68,6 +69,15 @@ export default function DashboardShell({
     ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
     // Text reads A→Z first; numbers and dates show the biggest/newest first
     : { key, dir: key === 'name' || key === 'status' ? 'asc' : 'desc' })
+
+  // Copy a portal's link straight from the list (the usual next step is sending it)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const copyLink = async (p: Portal) => {
+    try { await navigator.clipboard.writeText(portalUrl(p, portalHost)) } catch { return }
+    markLinkCopied()
+    setCopiedId(p.id)
+    setTimeout(() => setCopiedId(c => (c === p.id ? null : c)), 2000)
+  }
 
   const toggleStar = async (id: string) => {
     const next = !starred[id]
@@ -326,6 +336,15 @@ export default function DashboardShell({
                           )
                         })()}
                       </div>
+                      <button type="button" onClick={() => copyLink(portal)}
+                        aria-label={copiedId === portal.id ? 'Link copied' : `Copy link to ${portal.name}`} title="Copy link"
+                        className={`relative z-10 ml-auto flex-shrink-0 inline-flex items-center gap-1.5 rounded-md border border-rule-2 bg-ink-2 px-2 py-1.5 text-xs text-muted hover:text-paper hover:border-rule-3 transition-opacity ${copiedId === portal.id ? '' : 'md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100'}`}>
+                        {copiedId === portal.id ? (
+                          <><svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg><span className="hidden sm:inline">Copied</span></>
+                        ) : (
+                          <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg><span className="hidden sm:inline">Copy link</span></>
+                        )}
+                      </button>
                     </div>
                     <div className="hidden md:block text-xs text-muted">{fmtDate(portal.created_at)}</div>
                     <div className="hidden md:flex items-center gap-1.5 text-xs text-faint">

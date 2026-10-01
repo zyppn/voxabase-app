@@ -1,6 +1,8 @@
 // app.voxabase.com/<username> (or the root of a customer's own domain).
 // Portals are private links, so this never lists them: it just shows whose
 // portals live here and how to get one.
+import { cache } from 'react'
+import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
@@ -10,13 +12,28 @@ import { PortalBrand, DeliveredVia } from './[slug]/PortalView'
 
 export const revalidate = 0
 
-export default async function OwnerPage({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = await params
-  const { data: profile } = await supabaseAdmin()
+type Params = { params: Promise<{ username: string }> }
+
+const loadOwner = cache(async (username: string) => {
+  const { data } = await supabaseAdmin()
     .from('profiles')
     .select('business_name, full_name, brand_color, logo_url, brand_display, plan')
     .eq('username', username)
     .maybeSingle()
+  return data
+})
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { username } = await params
+  const profile = await loadOwner(username)
+  if (!profile) return {}
+  const name = profile.business_name || profile.full_name || username
+  return { title: `Client portals · ${name}`, description: `Client portals by ${name}` }
+}
+
+export default async function OwnerPage({ params }: Params) {
+  const { username } = await params
+  const profile = await loadOwner(username)
   if (!profile) notFound()
 
   const displayName = profile.business_name || profile.full_name || username

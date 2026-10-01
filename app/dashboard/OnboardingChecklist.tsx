@@ -26,6 +26,12 @@ function read(key: string) {
 const listeners = new Set<() => void>()
 const subscribe = (fn: () => void) => { listeners.add(fn); window.addEventListener('storage', fn); return () => { listeners.delete(fn); window.removeEventListener('storage', fn) } }
 
+/** Ticks off "Send the link" wherever a portal link gets copied */
+export function markLinkCopied() {
+  try { localStorage.setItem(LINK_COPIED_KEY, '1') } catch { /* ignore */ }
+  listeners.forEach((fn) => fn())
+}
+
 export default function OnboardingChecklist({ hasPortal, hasFiles, stripeConnected, linkShared, latestPortalId, fallback = null }: Props) {
   // 'ssr' until the browser can tell us whether it was hidden or a link was copied
   const hidden = useSyncExternalStore(subscribe, () => (read(HIDE_KEY) ? 'yes' : 'no'), () => 'ssr')

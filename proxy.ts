@@ -43,17 +43,24 @@ async function usernameFor(host: string): Promise<string | null> {
   return username
 }
 
+// The app's own icons. On a customer's domain they'd put the Voxabase logo in
+// their client's browser tab, so the browser shows its plain default instead.
+const APP_ICONS = new Set(['/favicon.ico', '/icon.svg', '/apple-icon.png'])
+
 async function customDomain(request: NextRequest, host: string) {
   const { pathname } = request.nextUrl
-  // Assets, the portal's own API calls and the after-payment page work as-is
-  if (pathname.startsWith('/_next') || pathname.startsWith('/api/') || pathname === '/payment-success' || /\.[a-z0-9]+$/i.test(pathname)) {
+  if (APP_ICONS.has(pathname)) return new NextResponse(null, { status: 404 })
+  const headers = new Headers(request.headers)
+  headers.set(DOMAIN_HEADER, host)
+  // The after-payment page works as-is, told it's on the customer's domain
+  if (pathname === '/payment-success') return NextResponse.next({ request: { headers } })
+  // Assets and the portal's own API calls work as-is
+  if (pathname.startsWith('/_next') || pathname.startsWith('/api/') || /\.[a-z0-9]+$/i.test(pathname)) {
     return NextResponse.next()
   }
   const username = await usernameFor(host)
   if (!username) return new NextResponse('Not found', { status: 404, headers: { 'content-type': 'text/plain' } })
 
-  const headers = new Headers(request.headers)
-  headers.set(DOMAIN_HEADER, host)
   const url = request.nextUrl.clone()
   // /slug → /username/slug (and /username/slug is accepted too)
   const first = pathname.split('/')[1]
@@ -106,5 +113,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // favicon.ico included so customer domains don't serve the Voxabase icon
+  matcher: ['/((?!_next/static|_next/image).*)'],
 }
