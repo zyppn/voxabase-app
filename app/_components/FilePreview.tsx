@@ -3,8 +3,9 @@
 // and plain text show inline; anything else offers a download. ← / → move
 // between files, Esc closes. Used by the portal editor and the client portal
 // (with the owner's brand color, and nothing that says Voxabase).
-import { useEffect, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { textOnBrand } from '@/lib/brand'
+import { isTextFile } from '@/lib/files'
 
 export interface PreviewFile {
   id: string
@@ -17,11 +18,12 @@ type Kind = 'image' | 'pdf' | 'video' | 'audio' | 'text' | 'none'
 
 export function kindOf(f: PreviewFile): Kind {
   const t = f.file_type || ''
+  // Before the type checks: code files often come with odd types (.ts as video)
+  if (isTextFile(f)) return 'text'
   if (t.startsWith('image/')) return 'image'
   if (t === 'application/pdf') return 'pdf'
   if (t.startsWith('video/')) return 'video'
   if (t.startsWith('audio/')) return 'audio'
-  if (t.startsWith('text/') || t === 'application/json') return 'text'
   return 'none'
 }
 
@@ -29,6 +31,39 @@ export function kindOf(f: PreviewFile): Kind {
 // PDF opens in the device's own reader instead
 export const opensNatively = (f: PreviewFile) =>
   kindOf(f) === 'pdf' && typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
+// Text and code are shown as plain text here (never run as a page)
+const TEXT_LIMIT = 2 * 1024 * 1024
+
+function TextView({ file, src }: { file: PreviewFile; src: string }) {
+  const [state, setState] = useState<{ id: string; text: string | null; failed: boolean }>({ id: '', text: null, failed: false })
+  const tooBig = (file.file_size || 0) > TEXT_LIMIT
+  useEffect(() => {
+    if (tooBig) return
+    let live = true
+    fetch(src)
+      .then(r => (r.ok ? r.text() : Promise.reject()))
+      .then(text => { if (live) setState({ id: file.id, text, failed: false }) })
+      .catch(() => { if (live) setState({ id: file.id, text: null, failed: true }) })
+    return () => { live = false }
+  }, [src, file.id, tooBig])
+  const current = state.id === file.id
+  if (tooBig || (current && state.failed)) {
+    return (
+      <div className="text-center rounded-xl border border-rule bg-ink-2 px-8 py-10 max-w-sm">
+        <p className="text-paper font-medium mb-1.5">{tooBig ? 'Too large to preview' : 'Couldn’t load this file'}</p>
+        <p className="text-sm text-faint">Download it to open it on your device.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="w-full h-full max-w-5xl rounded-lg border border-rule bg-ink-2 overflow-auto">
+      {current && state.text !== null
+        ? <pre className="p-5 text-[13px] leading-relaxed text-paper/90 font-mono whitespace-pre-wrap break-words">{state.text || ' '}</pre>
+        : <p className="p-5 text-sm text-faint">Loading…</p>}
+    </div>
+  )
+}
 
 const size = (b: number | null) => !b ? '' : b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`
 
@@ -98,9 +133,10 @@ export default function FilePreview({ files, index, onIndex, onClose, brandColor
           // eslint-disable-next-line @next/next/no-img-element -- a signed Storage link, not a static asset
           <img key={file.id} src={src} alt={file.name} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
         )}
-        {(kind === 'pdf' || kind === 'text') && (
-          <iframe key={file.id} src={src} title={file.name} className={`w-full h-full max-w-5xl rounded-lg border border-rule ${kind === 'text' ? 'bg-white' : 'bg-ink-2'}`} />
+        {kind === 'pdf' && (
+          <iframe key={file.id} src={src} title={file.name} className="w-full h-full max-w-5xl rounded-lg border border-rule bg-ink-2" />
         )}
+        {kind === 'text' && <TextView file={file} src={src} />}
         {kind === 'video' && <video key={file.id} src={src} controls autoPlay className="max-w-full max-h-full rounded-lg" />}
         {kind === 'audio' && (
           <div className="w-full max-w-md rounded-xl border border-rule bg-ink-2 p-6">

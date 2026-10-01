@@ -1,9 +1,10 @@
-// Opens one delivered file. Checks access, then redirects to a short-lived
-// signed link (the storage bucket is private).
+// Opens one delivered file. Checks access first (the storage bucket is
+// private). Downloads and thumbnails redirect to a short-lived signed link;
+// viewing streams the file from here so the storage link never shows.
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
-import { hasThumbnail } from '@/lib/files'
+import { hasThumbnail, viewContentType } from '@/lib/files'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -34,9 +35,33 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return res
   }
 
-  const inline = search.get('view') === '1'
+  // Viewing (the preview, or "open in new tab"): sent from this address, so the
+  // tab shows the portal's own domain, never the storage link behind it
+  if (search.get('view') === '1') {
+    const { data, error } = await admin.storage.from('deliverables').createSignedUrl(file.file_path, 60)
+    if (error || !data?.signedUrl) return new NextResponse('File unavailable', { status: 404 })
+    // Pass Range through so videos can seek
+    const range = request.headers.get('range')
+    const upstream = await fetch(data.signedUrl, { headers: range ? { range } : {} })
+    if (!upstream.ok || !upstream.body) return new NextResponse('File unavailable', { status: 404 })
+    const headers = new Headers()
+    for (const h of ['content-length', 'content-range', 'accept-ranges', 'etag', 'last-modified']) {
+      const v = upstream.headers.get(h)
+      if (v) headers.set(h, v)
+    }
+    const type = viewContentType(file)
+    headers.set('content-type', type)
+    headers.set('content-disposition', `inline; filename*=UTF-8''${encodeURIComponent(file.name)}`)
+    headers.set('x-content-type-options', 'nosniff')
+    headers.set('cache-control', 'private, max-age=300')
+    // An SVG opened in a tab could run scripts on this site: shown as a picture only
+    if (type === 'image/svg+xml') headers.set('content-security-policy', "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:")
+    return new Response(upstream.body, { status: upstream.status, headers })
+  }
+
+  // Downloads go straight to storage (no need to pass big files through here)
   const { data, error } = await admin.storage.from('deliverables')
-    .createSignedUrl(file.file_path, 120, inline ? undefined : { download: file.name })
+    .createSignedUrl(file.file_path, 120, { download: file.name })
   if (error || !data?.signedUrl) return new NextResponse('File unavailable', { status: 404 })
   return NextResponse.redirect(data.signedUrl, 302)
 }
