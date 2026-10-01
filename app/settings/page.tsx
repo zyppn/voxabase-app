@@ -5,6 +5,7 @@ import SessionsCard from './SessionsCard'
 import TeamCard from './TeamCard'
 import DomainCard from './DomainCard'
 import { verifyPassword } from '@/lib/verifyPassword'
+import { MIN_NAME_LENGTH } from '@/lib/people'
 import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -126,14 +127,16 @@ function SettingsContent() {
   }, [upgraded])
 
   const handleSaveProfile = async () => {
-    setSaving(true)
     setSuccessMessage('')
     setErrorMessage('')
+    const name = fullName.trim()
+    if (name.length < MIN_NAME_LENGTH) { setErrorMessage(`Full name must be at least ${MIN_NAME_LENGTH} characters`); return }
+    setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName, business_name: businessName || null })
+      .update({ full_name: name, business_name: businessName.trim() || null })
       .eq('id', user.id)
     if (error) setErrorMessage(error.message)
     else { setSuccessMessage('Profile updated successfully'); setTimeout(() => setSuccessMessage(''), 3000) }
@@ -308,7 +311,7 @@ function SettingsContent() {
               <div className="flex flex-col gap-4">
                 <div>
                   <label className="text-sm text-muted mb-1.5 block">Full name</label>
-                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
+                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={MIN_NAME_LENGTH}
                     className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                     placeholder="Your full name" />
                 </div>

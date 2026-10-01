@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import { joinNext } from '@/lib/joinNext'
+import { MIN_NAME_LENGTH } from '@/lib/people'
 import { APP_HOST } from '@/lib/appHost'
 import { isReservedUsername } from '@/lib/reservedUsernames'
 
@@ -77,6 +78,7 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (fullName.trim().length < MIN_NAME_LENGTH) { setError(`Full name must be at least ${MIN_NAME_LENGTH} characters`); return }
     if (password !== confirmPassword) { setError('Passwords do not match'); return }
     if (strength.score < 2) { setError('Please choose a stronger password'); return }
     if (usernameAvailable !== true) { setError('Please choose an available username'); return }
@@ -85,7 +87,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        data: { full_name: fullName, business_name: businessName, username },
+        data: { full_name: fullName.trim(), business_name: businessName.trim(), username },
         emailRedirectTo: `${window.location.origin}/auth/callback${joinNext() ? `?next=${encodeURIComponent(joinNext()!)}` : ''}`
       }
     })
@@ -153,6 +155,7 @@ export default function SignupPage() {
               value={fullName}
               onChange={handleFullNameChange}
               required
+              minLength={MIN_NAME_LENGTH}
               className="w-full bg-ink border border-rule rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent transition-colors text-sm"
               placeholder="Your full name"
             />

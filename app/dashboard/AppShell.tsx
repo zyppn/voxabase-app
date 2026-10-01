@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, ReactNode } from 'react'
 import { useIdleSignOut } from '@/lib/useIdleSignOut'
 import { createClient } from '@/utils/supabase/client'
 import { hasTeams, seatsFor, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
-import { displayName, isOnline } from '@/lib/people'
+import { displayName, teamName, isOnline } from '@/lib/people'
 import Link from 'next/link'
 
 type Team = { owner_id: string; owner_label: string | null }
@@ -63,9 +63,19 @@ export default function AppShell({
         supabase.from('profiles').select('plan, business_name, full_name').eq('id', user.id).single(),
       ])
       if (!active) return
-      // Your own Team workspace (Agency) first, then teams you've joined
-      const own: Team[] = hasTeams(meRow?.plan) ? [{ owner_id: user.id, owner_label: displayName({ ...meRow, email: user.email }) }] : []
-      const list = [...own, ...((data || []) as Team[])]
+      // Your own Team workspace (Agency) first, then teams you've joined.
+      // owner_label is a snapshot from the invite, so prefer the owner's
+      // current name where their profile is readable.
+      const joined = (data || []) as Team[]
+      const { data: owners } = joined.length
+        ? await supabase.from('profiles').select('id, business_name, full_name, username').in('id', joined.map(t => t.owner_id))
+        : { data: [] }
+      if (!active) return
+      const own: Team[] = hasTeams(meRow?.plan) ? [{ owner_id: user.id, owner_label: teamName({ ...meRow, email: user.email }) }] : []
+      const list = [...own, ...joined.map(t => {
+        const o = owners?.find(p => p.id === t.owner_id)
+        return o ? { ...t, owner_label: teamName(o) } : t
+      })]
       setTeams(list)
       const cookie = readWorkspaceCookie()
       const ws = list.some(t => t.owner_id === cookie) ? cookie : null
@@ -95,7 +105,7 @@ export default function AppShell({
   const hasMates = roster.some(r => !r.is_owner)
   const owner = roster.find(r => r.is_owner)
   const isMyTeam = !!currentTeam && currentTeam.owner_id === myId
-  const teamLabel = currentTeam?.owner_label || (owner ? displayName(owner) : displayLabel)
+  const teamLabel = owner ? teamName(owner) : currentTeam?.owner_label || displayLabel
   // Owner first, then you, then teammates (joined before invited). Owners with no
   // teammates yet only see the invite prompt.
   const people = isMyTeam && !hasMates ? [] : [...roster].sort((a, b) => {

@@ -160,7 +160,7 @@ export default function DashboardShell({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-paper">{isTeam ? 'Team portals' : personalSplit ? 'Personal portals' : 'Portals'}</h1>
+            <h1 className="text-2xl font-bold text-paper">{isTeam ? `${teamName} portals` : personalSplit ? 'Personal portals' : 'Portals'}</h1>
             <p className="text-faint text-sm mt-1">
               {isTeam ? <>Shared with the {teamName} team · live at </> : personalSplit ? <>Only you can see these · live at </> : <>Your portals live at </>}
               <span className="text-muted">{portalHost ? `${portalHost}/` : `${APP_HOST}/${username}/`}</span>
