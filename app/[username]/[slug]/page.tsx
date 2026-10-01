@@ -8,7 +8,8 @@ import PortalView from './PortalView'
 import { DEFAULT_BRAND, normalizeBrand } from '@/lib/brand'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { canOpenPortal } from '@/lib/portalAccess'
+import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
+import Link from 'next/link'
 import { awaitingPayment } from '@/lib/paywall'
 
 export const revalidate = 0
@@ -70,7 +71,12 @@ export default async function PortalPage({ params }: Params) {
   const brand = { displayName, brandColor, logoUrl, brandDisplay, brandInitial, ownerIsPro, whiteLabel }
 
   // Password-protected and not unlocked yet: send only the name and branding
-  if (!(await canOpenPortal(admin, portal))) {
+  // The owner or a teammate looking at their own portal (never on customer
+  // domains, which have no session): a note says this is the client's view
+  const viewer = await viewerId()
+  const team = await isOwnerOrTeam(admin, viewer, portal.user_id)
+
+  if (!(await canOpenPortal(admin, portal, viewer))) {
     return (
       <main className="min-h-screen bg-ink text-paper">
         <PortalPasswordGate portalId={portal.id} portalName={portal.name} {...brand} />
@@ -87,6 +93,7 @@ export default async function PortalPage({ params }: Params) {
   return (
     <main className="min-h-screen bg-ink text-paper">
       <PortalTracker portalId={portal.id} ownerUsername={username} />
+      {team && <ClientViewNote portalId={portal.id} locked={awaitingPayment(portal)} />}
       <PortalView
         portalId={portal.id}
         portalName={portal.name}
@@ -109,5 +116,24 @@ export default async function PortalPage({ params }: Params) {
         approvalAt={portal.approval_at ?? null}
       />
     </main>
+  )
+}
+
+// Shown only to the owner and their team: this page is exactly what the client sees
+function ClientViewNote({ portalId, locked }: { portalId: string; locked: boolean }) {
+  return (
+    <div className="mx-auto w-full max-w-[640px] px-4 pt-6 sm:px-6 sm:pt-10 -mb-2 sm:-mb-6">
+      <div className="flex items-start gap-2 rounded-[10px] border border-dashed border-rule-2 px-3.5 py-2.5 text-xs leading-relaxed text-muted">
+        <svg className="mt-0.5 h-3.5 w-3.5 flex-none text-faint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <p>
+          You’re previewing what your client sees.
+          {locked && ' Files stay locked for them until the invoice is paid; you and your team can open them from the portal page.'}
+          {' '}<Link href={`/dashboard/portal/${portalId}`} className="font-medium text-paper hover:underline underline-offset-2 whitespace-nowrap">Back to portal →</Link>
+        </p>
+      </div>
+    </div>
   )
 }
