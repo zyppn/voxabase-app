@@ -1,10 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import AppShell from '../dashboard/AppShell'
-import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
-import AppSkeleton from '../dashboard/AppSkeleton'
+import { useCrumbs, useWorkspace } from '../WorkspaceProvider'
+import { PageSkeleton } from '../dashboard/AppSkeleton'
 import Link from 'next/link'
 
 export default function StripeSetupContent() {
@@ -13,17 +12,9 @@ export default function StripeSetupContent() {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<'loading' | 'idle' | 'connected' | 'incomplete'>('loading')
   const [verifying, setVerifying] = useState(false)
-  const [sidebar, setSidebar] = useState<{
-    counts: { all: number; active: number; completed: number }
-    usedBytes: number
-    plan: string
-    displayLabel: string
-    email: string
-    initials: string
-    stripeConnected: boolean
-  } | null>(null)
   const supabase = createClient()
-  const router = useRouter()
+  const { ws, refresh } = useWorkspace()
+  useCrumbs(['Stripe payments'])
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -50,34 +41,8 @@ export default function StripeSetupContent() {
         setStatus('idle')
       }
 
-      // Sidebar shows the current workspace (yours, or an Agency team you're in)
-      const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
-      const { data: allPortals } = await supabase
-        .from('portals')
-        .select('invoice_amount, invoice_paid, team_shared')
-        .eq('user_id', sideWs.ownerId)
-      // Only the current workspace's portals (Team or Personal)
-      const all = (allPortals || []).filter(p => sideWs.shared === null || p.team_shared === sideWs.shared)
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
-      const label = profile?.business_name || profile?.full_name || 'Your'
-      const init = (() => {
-        const base = profile?.business_name || profile?.full_name
-        if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
-        return (user.email?.[0] || 'U').toUpperCase()
-      })()
-      setSidebar({
-        counts: {
-          all: all.length,
-          active: all.filter(p => !p.invoice_paid || !p.invoice_amount).length,
-          completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
-        },
-        usedBytes: storageData || 0,
-        plan: sideWs.owner?.plan || 'free',
-        displayLabel: label,
-        email: user.email || '',
-        initials: init,
-        stripeConnected: connected,
-      })
+      // The sidebar's "Connect Stripe" / "Stripe account" follows the real status
+      if (connected !== (ws.me?.stripe_onboarding_complete === true)) refresh()
     }
     checkStatus()
   }, [success])
@@ -108,23 +73,12 @@ export default function StripeSetupContent() {
 
   if (status === 'loading') {
     return (
-      <AppSkeleton variant="centered" />
+      <PageSkeleton variant="centered" />
     )
   }
 
   return (
-    <AppShell
-      counts={sidebar?.counts || { all: 0, active: 0, completed: 0 }}
-      usedBytes={sidebar?.usedBytes || 0}
-      plan={sidebar?.plan || 'free'}
-      displayLabel={sidebar?.displayLabel || 'Your'}
-      email={sidebar?.email || ''}
-      initials={sidebar?.initials || 'U'}
-      stripeConnected={sidebar?.stripeConnected || false}
-      activeFilter={null}
-      crumbs={['Stripe payments']}
-      onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
-    >
+    <>
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         <div className="max-w-lg mx-auto">
           {/* Back button — clean arrow */}
@@ -140,11 +94,11 @@ export default function StripeSetupContent() {
               <p className="text-muted text-sm mb-8">
                 Your clients can now pay invoices directly to your bank account. Payments arrive within 2 business days.
               </p>
-              <div className="bg-ink-2 border border-green-400/20 rounded-xl p-5 mb-6 text-left">
+              <div className="border border-green-400/20 rounded-xl p-5 mb-6 text-left">
                 {[
                   'Clients pay invoices on your portals',
                   'Funds go directly to your bank account',
-                  sidebar?.plan === 'pro' || sidebar?.plan === 'agency' ? 'No Voxabase fee on your plan, only Stripe’s' : 'Voxabase keeps 2% (0% on Pro and Agency)',
+                  ws.me?.plan === 'pro' || ws.me?.plan === 'agency' ? 'No Voxabase fee on your plan, only Stripe’s' : 'Voxabase keeps 2% (0% on Pro and Agency)',
                   'You never need to chase payments again',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3 py-2">
@@ -192,7 +146,7 @@ export default function StripeSetupContent() {
                     : 'Stripe still needs a few details before clients can pay your invoices. Pick up where you left off.'
                   : 'Connect Stripe so your clients can pay invoices directly to your bank. Takes about 5 minutes.'}
               </p>
-              <div className="bg-ink-2 border border-rule rounded-xl p-6 mb-6 text-left">
+              <div className="border border-rule rounded-xl p-6 mb-6 text-left">
                 {[
                   'Client payments go directly to your bank',
                   'Stripe handles all payment security',
@@ -230,6 +184,6 @@ export default function StripeSetupContent() {
           )}
         </div>
       </div>
-    </AppShell>
+    </>
   )
 }

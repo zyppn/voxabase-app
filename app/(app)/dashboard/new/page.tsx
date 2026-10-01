@@ -1,11 +1,9 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import AppShell from '../AppShell'
-import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import { useCrumbs, useWorkspace } from '../../WorkspaceProvider'
 import { APP_HOST } from '@/lib/appHost'
-import AppSkeleton from '../AppSkeleton'
 import Link from 'next/link'
 
 function generateRandomSlug(name: string) {
@@ -21,71 +19,19 @@ export default function NewPortalPage() {
   const [description, setDescription] = useState('')
   const [invoiceAmount, setInvoiceAmount] = useState('')
   const [portalPassword, setPortalPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [plan, setPlan] = useState('free')
-  const [ownerId, setOwnerId] = useState<string | null>(null)
-  // Created in the Team workspace → shared with the team
-  const [inTeam, setInTeam] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [profileLoading, setProfileLoading] = useState(true)
-  const [sidebar, setSidebar] = useState<{
-    counts: { all: number; active: number; completed: number }
-    usedBytes: number
-    plan: string
-    displayLabel: string
-    email: string
-    initials: string
-    stripeConnected: boolean
-  } | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    const getProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      // Portals are created in the current workspace (yours, or your Agency team's)
-      const ws = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
-      setOwnerId(ws.ownerId)
-      setInTeam(ws.shared === true)
-      const profile = ws.owner
-      const me = ws.me
-      if (profile?.username) setUsername(profile.username)
-      if (profile?.plan) setPlan(profile.plan)
-
-      // Sidebar data
-      const { data: allPortals } = await supabase
-        .from('portals')
-        .select('invoice_amount, invoice_paid, team_shared')
-        .eq('user_id', ws.ownerId)
-      // Only the current workspace's portals (Team or Personal)
-      const all = (allPortals || []).filter(p => ws.shared === null || p.team_shared === ws.shared)
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: ws.ownerId })
-      const label = me?.business_name || me?.full_name || 'Your'
-      const init = (() => {
-        const base = me?.business_name || me?.full_name
-        if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
-        return (user.email?.[0] || 'U').toUpperCase()
-      })()
-      setSidebar({
-        counts: {
-          all: all.length,
-          active: all.filter(p => !p.invoice_paid || !p.invoice_amount).length,
-          completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
-        },
-        usedBytes: storageData || 0,
-        plan: profile?.plan || 'free',
-        displayLabel: label,
-        email: user.email || '',
-        initials: init,
-        stripeConnected: me?.stripe_onboarding_complete === true,
-      })
-
-      setProfileLoading(false)
-    }
-    getProfile()
-  }, [])
+  // Portals are created in the current workspace (yours, or your Agency team's)
+  const { ws, refresh } = useWorkspace()
+  useCrumbs(['New portal'])
+  const ownerId = ws.ownerId
+  // Created in the Team workspace → shared with the team
+  const inTeam = ws.shared === true
+  const username = ws.owner?.username || ''
+  const plan = ws.owner?.plan || 'free'
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -139,28 +85,15 @@ export default function NewPortalPage() {
         setError('Could not save the portal password. Please try again.'); setLoading(false); return
       }
     }
+    // Show it in the list (and the sidebar counts) straight away
+    await refresh()
     router.push('/dashboard')
   }
 
   const isPro = plan === 'pro' || plan === 'agency'
 
-  if (profileLoading) return (
-    <AppSkeleton variant="form" />
-  )
-
   return (
-    <AppShell
-      counts={sidebar?.counts || { all: 0, active: 0, completed: 0 }}
-      usedBytes={sidebar?.usedBytes || 0}
-      plan={sidebar?.plan || plan}
-      displayLabel={sidebar?.displayLabel || 'Your'}
-      email={sidebar?.email || ''}
-      initials={sidebar?.initials || 'U'}
-      stripeConnected={sidebar?.stripeConnected || false}
-      activeFilter={null}
-      crumbs={['New portal']}
-      onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
-    >
+    <>
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         <div className="max-w-xl mx-auto">
           {/* Back button — clean arrow */}
@@ -168,7 +101,7 @@ export default function NewPortalPage() {
           <h1 className="text-2xl font-bold mb-2 tracking-tight">Create a new portal</h1>
           <p className="text-muted text-sm mb-8">Your client will see this page when you share the link</p>
 
-          <form onSubmit={handleSubmit} className="bg-ink-2 border border-rule rounded-xl p-8 flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="border border-rule rounded-xl p-8 flex flex-col gap-5">
             {error && (
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}
@@ -286,6 +219,6 @@ export default function NewPortalPage() {
           </form>
         </div>
       </div>
-    </AppShell>
+    </>
   )
 }

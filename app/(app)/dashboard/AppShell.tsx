@@ -1,28 +1,15 @@
 'use client'
+// The signed-in app's frame: sidebar, mobile top bar and breadcrumbs. It reads
+// everything from the workspace (WorkspaceProvider) and lives in the (app)
+// layout, so it renders once and stays put as you move between pages.
 import { useState, useEffect, useRef, ReactNode } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useIdleSignOut } from '@/lib/useIdleSignOut'
-import { createClient } from '@/utils/supabase/client'
-import { hasTeams, seatsFor, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { seatsFor } from '@/lib/workspace'
 import { displayName, teamName, isOnline } from '@/lib/people'
+import type { RosterRow } from '@/lib/workspaceData'
+import { useWorkspace } from '../WorkspaceProvider'
 import Link from 'next/link'
-
-type Team = { owner_id: string; owner_label: string | null }
-type RosterRow = { member_id: string | null; email: string; status: 'pending' | 'active'; is_owner: boolean; business_name: string | null; full_name: string | null; last_seen_at: string | null }
-
-interface AppShellProps {
-  counts: { all: number; active: number; completed: number }
-  usedBytes: number
-  plan: string
-  displayLabel: string
-  email: string
-  initials: string
-  stripeConnected: boolean
-  activeFilter: 'all' | 'active' | 'completed' | null
-  onFilterClick: (key: 'all' | 'active' | 'completed') => void
-  /** Where you are, after "Portals" (e.g. ['Settings']). Empty on the dashboard itself. */
-  crumbs?: string[]
-  children: ReactNode
-}
 
 const STORAGE_LIMITS: Record<string, number> = {
   free: 1_073_741_824,
@@ -30,10 +17,13 @@ const STORAGE_LIMITS: Record<string, number> = {
   agency: 268_435_456_000,
 }
 
-export default function AppShell({
-  counts, usedBytes, plan, displayLabel, email, initials, stripeConnected,
-  activeFilter, onFilterClick, children, crumbs = [],
-}: AppShellProps) {
+type Filter = 'all' | 'active' | 'completed'
+
+export default function AppShell({ children }: { children: ReactNode }) {
+  const { user, ws, wsId, teams, roster, portals, usedBytes, crumbs, switching, switchWorkspace } = useWorkspace()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [menuOpen, setMenuOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -45,62 +35,31 @@ export default function AppShell({
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Agency teams this person belongs to (for the workspace switcher)
-  const [teams, setTeams] = useState<Team[]>([])
-  const [currentWs, setCurrentWs] = useState<string | null>(null)
-  // Everyone in the current workspace's team, for the sidebar's Team section
-  const [roster, setRoster] = useState<RosterRow[]>([])
-  const [myId, setMyId] = useState<string | null>(null)
-  const [myPlan, setMyPlan] = useState<string | null>(null)
-  const [teamLoaded, setTeamLoaded] = useState(false)
-  useEffect(() => {
-    let active = true
-    const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user || !active) return
-      const [{ data }, { data: meRow }] = await Promise.all([
-        supabase.from('team_members').select('owner_id, owner_label').eq('member_id', user.id).eq('status', 'active'),
-        supabase.from('profiles').select('plan, business_name, full_name').eq('id', user.id).single(),
-      ])
-      if (!active) return
-      // Your own Team workspace (Agency) first, then teams you've joined.
-      // owner_label is a snapshot from the invite, so prefer the owner's
-      // current name where their profile is readable.
-      const joined = (data || []) as Team[]
-      const { data: owners } = joined.length
-        ? await supabase.from('profiles').select('id, business_name, full_name, username').in('id', joined.map(t => t.owner_id))
-        : { data: [] }
-      if (!active) return
-      const own: Team[] = hasTeams(meRow?.plan) ? [{ owner_id: user.id, owner_label: teamName({ ...meRow, email: user.email }) }] : []
-      const list = [...own, ...joined.map(t => {
-        const o = owners?.find(p => p.id === t.owner_id)
-        return o ? { ...t, owner_label: teamName(o) } : t
-      })]
-      setTeams(list)
-      const cookie = readWorkspaceCookie()
-      const ws = list.some(t => t.owner_id === cookie) ? cookie : null
-      setCurrentWs(ws)
-      setMyId(user.id)
-      setMyPlan(meRow?.plan ?? null)
+  const me = ws.me
+  const plan = ws.owner?.plan || 'free'
+  const email = user.email
+  const displayLabel = me?.business_name || me?.full_name || 'Your'
+  const initials = (() => {
+    const base = me?.business_name || me?.full_name
+    if (base) return base.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
+    return (email[0] || 'U').toUpperCase()
+  })()
+  const stripeConnected = me?.stripe_onboarding_complete === true
+  const counts = {
+    all: portals.length,
+    active: portals.filter(p => !p.invoice_paid || !p.invoice_amount).length,
+    completed: portals.filter(p => p.invoice_paid && p.invoice_amount).length,
+  }
+  // The dashboard's filter lives in the URL, so the sidebar and the page agree
+  const filterParam = searchParams.get('filter')
+  const activeFilter: Filter | null = pathname === '/dashboard'
+    ? (filterParam === 'active' || filterParam === 'completed' ? filterParam : 'all')
+    : null
+  const onFilterClick = (key: Filter) => router.push(key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`)
 
-      // Presence: check in now and about once a minute while the app is open,
-      // and refresh the team list so online dots stay current.
-      const ownerId = ws || user.id
-      const tick = async () => {
-        if (document.visibilityState !== 'visible') return
-        await supabase.rpc('touch_presence')
-        const { data: rows } = await supabase.rpc('team_roster', { p_owner: ownerId })
-        if (active) { setRoster((rows || []) as RosterRow[]); setTeamLoaded(true) }
-      }
-      await tick()
-      timer = setInterval(tick, 60_000)
-      document.addEventListener('visibilitychange', tick)
-      cleanupVis = () => document.removeEventListener('visibilitychange', tick)
-    })
-    let timer: ReturnType<typeof setInterval> | undefined
-    let cleanupVis: (() => void) | undefined
-    return () => { active = false; if (timer) clearInterval(timer); cleanupVis?.() }
-  }, [])
+  const currentWs = wsId
+  const myId = user.id
+  const myPlan = me?.plan ?? null
   const currentTeam = teams.find(t => t.owner_id === currentWs) || null
   const hasMates = roster.some(r => !r.is_owner)
   const owner = roster.find(r => r.is_owner)
@@ -112,9 +71,10 @@ export default function AppShell({
     const rank = (r: RosterRow) => (r.is_owner ? 0 : r.member_id === myId ? 1 : r.status === 'active' ? 2 : 3)
     return rank(a) - rank(b)
   })
-  const switchWorkspace = (ownerId: string | null) => {
-    setWorkspaceCookie(ownerId)
-    window.location.assign('/dashboard')
+  // No page reload: the provider loads the other workspace in place
+  const switchTo = (ownerId: string | null) => {
+    setMenuOpen(false)
+    switchWorkspace(ownerId)
   }
 
   useEffect(() => {
@@ -199,7 +159,7 @@ export default function AppShell({
         </nav>
 
         {/* Team: who's in this workspace, with online status */}
-        {!collapsed && teamLoaded && currentTeam && (
+        {!collapsed && currentTeam && (
           <div className="mt-6 px-1">
             <div className="flex items-center justify-between px-1.5 mb-2">
               <span className="text-[11px] text-faint uppercase tracking-wide font-semibold">Team</span>
@@ -267,7 +227,7 @@ export default function AppShell({
                     <p className="px-3 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-faint">Workspace</p>
                     {[{ id: null as string | null, label: 'Personal' },
                       ...teams.map(t => ({ id: t.owner_id as string | null, label: `${t.owner_label || 'Your'} · Team` }))].map(w => (
-                      <button key={w.id || 'personal'} onClick={() => w.id !== currentWs && switchWorkspace(w.id)}
+                      <button key={w.id || 'personal'} onClick={() => w.id !== currentWs && switchTo(w.id)}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper text-left">
                         <span className="w-4 flex-shrink-0 text-paper">{w.id === currentWs ? '✓' : ''}</span>
                         <span className="truncate">{w.label}</span>
@@ -320,7 +280,7 @@ export default function AppShell({
           <Link href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></Link>
           <div className="flex items-center gap-2">
             {teams.length > 0 && (
-              <select aria-label="Workspace" value={currentWs || ''} onChange={(e) => switchWorkspace(e.target.value || null)}
+              <select aria-label="Workspace" value={currentWs || ''} onChange={(e) => switchTo(e.target.value || null)}
                 className="max-w-[150px] truncate rounded-lg border border-rule-2 bg-ink-2 px-2.5 py-2 text-xs text-muted focus:outline-none">
                 <option value="">Personal</option>
                 {teams.map(t => <option key={t.owner_id} value={t.owner_id}>{`${t.owner_label || 'Your'} · Team`}</option>)}
@@ -350,7 +310,10 @@ export default function AppShell({
           </ol>
         </nav>
 
-        {children}
+        {/* Dimmed briefly while another workspace loads */}
+        <div aria-busy={switching} className={`transition-opacity duration-150 ${switching ? 'opacity-50 pointer-events-none' : ''}`}>
+          {children}
+        </div>
       </div>
     </div>
   )

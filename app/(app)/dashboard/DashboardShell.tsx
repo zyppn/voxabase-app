@@ -1,69 +1,47 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import OnboardingChecklist, { markLinkCopied } from './OnboardingChecklist'
-import { useSearchParams } from 'next/navigation'
-import AppShell from './AppShell'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useWorkspace } from '../WorkspaceProvider'
+import { teamName as teamNameOf, teamHeading as teamHeadingOf } from '@/lib/people'
 import { APP_HOST } from '@/lib/appHost'
 import { portalUrl } from '@/lib/portalUrl'
+import type { WorkspacePortal } from '@/lib/workspaceData'
 import Link from 'next/link'
 
-interface Portal {
-  id: string
-  name: string
-  slug: string
-  owner_username: string | null
-  invoice_amount: number | null
-  invoice_paid: boolean
-  created_at?: string | null
-  starred?: boolean | null
-  files_ready?: boolean | null
-  password_protected?: boolean | null
-  approval_required?: boolean | null
-  approval_status?: 'approved' | 'changes_requested' | null
-}
+type Portal = WorkspacePortal
 
 type SortKey = 'name' | 'created' | 'views' | 'amount' | 'status'
 
-interface Props {
-  email: string
-  username: string
-  businessName: string
-  fullName: string
-  plan: string
-  stripeConnected: boolean
-  portals: Portal[]
-  viewMap: Record<string, { count: number; lastViewed: string | null }>
-  usedBytes: number
-  totalInvoiced: number
-  totalPaid: number
-  hasFiles: boolean
-  /** Set when working in an Agency team you belong to (not your own workspace). */
-  teamName?: string | null
-  /** Heading for the Team workspace (see teamHeading) */
-  teamHeading?: string | null
-  /** You own this workspace (false for teammates) */
-  isOwner?: boolean
-  /** Agency owner's Personal workspace (Team portals live in the other one) */
-  personalSplit?: boolean
-  /** Live custom domain, if the workspace has one */
-  portalHost?: string | null
-}
-
-export default function DashboardShell({
-  email, username, businessName, fullName, plan, stripeConnected,
-  portals, viewMap, usedBytes, totalInvoiced, totalPaid, hasFiles, teamName = null, teamHeading = null, portalHost = null, isOwner = true, personalSplit = false,
-}: Props) {
+// The dashboard: everything comes from the workspace (WorkspaceProvider), so
+// switching workspaces and live updates show here without a page reload.
+export default function DashboardShell() {
+  const { ws, portals, views: viewMap, hasFiles, liveDomain: portalHost, refresh } = useWorkspace()
+  const router = useRouter()
+  const owner = ws.owner
+  const username = owner?.username || ''
+  const plan = owner?.plan || 'free'
+  const stripeConnected = ws.me?.stripe_onboarding_complete === true
+  const isOwner = ws.isOwner
+  const teamName = ws.shared && owner ? teamNameOf(owner) : null
+  const teamHeading = ws.shared && owner ? teamHeadingOf(owner) : null
+  const personalSplit = ws.shared === false
+  const totalInvoiced = portals.reduce((sum, p) => sum + (p.invoice_amount || 0), 0)
+  const totalPaid = portals.filter(p => p.invoice_paid).reduce((sum, p) => sum + (p.invoice_amount || 0), 0)
   const isTeam = !!teamName
   const isMember = isTeam && !isOwner
   const searchParams = useSearchParams()
-  const initialFilter = (searchParams.get('filter') as 'all' | 'active' | 'completed') || 'all'
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>(
-    ['all', 'active', 'completed'].includes(initialFilter) ? initialFilter : 'all'
-  )
+  // The filter lives in the URL, so the sidebar and these tabs agree
+  const filterParam = searchParams.get('filter')
+  const filter: 'all' | 'active' | 'completed' = filterParam === 'active' || filterParam === 'completed' ? filterParam : 'all'
+  const setFilter = (key: 'all' | 'active' | 'completed') =>
+    router.replace(key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`, { scroll: false })
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'created', dir: 'desc' })
-  const [starred, setStarred] = useState<Record<string, boolean>>(() => Object.fromEntries(portals.map(p => [p.id, !!p.starred])))
+  // Stars you've just toggled, shown right away; the live list catches up on its own
+  const [starOverride, setStarOverride] = useState<Record<string, boolean>>({})
+  const starred: Record<string, boolean> = Object.fromEntries(portals.map(p => [p.id, starOverride[p.id] ?? !!p.starred]))
 
   const sortBy = (key: SortKey) => setSort(s => s.key === key
     ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
@@ -81,9 +59,10 @@ export default function DashboardShell({
 
   const toggleStar = async (id: string) => {
     const next = !starred[id]
-    setStarred(m => ({ ...m, [id]: next }))
+    setStarOverride(m => ({ ...m, [id]: next }))
     const { error } = await createClient().from('portals').update({ starred: next }).eq('id', id)
-    if (error) setStarred(m => ({ ...m, [id]: !next }))
+    if (error) setStarOverride(m => ({ ...m, [id]: !next }))
+    else refresh()
   }
 
   const activePortals = portals.filter(p => !p.invoice_paid || !p.invoice_amount)
@@ -99,13 +78,6 @@ export default function DashboardShell({
     if (days < 30) return `${days}d ago`
     return new Date(dateStr).toLocaleDateString()
   }
-
-  const displayLabel = businessName || fullName || 'Your'
-  const initials = (() => {
-    const base = businessName || fullName
-    if (base) return base.split(' ').filter(Boolean).slice(0, 2).map(s => s[0]).join('').toUpperCase()
-    return (email[0] || 'U').toUpperCase()
-  })()
 
   const planBadge =
     plan === 'agency' ? { label: 'Agency', cls: 'border-rule-2 text-muted' } :
@@ -158,17 +130,7 @@ export default function DashboardShell({
   ]
 
   return (
-    <AppShell
-      counts={{ all: portals.length, active: activePortals.length, completed: completedPortals.length }}
-      usedBytes={usedBytes}
-      plan={plan}
-      displayLabel={displayLabel}
-      email={email}
-      initials={initials}
-      stripeConnected={stripeConnected}
-      activeFilter={filter}
-      onFilterClick={setFilter}
-    >
+    <>
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -189,7 +151,7 @@ export default function DashboardShell({
         </div>
 
         {isMember && searchParams.get('joined') === '1' && (
-          <div role="status" className="bg-ink-2 border border-rule rounded-xl px-5 py-4 mb-7 flex items-center gap-3 text-sm">
+          <div role="status" className="border border-rule rounded-xl px-5 py-4 mb-7 flex items-center gap-3 text-sm">
             <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
             <p className="text-paper">You joined {teamName}. <span className="text-muted">You can switch back to your own workspace anytime from the menu at the bottom left.</span></p>
           </div>
@@ -203,7 +165,7 @@ export default function DashboardShell({
           linkShared={Object.values(viewMap).some((v) => v.count > 0)}
           latestPortalId={portals[0]?.id ?? null}
           fallback={!stripeConnected ? (
-          <div className="bg-ink-2 border border-rule rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
+          <div className="border border-rule rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-ink-3 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
@@ -372,6 +334,6 @@ export default function DashboardShell({
           <p className="text-xs text-faint mt-3">{shown.length} portal{shown.length !== 1 ? 's' : ''}{q ? ` matching "${search}"` : ''}</p>
         )}
       </div>
-    </AppShell>
+    </>
   )
 }

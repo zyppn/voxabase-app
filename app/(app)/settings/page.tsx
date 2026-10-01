@@ -10,10 +10,9 @@ import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import AppShell from '../dashboard/AppShell'
-import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import { useCrumbs, useWorkspace } from '../WorkspaceProvider'
 import { APP_HOST } from '@/lib/appHost'
-import AppSkeleton from '../dashboard/AppSkeleton'
+import { PageSkeleton } from '../dashboard/AppSkeleton'
 import Link from 'next/link'
 
 const PRESET_COLORS = [
@@ -47,17 +46,11 @@ function SettingsContent() {
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [loading, setLoading] = useState(true)
-  const [sidebar, setSidebar] = useState<{
-    counts: { all: number; active: number; completed: number }
-    usedBytes: number
-    plan: string
-    displayLabel: string
-    email: string
-    initials: string
-    stripeConnected: boolean
-  } | null>(null)
   const supabase = createClient()
   const router = useRouter()
+  // Saving your name updates the sidebar too
+  const { refresh: refreshWorkspace } = useWorkspace()
+  useCrumbs(['Settings'])
   const searchParams = useSearchParams()
   const upgraded = searchParams.get('upgraded')
 
@@ -85,35 +78,6 @@ function SettingsContent() {
         setBrandDisplay(profile.brand_display || 'both')
       }
 
-      // Sidebar shows the current workspace (yours, or an Agency team you're in)
-      const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
-      const { data: allPortals } = await supabase
-        .from('portals')
-        .select('invoice_amount, invoice_paid, team_shared')
-        .eq('user_id', sideWs.ownerId)
-      // Only the current workspace's portals (Team or Personal)
-      const all = (allPortals || []).filter(p => sideWs.shared === null || p.team_shared === sideWs.shared)
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
-      const label = profile?.business_name || profile?.full_name || 'Your'
-      const init = (() => {
-        const base = profile?.business_name || profile?.full_name
-        if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
-        return (user.email?.[0] || 'U').toUpperCase()
-      })()
-      setSidebar({
-        counts: {
-          all: all.length,
-          active: all.filter(p => !p.invoice_paid || !p.invoice_amount).length,
-          completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
-        },
-        usedBytes: storageData || 0,
-        plan: sideWs.owner?.plan || 'free',
-        displayLabel: label,
-        email: user.email || '',
-        initials: init,
-        stripeConnected: profile?.stripe_onboarding_complete === true,
-      })
-
       setLoading(false)
     }
     load()
@@ -139,7 +103,7 @@ function SettingsContent() {
       .update({ full_name: name, business_name: businessName.trim() || null })
       .eq('id', user.id)
     if (error) setErrorMessage(error.message)
-    else { setSuccessMessage('Profile updated successfully'); setTimeout(() => setSuccessMessage(''), 3000) }
+    else { setSuccessMessage('Profile updated successfully'); setTimeout(() => setSuccessMessage(''), 3000); refreshWorkspace() }
     setSaving(false)
   }
 
@@ -265,22 +229,11 @@ function SettingsContent() {
   }
 
   if (loading) return (
-    <AppSkeleton variant="settings" />
+    <PageSkeleton variant="settings" />
   )
 
   return (
-    <AppShell
-      counts={sidebar?.counts || { all: 0, active: 0, completed: 0 }}
-      usedBytes={sidebar?.usedBytes || 0}
-      plan={sidebar?.plan || plan}
-      displayLabel={sidebar?.displayLabel || 'Your'}
-      email={sidebar?.email || ''}
-      initials={sidebar?.initials || 'U'}
-      stripeConnected={sidebar?.stripeConnected || false}
-      activeFilter={null}
-      crumbs={['Settings']}
-      onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
-    >
+    <>
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         {/* Back button */}
 
@@ -313,7 +266,7 @@ function SettingsContent() {
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
-            <div className="bg-ink-2 border border-rule rounded-xl p-6">
+            <div className="border border-rule rounded-xl p-6">
               <h2 className="font-semibold text-paper mb-5">Profile</h2>
               <div className="flex flex-col gap-4">
                 <div>
@@ -343,7 +296,7 @@ function SettingsContent() {
             </div>
 
             {/* Email: stretches so both columns end on the same line */}
-            <div className="bg-ink-2 border border-rule rounded-xl p-6 flex-1 flex flex-col">
+            <div className="border border-rule rounded-xl p-6 flex-1 flex flex-col">
               <h2 className="font-semibold text-paper mb-5">Email address</h2>
               <div className="flex flex-col gap-4 flex-1">
                 <div>
@@ -371,7 +324,7 @@ function SettingsContent() {
           </div>
 
           {/* ── Right column: Custom branding ── */}
-          <div className="bg-ink-2 border border-rule rounded-xl p-6 relative overflow-hidden">
+          <div className="border border-rule rounded-xl p-6 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-paper">Custom branding</h2>
@@ -539,7 +492,7 @@ function SettingsContent() {
         <DomainCard plan={plan} />
 
         {/* ── Membership / Plan & Billing — full width ── */}
-        <div className="mt-5 bg-ink-2 border border-rule rounded-xl p-6">
+        <div className="mt-5 border border-rule rounded-xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-ink-3 border border-rule-2`}>
@@ -585,14 +538,14 @@ function SettingsContent() {
         </div>
 
       </div>
-    </AppShell>
+    </>
   )
 }
 
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <AppSkeleton variant="settings" />
+      <PageSkeleton variant="settings" />
     }>
       <SettingsContent />
     </Suspense>
