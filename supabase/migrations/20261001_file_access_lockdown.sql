@@ -30,6 +30,14 @@ create policy "lockdown: deliverables owner or team" on storage.objects
     or public.is_team_member_of_folder((storage.foldername(name))[1])
   );
 
+-- 1b. Owners can see (and so delete or replace) their own stored files.
+--     Storage deletes need read access too, and with the public rule gone
+--     only the team rule was left. Owner's own folder only.
+drop policy if exists "owners read own deliverables" on storage.objects;
+create policy "owners read own deliverables" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'deliverables' and (storage.foldername(name))[1] = auth.uid()::text);
+
 -- 2. File records (they hold each file's storage path)
 drop policy if exists "lockdown: files owner or team" on public.files;
 create policy "lockdown: files owner or team" on public.files
