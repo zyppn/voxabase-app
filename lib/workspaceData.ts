@@ -29,6 +29,7 @@ export interface WorkspacePortal {
   approval_required?: boolean | null
   approval_status?: 'approved' | 'changes_requested' | null
   team_shared?: boolean | null
+  lock_until_paid?: boolean | null
 }
 
 export type ViewStats = Record<string, { count: number; lastViewed: string | null }>

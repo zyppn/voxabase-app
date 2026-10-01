@@ -8,6 +8,7 @@ import { teamName as teamNameOf, teamHeading as teamHeadingOf } from '@/lib/peop
 import { APP_HOST } from '@/lib/appHost'
 import { portalUrl } from '@/lib/portalUrl'
 import type { WorkspacePortal } from '@/lib/workspaceData'
+import { awaitingPayment } from '@/lib/paywall'
 import Link from 'next/link'
 
 type Portal = WorkspacePortal
@@ -291,6 +292,7 @@ export default function DashboardShell() {
                             ? { text: 'Approved', cls: 'text-green-400' } : { text: 'Changes requested', cls: 'text-amber-400' })
                           if (!portal.files_ready) notes.push({ text: 'Not published yet', cls: 'text-faint' })
                           if (portal.password_protected) notes.push({ text: 'Password protected', cls: 'text-faint' })
+                          if (awaitingPayment(portal)) notes.push({ text: 'Locked until paid', cls: 'text-faint' })
                           return notes.length > 0 && (
                             <p className="text-xs mt-0.5 truncate">
                               {notes.map((n, i) => <span key={n.text} className={n.cls}>{i > 0 && <span className="text-faint"> · </span>}{n.text}</span>)}

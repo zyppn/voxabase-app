@@ -9,6 +9,7 @@ import { PageSkeleton } from '../../AppSkeleton'
 import { useCrumbs, useWorkspace } from '../../../WorkspaceProvider'
 import { hasTeams } from '@/lib/workspace'
 import type { Team } from '@/lib/workspaceData'
+import { awaitingPayment } from '@/lib/paywall'
 import { APP_HOST } from '@/lib/appHost'
 import { portalUrl } from '@/lib/portalUrl'
 import { markLinkCopied } from '../../OnboardingChecklist'
@@ -31,6 +32,7 @@ interface Portal {
   approval_note?: string | null
   approval_name?: string | null
   approval_at?: string | null
+  lock_until_paid?: boolean | null
 }
 
 // Marks a drag as a reorder of the file list (not files from outside)
@@ -78,6 +80,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [deleting, setDeleting] = useState(false)
   const [togglingReady, setTogglingReady] = useState(false)
   const [savingApproval, setSavingApproval] = useState(false)
+  const [savingLock, setSavingLock] = useState(false)
+  const [lockError, setLockError] = useState('')
   // Moving between Personal and Team
   const [moveTarget, setMoveTarget] = useState<Team | null>(null)
   const [moving, setMoving] = useState(false)
@@ -149,6 +153,17 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const { error } = await supabase.from('portals').update({ files_ready: newVal }).eq('id', portal.id)
     if (!error) { setPortal({ ...portal, files_ready: newVal }); refresh() }
     setTogglingReady(false)
+  }
+
+  // Files unlock after payment: the client sees the list, downloads once paid
+  const handleToggleLock = async () => {
+    if (!portal) return
+    setSavingLock(true); setLockError('')
+    const next = !portal.lock_until_paid
+    const { error } = await supabase.from('portals').update({ lock_until_paid: next }).eq('id', portal.id)
+    if (error) setLockError('Couldn’t save this setting. Please try again.')
+    else { setPortal({ ...portal, lock_until_paid: next }); refresh() }
+    setSavingLock(false)
   }
 
   // Client approvals (Agency): turn the review step on/off, or clear a response
@@ -652,7 +667,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </h2>
               <p className="text-xs text-faint mt-1">
                 {portal.files_ready
-                  ? 'Your client can see and download every file.'
+                  ? (awaitingPayment(portal) ? 'Your client sees the files, which unlock once the invoice is paid.' : 'Your client can see and download every file.')
                   : !canToggleReady
                   ? 'Upload at least one file, then publish it for your client.'
                   : 'Until you publish, your client sees a “files being prepared” message.'}
@@ -732,8 +747,36 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     {portal.invoice_amount ? 'Edit invoice' : 'Add invoice'}
                   </button>
                 ) : (
-                  <span className="text-xs text-faint">Locked after payment</span>
+                  <span className="text-xs text-faint">Paid · can’t be changed</span>
                 )}
+              </div>
+
+              {/* Files unlock after payment */}
+              <div className="mt-4 border-t border-rule pt-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p id="lock-label" className="text-sm font-semibold text-paper">Lock files until paid</p>
+                    <p className="text-xs text-faint mt-1">
+                      {!portal.invoice_amount
+                        ? 'Add an invoice to keep files locked until it’s paid.'
+                        : portal.invoice_paid
+                        ? (portal.lock_until_paid ? 'Paid, so the files are unlocked.' : 'Invoice paid.')
+                        : portal.lock_until_paid
+                        ? 'Your client sees the file list and can download once they pay.'
+                        : 'Your client can download before paying.'}
+                    </p>
+                  </div>
+                  <Switch on={!!portal.lock_until_paid} labelledBy="lock-label" onClick={handleToggleLock}
+                    disabled={savingLock || !portal.invoice_amount || portal.invoice_paid} />
+                </div>
+                {portal.lock_until_paid && !!portal.invoice_amount && !portal.invoice_paid && ws.owner?.stripe_onboarding_complete !== true && (
+                  <p className="mt-3 text-xs text-amber-400">
+                    {isOwner
+                      ? <>Your client can’t pay until you <Link href="/stripe-setup" className="underline underline-offset-2 hover:text-amber-300">connect Stripe</Link>, so the files would stay locked.</>
+                      : 'Your client can’t pay until the team owner connects Stripe, so the files would stay locked.'}
+                  </p>
+                )}
+                {lockError && <p role="alert" className="mt-2 text-xs text-red-400">{lockError}</p>}
               </div>
             </div>
             {/* Client approval (Agency) */}
@@ -807,7 +850,9 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   ) : (
                     <p className="flex items-center gap-2 text-sm text-muted">
                       <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-rule-3" />
-                      {portal.files_ready ? 'Waiting for your client to review' : 'Your client can review once files are published'}
+                      {!portal.files_ready ? 'Your client can review once files are published'
+                    : awaitingPayment(portal) ? 'Your client can review once they’ve paid and the files unlock'
+                    : 'Waiting for your client to review'}
                     </p>
                   )}
                 </div>
@@ -974,5 +1019,15 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         </div>
       )}
     </>
+  )
+}
+
+// On/off switch for portal settings
+function Switch({ on, onClick, disabled, labelledBy }: { on: boolean; onClick: () => void; disabled?: boolean; labelledBy: string }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} aria-labelledby={labelledBy} onClick={onClick} disabled={disabled}
+      className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${on ? 'bg-green-400' : 'bg-[#4a4557]'}`}>
+      <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-6' : 'translate-x-1'}`} />
+    </button>
   )
 }

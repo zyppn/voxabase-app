@@ -18,6 +18,7 @@ export default function NewPortalPage() {
   const [useCustomSlug, setUseCustomSlug] = useState(false)
   const [description, setDescription] = useState('')
   const [invoiceAmount, setInvoiceAmount] = useState('')
+  const [lockUntilPaid, setLockUntilPaid] = useState(false)
   const [portalPassword, setPortalPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -75,6 +76,7 @@ export default function NewPortalPage() {
       invoice_amount: invoiceAmount ? parseFloat(invoiceAmount) : null,
       password_protected: !!password,
       team_shared: inTeam,
+      ...(lockUntilPaid && Number(invoiceAmount) > 0 ? { lock_until_paid: true } : {}),
     }).select('id').single()
     if (error || !created) { setError(error?.message || 'Could not create the portal. Please try again.'); setLoading(false); return }
     // The password goes in a private table only the owner and team can read
@@ -182,6 +184,18 @@ export default function NewPortalPage() {
                 />
               </div>
             </div>
+
+            {/* Files unlock after payment */}
+            {Number(invoiceAmount) > 0 && (
+              <label htmlFor="portal-lock" className="-mt-2 flex items-start gap-3 cursor-pointer">
+                <input id="portal-lock" type="checkbox" checked={lockUntilPaid} onChange={(e) => setLockUntilPaid(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#865fd9]" />
+                <span>
+                  <span className="block text-sm text-paper">Lock files until this invoice is paid</span>
+                  <span className="block text-xs text-faint mt-0.5">Your client sees the file list and can download once they pay.</span>
+                </span>
+              </label>
+            )}
 
             <div>
               <label htmlFor="portal-password" className="text-sm text-muted mb-1.5 block">
