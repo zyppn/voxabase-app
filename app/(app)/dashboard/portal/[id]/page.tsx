@@ -4,9 +4,10 @@ import FileThumb from '@/app/_components/FileThumb'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import AppSkeleton from '../../AppSkeleton'
-import AppShell from '../../AppShell'
-import { hasTeams, loadWorkspace, readWorkspaceCookie, setWorkspaceCookie } from '@/lib/workspace'
+import { PageSkeleton } from '../../AppSkeleton'
+import { useCrumbs, useWorkspace } from '../../../WorkspaceProvider'
+import { hasTeams } from '@/lib/workspace'
+import type { Team } from '@/lib/workspaceData'
 import { APP_HOST } from '@/lib/appHost'
 import { portalUrl } from '@/lib/portalUrl'
 import { markLinkCopied } from '../../OnboardingChecklist'
@@ -67,58 +68,37 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [editDescription, setEditDescription] = useState('')
   const [editInvoice, setEditInvoice] = useState('')
   const [editPassword, setEditPassword] = useState('')
-  const [userPlan, setUserPlan] = useState('free')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingReady, setTogglingReady] = useState(false)
   const [savingApproval, setSavingApproval] = useState(false)
-  // Teammates work in the owner's workspace; only the owner can delete a portal
-  const [isOwner, setIsOwner] = useState(true)
   // Moving between Personal and Team
-  const [myTeams, setMyTeams] = useState<{ owner_id: string; owner_label: string | null; owner_username: string }[]>([])
-  const [moveTarget, setMoveTarget] = useState<{ owner_id: string; owner_label: string | null; owner_username: string } | null>(null)
+  const [moveTarget, setMoveTarget] = useState<Team | null>(null)
   const [moving, setMoving] = useState(false)
   const [moveError, setMoveError] = useState('')
-  // Agency white-label domain, once live: share links use it
-  const [liveDomain, setLiveDomain] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [viewStats, setViewStats] = useState<{ count: number; lastViewed: string | null }>({ count: 0, lastViewed: null })
-  const [sidebar, setSidebar] = useState<{
-    counts: { all: number; active: number; completed: number }
-    usedBytes: number
-    plan: string
-    displayLabel: string
-    email: string
-    initials: string
-    stripeConnected: boolean
-  } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const supabase = createClient()
+  const { user, ws, teams, liveDomain, refresh, switchWorkspace } = useWorkspace()
+  useCrumbs(portal ? [portal.name] : [])
+  // Teammates work in the owner's workspace; only the owner can delete a portal
+  const isOwner = ws.isOwner
+  const userPlan = ws.owner?.plan || 'free'
+  // Teams you've joined, which you can move your own portals into
+  const myTeams = ws.isOwner ? teams.filter(t => t.owner_id !== user.id) : []
+  const ownerId = ws.ownerId
 
+  // Loads again if the workspace changes (a move, or a switch from the sidebar)
   useEffect(() => {
     const load = async () => {
       const { id } = await params
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
 
-      const ws = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
-      const profileData = ws.me
-      if (ws.owner?.plan) setUserPlan(ws.owner.plan)
-      setIsOwner(ws.isOwner)
-      if (ws.isOwner) {
-        const { data: tm } = await supabase.from('team_members').select('owner_id, owner_label, owner_username').eq('member_id', user.id).eq('status', 'active')
-        setMyTeams(tm || [])
-      }
-      if (ws.owner?.plan === 'agency') {
-        const { data: cd } = await supabase.from('custom_domains').select('domain').eq('owner_id', ws.ownerId).eq('verified', true).maybeSingle()
-        setLiveDomain(cd?.domain ?? null)
-      }
-
-      const { data: portalData } = await supabase.from('portals').select('*').eq('id', id).eq('user_id', ws.ownerId).single()
+      const { data: portalData } = await supabase.from('portals').select('*').eq('id', id).eq('user_id', ownerId).single()
       if (!portalData) { router.push('/dashboard'); return }
       setPortal(portalData)
       setEditName(portalData.name)
@@ -134,7 +114,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         .from('files')
         .select('*')
         .eq('portal_id', id)
-        .eq('user_id', ws.ownerId)
+        .eq('user_id', ownerId)
         .order('sort_order', { ascending: true })
       setFiles(filesData || [])
 
@@ -149,39 +129,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         setViewStats({ count: viewData.length, lastViewed })
       }
 
-      // Sidebar data: all portals (counts) + storage
-      const { data: allPortals } = await supabase
-        .from('portals')
-        .select('invoice_amount, invoice_paid, team_shared')
-        .eq('user_id', ws.ownerId)
-      // Only the current workspace's portals (Team or Personal)
-      const all = (allPortals || []).filter(p => ws.shared === null || p.team_shared === ws.shared)
-      const activeCount = all.filter(p => !p.invoice_paid || !p.invoice_amount).length
-      const completedCount = all.filter(p => p.invoice_paid && p.invoice_amount).length
-
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: ws.ownerId })
-
-      const label = profileData?.business_name || profileData?.full_name || 'Your'
-      const init = (() => {
-        const base = profileData?.business_name || profileData?.full_name
-        if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
-        return (user.email?.[0] || 'U').toUpperCase()
-      })()
-
-      setSidebar({
-        counts: { all: all.length, active: activeCount, completed: completedCount },
-        usedBytes: storageData || 0,
-        plan: ws.owner?.plan || 'free',
-        displayLabel: label,
-        email: user.email || '',
-        initials: init,
-        stripeConnected: profileData?.stripe_onboarding_complete === true,
-      })
-
       setLoading(false)
     }
     load()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the workspace owner changes
+  }, [ownerId])
 
   const handleToggleReady = async () => {
     if (!portal) return
@@ -189,7 +141,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setTogglingReady(true)
     const newVal = !portal.files_ready
     const { error } = await supabase.from('portals').update({ files_ready: newVal }).eq('id', portal.id)
-    if (!error) setPortal({ ...portal, files_ready: newVal })
+    if (!error) { setPortal({ ...portal, files_ready: newVal }); refresh() }
     setTogglingReady(false)
   }
 
@@ -211,8 +163,9 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     const next = !portal.team_shared
     const { error } = await supabase.from('portals').update({ team_shared: next }).eq('id', portal.id)
     if (error) { setMoving(false); setMoveError('Could not move the portal. Please try again.'); return }
-    setWorkspaceCookie(next ? portal.user_id : null)
-    window.location.assign(`/dashboard/portal/${portal.id}`)
+    setPortal({ ...portal, team_shared: next })
+    await switchWorkspace(next ? portal.user_id : null, { stay: true })
+    setMoving(false)
   }
 
   // Teammate: move one of your own portals into a Team (it becomes the owner's)
@@ -225,8 +178,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) { setMoving(false); setMoveError(data.error || 'Could not move the portal. Please try again.'); return }
-    setWorkspaceCookie(moveTarget.owner_id)
-    window.location.assign(`/dashboard/portal/${portal.id}`)
+    // It now belongs to the team owner: open it there (the page reloads it)
+    setMoveTarget(null)
+    await switchWorkspace(moveTarget.owner_id, { stay: true })
+    setMoving(false)
   }
 
   const handleResetApproval = async () => {
@@ -459,6 +414,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     })
     setSaving(false)
     setShowEditModal(false)
+    refresh()
   }
 
   const handleDeletePortal = async () => {
@@ -469,6 +425,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     }
     await supabase.from('files').delete().eq('portal_id', portal.id)
     await supabase.from('portals').delete().eq('id', portal.id)
+    await refresh()
     router.push('/dashboard')
   }
 
@@ -491,7 +448,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     return new Date(dateStr).toLocaleDateString()
   }
 
-  if (loading) return <AppSkeleton variant="detail" />
+  if (loading) return <PageSkeleton variant="detail" />
   if (!portal) return null
 
   const shareUrl = portalUrl(portal, liveDomain)
@@ -503,18 +460,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const isPro = userPlan === 'pro' || userPlan === 'agency'
 
   return (
-    <AppShell
-      counts={sidebar?.counts || { all: 0, active: 0, completed: 0 }}
-      usedBytes={sidebar?.usedBytes || 0}
-      plan={sidebar?.plan || userPlan}
-      displayLabel={sidebar?.displayLabel || 'Your'}
-      email={sidebar?.email || ''}
-      initials={sidebar?.initials || 'U'}
-      stripeConnected={sidebar?.stripeConnected || false}
-      activeFilter={null}
-      crumbs={[portal.name]}
-      onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
-    >
+    <>
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         {/* Back button — clean arrow */}
 
@@ -565,7 +511,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             the right. On small screens it's one column: publish and link first. */}
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           {/* Files section */}
-          <div className="order-3 lg:order-none min-w-0 bg-ink-2 border border-rule rounded-xl">
+          <div className="order-3 lg:order-none min-w-0 border border-rule rounded-xl">
             <div className="px-6 py-4 border-b border-rule flex items-center justify-between">
               <div>
                 <h2 className="font-semibold text-paper">
@@ -687,7 +633,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="contents lg:flex lg:flex-col lg:gap-4">
             {/* Publish: the client sees the files only once they're published */}
-            <section aria-label="Publishing" className="order-1 lg:order-none bg-ink-2 border border-rule rounded-xl p-5">
+            <section aria-label="Publishing" className="order-1 lg:order-none border border-rule rounded-xl p-5">
               <h2 className="font-semibold text-paper text-sm flex items-center gap-2">
                 <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.files_ready ? 'bg-green-400' : 'bg-amber-400'}`} />
                 {portal.files_ready ? 'Files are published' : 'Files not published yet'}
@@ -712,7 +658,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               )}
             </section>
             {/* Client link. Copy link is the page's main button once files are published */}
-            <section aria-label="Client link" className="order-2 lg:order-none bg-ink-2 border border-rule rounded-xl p-5">
+            <section aria-label="Client link" className="order-2 lg:order-none border border-rule rounded-xl p-5">
               <h2 className="font-semibold text-paper text-sm mb-3">Client link</h2>
               <div className="flex items-center gap-2.5 min-w-0 bg-ink border border-rule rounded-lg px-3.5 py-2.5">
                 <svg className="w-4 h-4 text-faint flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -750,7 +696,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </p>
             </section>
             {/* Invoice section */}
-            <div className="order-4 lg:order-none bg-ink-2 border border-rule rounded-xl p-5">
+            <div className="order-4 lg:order-none border border-rule rounded-xl p-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="min-w-0">
                   <h2 className="font-semibold text-paper text-sm mb-1.5">Invoice</h2>
@@ -779,7 +725,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </div>
             </div>
             {/* Client approval (Agency) */}
-            <div className="order-5 lg:order-none bg-ink-2 border border-rule rounded-xl p-5">
+            <div className="order-5 lg:order-none border border-rule rounded-xl p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <h2 className="font-semibold text-paper text-sm flex items-center gap-2">
@@ -1011,6 +957,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       )}
-    </AppShell>
+    </>
   )
 }

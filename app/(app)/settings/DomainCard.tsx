@@ -60,7 +60,7 @@ export default function DomainCard({ plan }: { plan: string }) {
   const apex = domain ? domain.split('.').slice(-2).join('.') : ''
 
   return (
-    <div className="mt-5 bg-ink-2 border border-rule rounded-xl p-6">
+    <div className="mt-5 border border-rule rounded-xl p-6">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
         <h2 className="font-semibold text-paper flex items-center gap-2">
           Portal domain

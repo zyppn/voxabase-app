@@ -1,10 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import AppShell from '../dashboard/AppShell'
-import { loadWorkspace, readWorkspaceCookie } from '@/lib/workspace'
+import AppShell from '../(app)/dashboard/AppShell'
+import WorkspaceProvider, { useCrumbs } from '../(app)/WorkspaceProvider'
+import { loadWorkspaceData, type WorkspaceData } from '@/lib/workspaceData'
+import { readWorkspaceCookie } from '@/lib/workspace'
 import Link from 'next/link'
 
 // Plan features not built yet get a "Soon" tag. Everything listed is live now.
@@ -15,19 +17,11 @@ function PricingContent() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
   const [currentPlan, setCurrentPlan] = useState('free')
   const [authChecked, setAuthChecked] = useState(false)
-  const [sidebar, setSidebar] = useState<{
-    counts: { all: number; active: number; completed: number }
-    usedBytes: number
-    plan: string
-    displayLabel: string
-    email: string
-    initials: string
-    stripeConnected: boolean
-  } | null>(null)
+  // Signed in: the app frame (sidebar) for the current workspace
+  const [frame, setFrame] = useState<WorkspaceData | null>(null)
   const searchParams = useSearchParams()
   const upgraded = searchParams.get('upgraded')
   const supabase = createClient()
-  const router = useRouter()
 
   useEffect(() => {
     const load = async () => {
@@ -40,34 +34,7 @@ function PricingContent() {
         .single()
       if (profile?.plan) setCurrentPlan(profile.plan)
 
-      // Sidebar shows the current workspace (yours, or an Agency team you're in)
-      const sideWs = await loadWorkspace(supabase, user.id, readWorkspaceCookie())
-      const { data: allPortals } = await supabase
-        .from('portals')
-        .select('invoice_amount, invoice_paid, team_shared')
-        .eq('user_id', sideWs.ownerId)
-      // Only the current workspace's portals (Team or Personal)
-      const all = (allPortals || []).filter(p => sideWs.shared === null || p.team_shared === sideWs.shared)
-      const { data: storageData } = await supabase.rpc('get_user_storage_bytes', { user_uuid: sideWs.ownerId })
-      const label = profile?.business_name || profile?.full_name || 'Your'
-      const init = (() => {
-        const base = profile?.business_name || profile?.full_name
-        if (base) return base.split(' ').filter(Boolean).slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()
-        return (user.email?.[0] || 'U').toUpperCase()
-      })()
-      setSidebar({
-        counts: {
-          all: all.length,
-          active: all.filter(p => !p.invoice_paid || !p.invoice_amount).length,
-          completed: all.filter(p => p.invoice_paid && p.invoice_amount).length,
-        },
-        usedBytes: storageData || 0,
-        plan: sideWs.owner?.plan || 'free',
-        displayLabel: label,
-        email: user.email || '',
-        initials: init,
-        stripeConnected: profile?.stripe_onboarding_complete === true,
-      })
+      setFrame(await loadWorkspaceData(supabase, { id: user.id, email: user.email || '' }, readWorkspaceCookie()))
       setAuthChecked(true)
     }
     load()
@@ -157,8 +124,8 @@ function PricingContent() {
 
     if (plan.key === 'free') {
       return (
-        <a href={sidebar ? '/dashboard' : '/signup'} className="w-full text-center py-3 rounded-lg border border-rule-2 hover:border-rule-3 text-muted hover:text-paper text-sm font-semibold block">
-          {sidebar ? 'Go to dashboard' : 'Get started free'}
+        <a href={frame ? '/dashboard' : '/signup'} className="w-full text-center py-3 rounded-lg border border-rule-2 hover:border-rule-3 text-muted hover:text-paper text-sm font-semibold block">
+          {frame ? 'Go to dashboard' : 'Get started free'}
         </a>
       )
     }
@@ -296,22 +263,11 @@ function PricingContent() {
   }
 
   // Logged-in users get the full app shell; visitors see a clean standalone page.
-  if (sidebar) {
+  if (frame) {
     return (
-      <AppShell
-        counts={sidebar.counts}
-        usedBytes={sidebar.usedBytes}
-        plan={sidebar.plan}
-        displayLabel={sidebar.displayLabel}
-        email={sidebar.email}
-        initials={sidebar.initials}
-        stripeConnected={sidebar.stripeConnected}
-        activeFilter={null}
-        crumbs={['Plans']}
-        onFilterClick={(key) => router.push(`/dashboard?filter=${key}`)}
-      >
-        {pricingBody}
-      </AppShell>
+      <WorkspaceProvider initial={frame}>
+        <AppShell><PlansCrumb />{pricingBody}</AppShell>
+      </WorkspaceProvider>
     )
   }
 
@@ -336,4 +292,8 @@ export default function PricingPage() {
       <PricingContent />
     </Suspense>
   )
+}
+function PlansCrumb() {
+  useCrumbs(['Plans'])
+  return null
 }
