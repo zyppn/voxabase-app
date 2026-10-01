@@ -16,9 +16,13 @@ export function teamName(p: Named) {
   return p.business_name?.trim() || p.full_name?.trim() || p.username || p.email || 'Team'
 }
 
-// Team dashboard heading: the business name on its own, else "<name>'s portals".
+// Team dashboard heading: the business name on its own, else the owner's
+// first name, as in "Jacob's team portals".
 export function teamHeading(p: Named) {
-  return p.business_name?.trim() || `${teamName(p)}'s portals`
+  const business = p.business_name?.trim()
+  if (business) return business
+  const first = p.full_name?.trim().split(/\s+/)[0]
+  return `${first || teamName(p)}'s team portals`
 }
 
 /** Active in the last 3 minutes (the app checks in about once a minute). */
