@@ -90,7 +90,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [moving, setMoving] = useState(false)
   const [moveError, setMoveError] = useState('')
   // Reordering: the gap the dragged file would land in (0 = above the first file)
-  const [dropAt, setDropAt] = useState<number | null>(null)
+  const [dropAtState, setDropAtState] = useState<number | null>(null)
+  // Also kept in a ref: a drop can arrive before the last dragover has re-rendered
+  const dropAtRef = useRef<number | null>(null)
+  const dropAt = dropAtState
+  const setDropAt = (gap: number | null) => { dropAtRef.current = gap; setDropAtState(gap) }
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [viewStats, setViewStats] = useState<{ count: number; lastViewed: string | null }>({ count: 0, lastViewed: null })
@@ -401,12 +405,29 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     // Handled here: don't let the upload area below treat it as new files
     e.stopPropagation()
     const from = files.findIndex(f => f.id === draggingId)
-    const gap = dropAt
+    const gap = dropAtRef.current
     setDraggingId(null)
     setDropAt(null)
     if (from === -1 || gap === null) return
     // Gaps count positions with the dragged file still in place
     await moveFile(from, gap > from ? gap - 1 : gap)
+  }
+
+  // Past the ends of the list (the Files header above, "Add more files" below)
+  // still counts: the file goes to the top or the end, where the line shows.
+  const handleCardDragOver = (e: React.DragEvent) => {
+    if (!draggingId || (e.target as HTMLElement).closest('[data-file-row]')) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    const rows = e.currentTarget.querySelectorAll('[data-file-row]')
+    if (!rows.length) return
+    if (e.clientY <= rows[0].getBoundingClientRect().top) setDropAt(0)
+    else if (e.clientY >= rows[rows.length - 1].getBoundingClientRect().bottom) setDropAt(files.length)
+  }
+
+  const handleCardDrop = (e: React.DragEvent) => {
+    // A drop on a row is handled by the row; uploads by the upload area
+    if (draggingId) handleDrop(e)
   }
 
   const startRename = (file: FileRecord) => {
@@ -553,7 +574,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             the right. On small screens it's one column: publish and link first. */}
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           {/* Files section */}
-          <div className="order-3 lg:order-none min-w-0 border border-rule rounded-xl">
+          <div className="order-3 lg:order-none min-w-0 border border-rule rounded-xl" onDragOver={handleCardDragOver} onDrop={handleCardDrop}>
             <div className="px-6 py-4 border-b border-rule flex items-center justify-between">
               <div>
                 <h2 className="font-semibold text-paper">
@@ -608,7 +629,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               ) : (
                 <div className="divide-y divide-rule">
                   {files.map((file, index) => (
-                    <div key={file.id} draggable
+                    <div key={file.id} draggable data-file-row
                       onDragStart={(e) => handleDragStart(e, file.id)}
                       onDragOver={(e) => handleDragOver(e, index)}
                       onDrop={handleDrop}
