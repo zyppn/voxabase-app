@@ -6,6 +6,7 @@ import Stripe from 'stripe'
 import { assertStripeEnv } from '@/lib/stripe-guard'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal } from '@/lib/portalAccess'
+import { MAX_INVOICE } from '@/lib/invoice'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-05-27.dahlia',
@@ -32,6 +33,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'There’s no invoice to pay on this portal.' }, { status: 404 })
     }
     if (portal.invoice_paid) return NextResponse.json({ error: 'This invoice has already been paid.' }, { status: 400 })
+    // Stripe Checkout can't take more than this in one payment
+    if (amount > MAX_INVOICE) return NextResponse.json({ error: 'This invoice is over the $999,999.99 card payment limit. Ask the sender to split it.' }, { status: 400 })
     if (!(await canOpenPortal(admin, portal))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

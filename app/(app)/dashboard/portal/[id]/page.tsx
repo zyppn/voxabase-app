@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Switch from '@/app/_components/Switch'
 import { storageSafeName } from '@/lib/files'
+import { cleanAmountInput, invoiceAmountError } from '@/lib/invoice'
 import { PageSkeleton } from '../../AppSkeleton'
 import { useCrumbs, useWorkspace } from '../../../WorkspaceProvider'
 import { hasTeams } from '@/lib/workspace'
@@ -80,6 +81,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editInvoice, setEditInvoice] = useState('')
+  const [editError, setEditError] = useState('')
   const [editPassword, setEditPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -108,6 +110,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   useCrumbs(portal ? [portal.name] : [])
   // Teammates work in the owner's workspace; only the owner can delete a portal
   const isOwner = ws.isOwner
+  const editInvoiceError = portal && !portal.invoice_paid ? invoiceAmountError(editInvoice) : null
   const userPlan = ws.owner?.plan || 'free'
   // Teams you've joined, which you can move your own portals into
   const myTeams = ws.isOwner ? teams.filter(t => t.owner_id !== user.id) : []
@@ -465,13 +468,16 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
 
   const handleEditSave = async () => {
     if (!portal) return
+    if (!portal.invoice_paid && invoiceAmountError(editInvoice)) return
     setSaving(true)
-    await supabase.from('portals').update({
+    setEditError('')
+    const { error } = await supabase.from('portals').update({
       name: editName,
       description: editDescription || null,
       invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
       ...(userPlan !== 'free' ? { password_protected: !!editPassword } : {}),
     }).eq('id', portal.id)
+    if (error) { setEditError('Couldn’t save your changes. Please try again.'); setSaving(false); return }
     if (userPlan !== 'free') {
       if (editPassword) {
         await supabase.from('portal_passwords').upsert({ portal_id: portal.id, user_id: portal.user_id, password: editPassword })
@@ -941,13 +947,17 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   Invoice amount <span className="text-faint">(optional)</span>
                   {portal.invoice_paid && <span className="ml-2 text-xs text-yellow-400">Locked — invoice already paid</span>}
                 </label>
-                <div className={`flex items-center bg-ink border rounded-lg px-4 py-3 focus-within:border-accent ${portal.invoice_paid ? 'border-rule-3 opacity-50' : 'border-rule-2'}`}>
+                <div className={`flex items-center bg-ink border rounded-lg px-4 py-3 ${portal.invoice_paid ? 'border-rule-3 opacity-50' : editInvoiceError ? 'border-red-400/60 focus-within:border-red-400' : 'border-rule-2 focus-within:border-accent'}`}>
                   <span className="text-faint text-sm mr-1">$</span>
-                  <input id="edit-invoice" autoFocus={focusInvoice} type="number" value={editInvoice} onChange={(e) => setEditInvoice(e.target.value)}
+                  <input id="edit-invoice" autoFocus={focusInvoice} type="text" inputMode="decimal" autoComplete="off" value={editInvoice}
+                    onChange={(e) => setEditInvoice(v => cleanAmountInput(e.target.value, v))}
                     disabled={portal.invoice_paid}
-                    className="flex-1 bg-transparent text-paper focus:outline-none text-sm disabled:cursor-not-allowed"
-                    placeholder="0.00" min="0" step="0.01" />
+                    aria-invalid={!!editInvoiceError}
+                    aria-describedby={editInvoiceError ? 'edit-invoice-error' : undefined}
+                    className="flex-1 min-w-0 bg-transparent text-paper focus:outline-none text-sm disabled:cursor-not-allowed"
+                    placeholder="0.00" />
                 </div>
+                {editInvoiceError && <p id="edit-invoice-error" role="alert" className="text-xs text-red-400 mt-1.5">{editInvoiceError}</p>}
               </div>
               <div>
                 <label htmlFor="edit-password" className="text-sm text-muted mb-1.5 block">
@@ -971,9 +981,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 )}
               </div>
             </div>
+            {editError && <p role="alert" className="mt-4 text-sm text-red-400">{editError}</p>}
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowEditModal(false)} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleEditSave} disabled={saving} className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+              <button onClick={() => { setShowEditModal(false); setEditError('') }} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
+              <button onClick={handleEditSave} disabled={saving || !!editInvoiceError} className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save changes'}
               </button>
             </div>
