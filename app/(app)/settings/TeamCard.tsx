@@ -105,7 +105,7 @@ export default function TeamCard({ plan }: { plan: string }) {
   const over = used > seats
 
   return (
-    <div id="team" className="mt-5 border border-rule rounded-xl p-6 scroll-mt-16">
+    <div id="team" className="mt-5 border border-rule bg-card rounded-xl p-6 scroll-mt-16">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
         <h2 className="font-semibold text-paper flex items-center gap-2">
           Team

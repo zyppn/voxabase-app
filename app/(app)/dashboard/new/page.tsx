@@ -108,7 +108,7 @@ export default function NewPortalPage() {
           <h1 className="text-2xl font-bold mb-2 tracking-tight">Create a new portal</h1>
           <p className="text-muted text-sm mb-8">Name it, add your files, then share the link with your client</p>
 
-          <form onSubmit={handleSubmit} className="border border-rule rounded-xl p-8 flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="border border-rule bg-card rounded-xl p-8 flex flex-col gap-5">
             {error && (
               <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">
                 {error}

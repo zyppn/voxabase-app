@@ -591,7 +591,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             the right. On small screens it's one column: publish and link first. */}
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           {/* Files section */}
-          <div className="order-3 lg:order-none min-w-0 border border-rule rounded-xl">
+          <div className="order-3 lg:order-none min-w-0 border border-rule bg-card rounded-xl">
             <div className="px-6 py-4 border-b border-rule flex items-center justify-between">
               <div>
                 <h2 className="font-semibold text-paper">
@@ -649,7 +649,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     <div key={file.id} draggable data-file-row
                       onDragStart={(e) => handleDragStart(e, file.id)}
                       onDragEnd={() => { setDraggingId(null); setDropAt(null) }}
-                      className={`px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-2 group cursor-grab active:cursor-grabbing hover:bg-ink-3/40 transition-colors relative ${draggingId === file.id ? 'opacity-40' : ''}`}
+                      className={`px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-2 group cursor-grab active:cursor-grabbing hover:bg-row-hover transition-colors relative ${draggingId === file.id ? 'opacity-40' : ''}`}
                     >
                       {/* Where the dragged file will land: a line in the gap above this row (or below the last one) */}
                       {showDropLine(index) && <DropLine edge="top" />}
@@ -704,7 +704,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     </div>
                   ))}
                   <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                    className="w-full text-sm text-faint hover:text-paper hover:bg-ink-3/40 text-left px-4 sm:px-6 py-3.5 rounded-b-xl">
+                    className="w-full text-sm text-faint hover:text-paper hover:bg-row-hover text-left px-4 sm:px-6 py-3.5 rounded-b-xl">
                     {uploading ? uploadLabel : `+ Add more files (or drop them here) · up to ${MAX_FILE_MB} MB each`}
                   </button>
                 </div>
@@ -713,7 +713,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="contents lg:flex lg:flex-col lg:gap-4">
             {/* Publish: the client sees the files only once they're published */}
-            <section aria-label="Publishing" className="order-1 lg:order-none border border-rule rounded-xl p-5">
+            <section aria-label="Publishing" className="order-1 lg:order-none border border-rule bg-card rounded-xl p-5">
               <h2 className="font-semibold text-paper text-sm flex items-center gap-2">
                 <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${portal.files_ready ? 'bg-green-400' : 'bg-amber-400'}`} />
                 {portal.files_ready ? 'Files are published' : 'Files not published yet'}
@@ -738,7 +738,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               )}
             </section>
             {/* Client link: click the link to copy it; Preview sits top right like the Invoice card's Edit */}
-            <section aria-label="Client link" className="order-2 lg:order-none border border-rule rounded-xl p-5">
+            <section aria-label="Client link" className="order-2 lg:order-none border border-rule bg-card rounded-xl p-5">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <h2 className="font-semibold text-paper text-sm">Client link</h2>
                 {/* Same tab: the client view's "Back to portal" (or Back) returns here. Cmd/Ctrl-click still opens a new tab. */}
@@ -786,7 +786,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </p>
             </section>
             {/* Invoice section */}
-            <div className="order-4 lg:order-none border border-rule rounded-xl p-5">
+            <div className="order-4 lg:order-none border border-rule bg-card rounded-xl p-5">
               <div className="flex items-center justify-between gap-3 mb-1.5">
                 <h2 className="font-semibold text-paper text-sm">Invoice</h2>
                 {/* Opens the portal's Edit dialog at the amount; locked once paid */}
@@ -843,7 +843,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </div>
             </div>
             {/* Client approval (Agency) */}
-            <div className="order-5 lg:order-none border border-rule rounded-xl p-5">
+            <div className="order-5 lg:order-none border border-rule bg-card rounded-xl p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <h2 className="font-semibold text-paper text-sm flex items-center gap-2">

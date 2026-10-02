@@ -18,7 +18,7 @@ export default function SessionsCard() {
   }
 
   return (
-    <div className="border border-rule rounded-xl p-6 flex flex-col">
+    <div className="border border-rule bg-card rounded-xl p-6 flex flex-col">
       <h2 className="font-semibold text-paper mb-2">Sessions</h2>
       <p className="text-sm text-muted mb-5 flex-grow">
         You’re signed out automatically after {days} days without activity. Left your account open somewhere? Sign out of every device at once.
