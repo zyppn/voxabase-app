@@ -12,6 +12,7 @@ import { useWorkspace } from '../WorkspaceProvider'
 import Link from 'next/link'
 import Logo from '@/app/_components/Logo'
 import ThemeSwitch from '@/app/_components/ThemeSwitch'
+import { confirmLeave } from '@/lib/unsaved'
 
 const STORAGE_LIMITS: Record<string, number> = {
   free: 1_073_741_824,
@@ -57,7 +58,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const activeFilter: Filter | null = pathname === '/dashboard'
     ? (filterParam === 'active' || filterParam === 'completed' ? filterParam : 'all')
     : null
-  const onFilterClick = (key: Filter) => router.push(key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`)
+  const onFilterClick = (key: Filter) => { if (confirmLeave()) router.push(key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`) }
 
   const currentWs = wsId
   const myId = user.id
@@ -75,6 +76,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   })
   // No page reload: the provider loads the other workspace in place
   const switchTo = (ownerId: string | null) => {
+    if (!confirmLeave()) return
     setMenuOpen(false)
     switchWorkspace(ownerId)
   }
@@ -165,7 +167,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="mt-6 px-1">
             <div className="flex items-center justify-between px-1.5 mb-2">
               <span className="text-[11px] text-faint uppercase tracking-wide font-semibold">Team</span>
-              {isMyTeam && <Link href="/settings#team" className="text-[11px] text-faint hover:text-paper">Manage</Link>}
+              {isMyTeam && <Link href="/settings?section=team" className="text-[11px] text-faint hover:text-paper">Manage</Link>}
             </div>
             <div className="flex flex-col gap-0.5">
               {people.map(m => {
@@ -187,7 +189,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 )
               })}
               {isMyTeam && roster.filter(r => !r.is_owner).length < seatsFor(myPlan) && (
-                <Link href="/settings#team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
+                <Link href="/settings?section=team" className="flex items-center gap-2.5 px-1.5 py-1.5 rounded-lg text-[13px] text-faint hover:text-paper hover:bg-ink-2">
                   <span className="w-6 h-6 rounded-full border border-dashed border-rule-3 grid place-items-center flex-shrink-0">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.4" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" /></svg>
                   </span>
