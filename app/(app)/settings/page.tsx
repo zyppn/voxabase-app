@@ -6,6 +6,7 @@ import TeamCard from './TeamCard'
 import DomainCard from './DomainCard'
 import { verifyPassword } from '@/lib/verifyPassword'
 import { MIN_NAME_LENGTH } from '@/lib/people'
+import { storageSafeName } from '@/lib/files'
 import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -149,7 +150,7 @@ function SettingsContent() {
       if (oldPath) await supabase.storage.from('branding').remove([oldPath])
     }
 
-    const ext = file.name.split('.').pop()
+    const ext = storageSafeName(file.name).split('.').pop()
     const filePath = `${user.id}/logo-${Date.now()}.${ext}`
     const { error: uploadError } = await supabase.storage.from('branding').upload(filePath, file)
 

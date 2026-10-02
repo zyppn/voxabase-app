@@ -38,3 +38,19 @@ export function viewContentType(file: NamedFile): string {
   if (isTextFile(file) || ACTIVE_TYPES.has(file.file_type || '')) return 'text/plain; charset=utf-8'
   return file.file_type || 'application/octet-stream'
 }
+
+// Storage keys only allow plain ASCII letters, digits and a few symbols, so a
+// name like "Screenshot 2026-10-01 at 9.41.12 PM.png" (macOS puts a special
+// space before PM), "Résumé.pdf" or "photo[1].jpg" fails with "Invalid key".
+// The key never reaches the client: views and downloads use the file's saved
+// name. So keep a readable ASCII version of the name and drop everything else.
+export function storageSafeName(name: string) {
+  const dot = name.lastIndexOf('.')
+  const clean = (s: string) => s
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // é → e
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/-{2,}/g, '-').replace(/^[-.]+|[-.]+$/g, '')
+  const base = clean(dot > 0 ? name.slice(0, dot) : name).slice(0, 80) || 'file'
+  const ext = dot > 0 ? clean(name.slice(dot + 1)).slice(0, 10) : ''
+  return ext ? `${base}.${ext}` : base
+}

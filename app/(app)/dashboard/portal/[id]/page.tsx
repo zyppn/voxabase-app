@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Switch from '@/app/_components/Switch'
+import { storageSafeName } from '@/lib/files'
 import { PageSkeleton } from '../../AppSkeleton'
 import { useCrumbs, useWorkspace } from '../../../WorkspaceProvider'
 import { hasTeams } from '@/lib/workspace'
@@ -285,7 +286,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         failures.push(tooLarge(file.name, file.size))
         continue
       }
-      const filePath = `${portal.user_id}/${portal.id}/${Date.now()}-${file.name}`
+      const filePath = `${portal.user_id}/${portal.id}/${Date.now()}-${storageSafeName(file.name)}`
       const { error: upErr } = await supabase.storage.from('deliverables').upload(filePath, file)
       if (upErr) {
         failures.push(describeUploadError(upErr, file.name, file.size))
@@ -341,11 +342,13 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.storage.from('deliverables').remove([existingFile.file_path])
-    const newPath = `${portal.user_id}/${portal.id}/${Date.now()}-${file.name}`
+    // Upload the new file first, and only remove the old one once the record
+    // points at the new one: a failed replace leaves the original intact
+    const newPath = `${portal.user_id}/${portal.id}/${Date.now()}-${storageSafeName(file.name)}`
     const { error: upErr } = await supabase.storage.from('deliverables').upload(newPath, file)
     if (!upErr) {
       await supabase.from('files').update({ name: file.name, file_path: newPath, file_size: file.size, file_type: file.type }).eq('id', replacingId)
+      await supabase.storage.from('deliverables').remove([existingFile.file_path])
       const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', portal.user_id).order('sort_order', { ascending: true })
       setFiles(filesData || [])
     } else {
