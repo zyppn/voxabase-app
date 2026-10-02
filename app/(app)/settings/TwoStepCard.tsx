@@ -88,7 +88,7 @@ export default function TwoStepCard() {
   }
 
   return (
-    <div className="border border-rule rounded-xl p-6 flex flex-col">
+    <div className="border border-rule bg-card rounded-xl p-6 flex flex-col">
       <div className="flex items-center justify-between gap-3 mb-2">
         <h2 className="font-semibold text-paper">Two-step verification</h2>
         {loaded && (

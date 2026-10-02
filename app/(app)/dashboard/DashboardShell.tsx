@@ -152,7 +152,7 @@ export default function DashboardShell() {
         </div>
 
         {isMember && searchParams.get('joined') === '1' && (
-          <div role="status" className="border border-rule rounded-xl px-5 py-4 mb-7 flex items-center gap-3 text-sm">
+          <div role="status" className="border border-rule bg-card rounded-xl px-5 py-4 mb-7 flex items-center gap-3 text-sm">
             <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
             <p className="text-paper">You joined {teamName}. <span className="text-muted">You can switch back to your own workspace anytime from the menu at the bottom left.</span></p>
           </div>
@@ -166,7 +166,7 @@ export default function DashboardShell() {
           linkShared={Object.values(viewMap).some((v) => v.count > 0)}
           latestPortalId={portals[0]?.id ?? null}
           fallback={!stripeConnected ? (
-          <div className="border border-rule rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
+          <div className="border border-rule bg-card rounded-xl p-5 mb-7 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-ink-3 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
@@ -188,7 +188,7 @@ export default function DashboardShell() {
             { label: 'Collected', value: totalPaid },
             { label: 'Outstanding', value: totalInvoiced - totalPaid },
           ].map((stat) => (
-            <div key={stat.label} className="border border-rule rounded-xl px-4 py-3 min-w-0">
+            <div key={stat.label} className="border border-rule bg-card rounded-xl px-4 py-3 min-w-0">
               <p className="text-xs text-muted">{stat.label}</p>
               <p className="text-xl font-bold tracking-tight text-paper mt-0.5 truncate">${stat.value.toLocaleString()}</p>
             </div>
@@ -252,7 +252,7 @@ export default function DashboardShell() {
             )}
           </div>
         ) : (
-          <div className="border border-rule rounded-xl overflow-hidden">
+          <div className="border border-rule bg-card rounded-xl overflow-hidden">
             <div className="hidden md:grid grid-cols-[20px_1fr_90px_130px_110px_110px] gap-4 pl-3 pr-4 py-2.5 bg-ink border-b border-rule text-[11px]">
               <span aria-hidden="true" />
               {sortHead('name', 'Name')}

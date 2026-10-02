@@ -146,7 +146,7 @@ export default function StripeSetupContent() {
                     : 'Stripe still needs a few details before clients can pay your invoices. Pick up where you left off.'
                   : 'Connect Stripe so your clients can pay invoices directly to your bank. Takes about 5 minutes.'}
               </p>
-              <div className="border border-rule rounded-xl p-6 mb-6 text-left">
+              <div className="border border-rule bg-card rounded-xl p-6 mb-6 text-left">
                 {[
                   'Client payments go directly to your bank',
                   'Stripe handles all payment security',

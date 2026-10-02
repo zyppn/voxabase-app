@@ -268,7 +268,7 @@ function SettingsContent() {
           {/* ── Left column ── */}
           <div className="flex flex-col gap-5">
             {/* Profile */}
-            <div className="border border-rule rounded-xl p-6">
+            <div className="border border-rule bg-card rounded-xl p-6">
               <h2 className="font-semibold text-paper mb-5">Profile</h2>
               <div className="flex flex-col gap-4">
                 <div>
@@ -298,7 +298,7 @@ function SettingsContent() {
             </div>
 
             {/* Appearance: also in the profile menu */}
-            <div className="border border-rule rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="border border-rule bg-card rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="font-semibold text-paper">Appearance</h2>
                 <p className="text-sm text-faint mt-1">System follows your device. Client portals keep their own look.</p>
@@ -307,7 +307,7 @@ function SettingsContent() {
             </div>
 
             {/* Email: stretches so both columns end on the same line */}
-            <div className="border border-rule rounded-xl p-6 flex-1 flex flex-col">
+            <div className="border border-rule bg-card rounded-xl p-6 flex-1 flex flex-col">
               <h2 className="font-semibold text-paper mb-5">Email address</h2>
               <div className="flex flex-col gap-4 flex-1">
                 <div>
@@ -335,7 +335,7 @@ function SettingsContent() {
           </div>
 
           {/* ── Right column: Custom branding ── */}
-          <div className="border border-rule rounded-xl p-6 relative overflow-hidden">
+          <div className="border border-rule bg-card rounded-xl p-6 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-semibold text-paper">Custom branding</h2>
@@ -503,7 +503,7 @@ function SettingsContent() {
         <DomainCard plan={plan} />
 
         {/* ── Membership / Plan & Billing — full width ── */}
-        <div className="mt-5 border border-rule rounded-xl p-6">
+        <div className="mt-5 border border-rule bg-card rounded-xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-ink-3 border border-rule-2`}>
