@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f5f2" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f2ee" },
     { media: "(prefers-color-scheme: dark)", color: "#0c0b10" },
   ],
   colorScheme: "light dark",
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${mona.variable} h-full antialiased`}
+      className={`${mona.variable} h-full`}
       // The Appearance script sets data-theme before React loads
       suppressHydrationWarning
     >
