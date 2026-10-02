@@ -2,6 +2,8 @@
 // screen, so pages and route loading files show only PageSkeleton: a body
 // shaped like the page that's coming. AppSkeleton adds the sidebar and
 // breadcrumb bar in outline, for when there's no app frame yet (the first load).
+import Logo from '@/app/_components/Logo'
+
 type Variant = 'dashboard' | 'detail' | 'form' | 'settings' | 'centered' | 'blank'
 
 const bar = 'bg-ink-3 rounded-lg animate-pulse'
@@ -12,7 +14,7 @@ export default function AppSkeleton({ variant = 'dashboard' }: { variant?: Varia
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-rule fixed inset-y-0 left-0 py-5 px-3">
         <div className="flex items-center justify-between px-1 mb-7 h-8">
-          <img src="/vblogo.png" alt="" className="h-7 w-auto opacity-90" />
+          <Logo className="h-[18px] w-auto opacity-90" title={null} />
         </div>
         <div className={`h-9 mx-1 mb-2 ${bar}`} />
         <div className="h-px bg-ink-3 my-1.5 mx-2" />
@@ -29,7 +31,7 @@ export default function AppSkeleton({ variant = 'dashboard' }: { variant?: Varia
       <div className="flex-1 min-w-0 lg:ml-60">
         {/* Mobile top bar + breadcrumb bar */}
         <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-rule">
-          <img src="/vblogo.png" alt="" className="h-7 w-auto" />
+          <Logo className="h-[18px] w-auto" title={null} />
           <div className={`h-8 w-20 ${bar}`} />
         </div>
         <div className="h-12 border-b border-rule flex items-center px-6 lg:px-10"><div className={`h-3 w-28 ${bar}`} /></div>

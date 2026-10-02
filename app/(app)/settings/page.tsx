@@ -4,6 +4,7 @@ import TwoStepCard from './TwoStepCard'
 import SessionsCard from './SessionsCard'
 import TeamCard from './TeamCard'
 import DomainCard from './DomainCard'
+import ThemeSwitch from '@/app/_components/ThemeSwitch'
 import { verifyPassword } from '@/lib/verifyPassword'
 import { MIN_NAME_LENGTH } from '@/lib/people'
 import { storageSafeName } from '@/lib/files'
@@ -290,10 +291,19 @@ function SettingsContent() {
                   </div>
                 </div>
                 <button onClick={handleSaveProfile} disabled={saving}
-                  className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm mt-1">
+                  className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm mt-1">
                   {saving ? 'Saving...' : 'Save changes'}
                 </button>
               </div>
+            </div>
+
+            {/* Appearance: also in the profile menu */}
+            <div className="border border-rule rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="font-semibold text-paper">Appearance</h2>
+                <p className="text-sm text-faint mt-1">System follows your device. Client portals keep their own look.</p>
+              </div>
+              <ThemeSwitch labels />
             </div>
 
             {/* Email: stretches so both columns end on the same line */}
@@ -345,7 +355,7 @@ function SettingsContent() {
                 const showLogo = brandDisplay === 'both' || brandDisplay === 'logo'
                 const showName = brandDisplay === 'both' || brandDisplay === 'name'
                 return (
-                  <div className="mb-5 overflow-hidden rounded-[14px] border border-rule bg-ink-2" aria-label="Preview of your client portal">
+                  <div className="scheme-dark mb-5 overflow-hidden rounded-[14px] border border-rule bg-ink-2" aria-label="Preview of your client portal">
                     <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         {showLogo && (logoUrl ? (
@@ -436,7 +446,7 @@ function SettingsContent() {
                 {PRESET_COLORS.map((color) => (
                   <button key={color.value} onClick={() => setBrandColor(color.value)} title={color.label}
                     className="w-8 h-8 rounded-full transition-transform hover:scale-110 flex items-center justify-center"
-                    style={{ background: color.value, boxShadow: brandColor.toLowerCase() === color.value.toLowerCase() ? `0 0 0 2px #08080a, 0 0 0 4px ${color.value}` : 'none' }}>
+                    style={{ background: color.value, boxShadow: brandColor.toLowerCase() === color.value.toLowerCase() ? `0 0 0 2px var(--color-ink-2), 0 0 0 4px ${color.value}` : 'none' }}>
                     {brandColor.toLowerCase() === color.value.toLowerCase() && (
                       <svg className="w-3.5 h-3.5 text-paper" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     )}
@@ -459,7 +469,7 @@ function SettingsContent() {
               </div>
 
               <button onClick={handleSaveBranding} disabled={savingBrand}
-                className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
+                className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
                 {savingBrand ? 'Saving...' : 'Save branding'}
               </button>
             </div>
@@ -474,7 +484,7 @@ function SettingsContent() {
                 </div>
                 <p className="text-paper font-semibold mb-1">Custom branding is a Pro feature</p>
                 <p className="text-muted text-sm mb-4 max-w-xs">Add your logo and accent color so clients see your brand, not ours.</p>
-                <Link href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</Link>
+                <Link href="/pricing" className="bg-paper hover:bg-paper-hover text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade to Pro</Link>
               </div>
             )}
           </div>
@@ -517,14 +527,14 @@ function SettingsContent() {
             </div>
             <div className="flex items-center gap-2.5 flex-shrink-0">
               {plan === 'free' ? (
-                <Link href="/pricing" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</Link>
+                <Link href="/pricing" className="bg-paper hover:bg-paper-hover text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Upgrade plan</Link>
               ) : (
                 <>
                   {plan !== 'agency' && (
                     <Link href="/pricing" className="text-sm text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-4 py-2.5 rounded-lg">Upgrade to Agency</Link>
                   )}
                   <button onClick={handleManageBilling} disabled={managingBilling}
-                    className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+                    className="bg-paper hover:bg-paper-hover text-ink font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
                     {managingBilling ? 'Opening...' : 'Manage billing'}
                   </button>
                 </>

@@ -96,7 +96,7 @@ export default function DomainCard({ plan }: { plan: string }) {
               placeholder="files.yourstudio.com" autoComplete="off" autoCapitalize="none" spellCheck={false}
               className="flex-1 bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper text-sm placeholder:text-faint focus:outline-none focus:border-accent" />
             <button type="submit" disabled={!!busy || !input.trim()}
-              className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+              className="bg-paper hover:bg-paper-hover text-ink font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
               {busy === 'connect' ? 'Connecting…' : 'Connect domain'}
             </button>
           </form>
@@ -154,7 +154,7 @@ export default function DomainCard({ plan }: { plan: string }) {
           <div className="flex flex-wrap items-center gap-2.5 mt-5">
             {!state.live && (
               <button onClick={check} disabled={!!busy}
-                className="bg-paper hover:bg-white text-ink font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+                className="bg-paper hover:bg-paper-hover text-ink font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-50">
                 {busy === 'check' ? 'Checking…' : 'Check again'}
               </button>
             )}

@@ -120,7 +120,7 @@ export default function OnboardingChecklist({ hasPortal, hasFiles, stripeConnect
                 {isNext && (
                   <>
                     <p className="text-xs text-muted mt-0.5">{s.text}</p>
-                    <Link href={s.href} className="inline-block mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-paper hover:bg-white text-ink">{s.cta}</Link>
+                    <Link href={s.href} className="inline-block mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-paper hover:bg-paper-hover text-ink">{s.cta}</Link>
                   </>
                 )}
               </div>

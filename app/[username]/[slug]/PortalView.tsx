@@ -5,6 +5,7 @@ import FilesList, { type PortalFile } from './FilesList'
 import PayInvoiceButton from './PayInvoiceButton'
 import ApprovalPanel from './ApprovalPanel'
 import { brandInk, brandLine, brandSurface, textOnBrand } from '@/lib/brand'
+import Logo from '@/app/_components/Logo'
 
 export interface PortalViewProps {
   portalId: string
@@ -37,7 +38,7 @@ export function PortalBrand({ ownerIsPro, brandDisplay, logoUrl, displayName, br
   ownerIsPro: boolean; brandDisplay: string; logoUrl: string | null; displayName: string; brandInitial: string; brandColor: string; centered?: boolean
 }) {
   if (!ownerIsPro) {
-    return <img src="/vblogo.png" alt="Voxabase" className={`h-6 w-auto ${centered ? 'mx-auto' : ''}`} />
+    return <Logo className={`h-4 w-auto ${centered ? 'mx-auto' : ''}`} />
   }
   const showLogo = brandDisplay === 'both' || brandDisplay === 'logo'
   const showName = brandDisplay === 'both' || brandDisplay === 'name'

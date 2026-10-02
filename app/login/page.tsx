@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import CodeInput from '@/app/_components/CodeInput'
 import { joinNext } from '@/lib/joinNext'
+import Logo from '@/app/_components/Logo'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -122,7 +123,7 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-6" />
+          <Logo className="h-[26px] w-auto mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-paper mb-1">{mfaFactor ? 'Two-step verification' : 'Welcome back'}</h1>
           <p className="text-muted text-sm">{mfaFactor ? 'One more step to keep your account safe' : 'Sign in to your Voxabase account'}</p>
         </div>
@@ -144,7 +145,7 @@ export default function LoginPage() {
             {error ? <p className="text-red-400">{error}</p> : loading ? <p className="text-muted">Verifying…</p> : null}
           </div>
           <button type="submit" disabled={loading || mfaCode.length !== 6}
-            className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-2 text-sm">
+            className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-2 text-sm">
             {loading ? 'Verifying...' : 'Verify and sign in'}
           </button>
           <div className="w-full flex items-center justify-between gap-3 mt-5 pt-5 border-t border-rule text-xs">
@@ -203,7 +204,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
+            className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>

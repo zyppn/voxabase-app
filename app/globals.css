@@ -1,24 +1,39 @@
 @import "tailwindcss";
 
 /* Voxabase design tokens: shared with the voxabase.com landing page.
-   Ink and paper carry the interface; purple marks brand, selection and state. */
+   Ink and paper carry the interface; purple marks brand, selection and state.
+   Each token is light-dark(light, dark): the page's color-scheme (set from the
+   Appearance setting, see lib/theme.ts) picks one. Dark values are the
+   original palette. */
 @theme {
-  --color-ink: #0c0b10;          /* page background */
-  --color-ink-2: #131219;        /* cards, panels */
-  --color-ink-3: #1a1822;        /* raised surfaces, secondary buttons */
-  --color-ink-4: #221f2b;        /* hover surface */
-  --color-rule: #24212d;         /* hairlines, card borders */
-  --color-rule-2: #353140;       /* input borders, stronger dividers */
-  --color-rule-3: #4a4557;       /* hover borders */
-  --color-paper: #eeeae3;        /* primary text, primary buttons */
-  --color-muted: #a39eaf;        /* secondary text */
-  --color-faint: #8a8595;        /* tertiary text, hints */
-  --color-accent: #865fd9;       /* purple fills (white text 4.5:1) */
+  --color-ink: light-dark(#f6f5f2, #0c0b10);          /* page background */
+  --color-ink-2: light-dark(#ffffff, #131219);        /* cards, panels */
+  --color-ink-3: light-dark(#efede8, #1a1822);        /* raised surfaces, secondary buttons */
+  --color-ink-4: light-dark(#e6e3dd, #221f2b);        /* hover surface */
+  --color-rule: light-dark(#e3e0d9, #24212d);         /* hairlines, card borders */
+  --color-rule-2: light-dark(#d2cec5, #353140);       /* input borders, stronger dividers */
+  --color-rule-3: light-dark(#b4afa5, #4a4557);       /* hover borders, switch track */
+  --color-paper: light-dark(#15131b, #eeeae3);        /* primary text, primary buttons */
+  --color-paper-hover: light-dark(#2c2935, #ffffff);  /* primary button hover */
+  --color-muted: light-dark(#55505e, #a39eaf);        /* secondary text */
+  --color-faint: light-dark(#6f6a79, #8a8595);        /* tertiary text, hints */
+  --color-accent: #865fd9;                            /* purple fills (white text 4.5:1) */
   --color-accent-hover: #7c54ce;
-  --color-accent-mark: #9c7de8;  /* logo, dots, toggles, active markers */
-  --color-accent-text: #baa8f2;  /* purple text and links on dark */
-  --color-accent-soft: #211737;  /* selected rows, icon tiles */
-  --color-accent-deep: #5e3d9e;  /* purple text on paper */
+  --color-accent-mark: light-dark(#865fd9, #9c7de8);  /* logo, dots, toggles, active markers */
+  --color-accent-text: light-dark(#5e3d9e, #baa8f2);  /* purple text and links */
+  --color-accent-soft: light-dark(#efe9fb, #211737);  /* selected rows, icon tiles */
+  --color-accent-deep: light-dark(#baa8f2, #5e3d9e);  /* purple text on a paper-colored fill */
+  --color-logo-ink: light-dark(#0c0b10, #eeeae3);
+  --color-logo-accent: light-dark(#865fd9, #9c7de8);
+
+  /* Status colors: the 400s read well on dark; on light they need the deeper shades */
+  --color-red-300: light-dark(oklch(50.5% 0.213 27.518), oklch(80.8% 0.114 19.571));
+  --color-red-400: light-dark(oklch(57.7% 0.245 27.325), oklch(70.4% 0.191 22.216));
+  --color-green-400: light-dark(oklch(52.7% 0.154 150.069), oklch(79.2% 0.209 151.711));
+  --color-amber-300: light-dark(oklch(47.3% 0.137 46.201), oklch(87.9% 0.169 91.605));
+  --color-amber-400: light-dark(oklch(55.5% 0.163 48.998), oklch(82.8% 0.189 84.429));
+  --color-yellow-400: light-dark(oklch(55.4% 0.135 66.442), oklch(85.2% 0.199 91.936));
+  --color-blue-400: light-dark(oklch(54.6% 0.245 262.881), oklch(70.7% 0.165 254.624));
 }
 
 @theme inline {
@@ -29,6 +44,11 @@
   /* The signed-in app and sign-in screens run slightly smaller (15px rem) for a tighter, calmer UI. */
   html:has(.vb-app) { font-size: 15px; }
   html { color-scheme: dark; background: var(--color-ink); }
+  html[data-theme="light"] { color-scheme: light; }
+  html[data-theme="system"] { color-scheme: light dark; }
+  /* Client-facing pages (portals, payment) keep their own dark look whatever
+     the owner's Appearance setting is */
+  html:has([data-scheme="dark"]) { color-scheme: dark; }
   body {
     background: var(--color-ink);
     color: var(--color-paper);
@@ -41,6 +61,21 @@
   :focus-visible { outline: 2px solid var(--color-accent-mark); outline-offset: 2px; }
   input:focus-visible, textarea:focus-visible, select:focus-visible { outline: none; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
+}
+
+/* Pins the dark palette on one part of a page, e.g. the client-portal preview
+   in Settings: client portals are always dark, so their preview is too.
+   (Tokens resolve on <html>, so a subtree needs the dark values restated.) */
+@layer components {
+  .scheme-dark {
+    color-scheme: dark;
+    --color-ink: #0c0b10; --color-ink-2: #131219; --color-ink-3: #1a1822; --color-ink-4: #221f2b;
+    --color-rule: #24212d; --color-rule-2: #353140; --color-rule-3: #4a4557;
+    --color-paper: #eeeae3; --color-paper-hover: #ffffff; --color-muted: #a39eaf; --color-faint: #8a8595;
+    --color-accent-mark: #9c7de8; --color-accent-text: #baa8f2; --color-accent-soft: #211737; --color-accent-deep: #5e3d9e;
+    --color-logo-ink: #eeeae3; --color-logo-accent: #9c7de8;
+    color: var(--color-paper);
+  }
 }
 
 /* Legal pages: long-form prose */

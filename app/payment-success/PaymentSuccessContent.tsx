@@ -23,7 +23,7 @@ export default function PaymentSuccessContent({ whiteLabel }: { whiteLabel: bool
         {username && slug && (
           <Link
             href={`/${username}/${slug}`}
-            className="inline-flex items-center gap-2 bg-paper hover:bg-white text-ink font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+            className="inline-flex items-center gap-2 bg-paper hover:bg-paper-hover text-ink font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
           >
             Back to portal
           </Link>

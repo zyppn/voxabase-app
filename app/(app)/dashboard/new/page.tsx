@@ -251,7 +251,7 @@ export default function NewPortalPage() {
             <button
               type="submit"
               disabled={loading || !name || !!invoiceError}
-              className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed text-sm"
+              className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
               {loading ? 'Creating…' : 'Create portal'}
             </button>

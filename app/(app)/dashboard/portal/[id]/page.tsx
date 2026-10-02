@@ -618,7 +618,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 <span className="flex-1">
                   {uploadError}
                   {storageFull && (isOwner
-                    ? <> <Link href="/pricing" className="font-semibold text-paper underline underline-offset-2 hover:text-white">Upgrade plan</Link></>
+                    ? <> <Link href="/pricing" className="font-semibold text-paper underline underline-offset-2 hover:text-paper-hover">Upgrade plan</Link></>
                     : ' Ask the team owner to upgrade for more space.')}
                 </span>
                 <button onClick={() => { setUploadError(null); setStorageFull(false) }} className="text-red-400/70 hover:text-red-300 flex-shrink-0" aria-label="Dismiss">
@@ -732,7 +732,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                 </button>
               ) : (
                 <button onClick={handleToggleReady} disabled={togglingReady || !canToggleReady}
-                  className="mt-3.5 w-full text-sm font-semibold bg-paper hover:bg-white text-ink px-4 py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="mt-3.5 w-full text-sm font-semibold bg-paper hover:bg-paper-hover text-ink px-4 py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed">
                   {togglingReady ? 'Publishing…' : 'Publish files'}
                 </button>
               )}
@@ -871,7 +871,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                       position: 'relative', display: 'inline-flex', alignItems: 'center',
                       width: '48px', height: '28px', borderRadius: '9999px', flexShrink: 0,
                       cursor: 'pointer', opacity: savingApproval ? 0.6 : 1,
-                      backgroundColor: portal.approval_required ? '#4ade80' : '#4a4557',
+                      backgroundColor: portal.approval_required ? 'var(--color-green-400)' : 'var(--color-rule-3)',
                       border: 'none', transition: 'background-color 0.2s',
                     }}
                   >
@@ -984,7 +984,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             {editError && <p role="alert" className="mt-4 text-sm text-red-400">{editError}</p>}
             <div className="flex gap-3 mt-6">
               <button onClick={() => { setShowEditModal(false); setEditError('') }} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleEditSave} disabled={saving || !!editInvoiceError} className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+              <button onClick={handleEditSave} disabled={saving || !!editInvoiceError} className="flex-1 bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save changes'}
               </button>
             </div>
@@ -1008,7 +1008,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <button onClick={() => setMoveTarget(null)} disabled={moving}
                 className="flex-1 border border-rule-2 hover:border-rule-3 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
               <button onClick={handleMoveToTeam} disabled={moving}
-                className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+                className="flex-1 bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                 {moving ? 'Moving…' : 'Move portal'}
               </button>
             </div>
@@ -1081,7 +1081,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             {renameError && <p role="alert" className="text-red-400 text-sm mt-2">{renameError}</p>}
             <div className="flex gap-3 mt-6">
               <button type="button" onClick={() => setRenaming(null)} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
-              <button type="submit" disabled={savingName} className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+              <button type="submit" disabled={savingName} className="flex-1 bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                 {savingName ? 'Saving…' : 'Save'}
               </button>
             </div>

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
+import Logo from '@/app/_components/Logo'
 
 export const metadata = { title: 'Page not found · Voxabase' }
 
@@ -24,7 +25,7 @@ export default async function NotFound() {
   return (
     <main className="vb-app min-h-screen bg-ink text-paper flex flex-col">
       <header className="px-6 py-5">
-        <a href="https://voxabase.com" aria-label="Voxabase home"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
+        <a href="https://voxabase.com" aria-label="Voxabase home"><Logo className="h-[18px] w-auto" /></a>
       </header>
       <div className="flex-1 flex items-center justify-center px-6 pb-24">
         <div className="max-w-md text-center">
@@ -36,7 +37,7 @@ export default async function NotFound() {
             The link may be mistyped, or the portal was moved or taken down. If someone sent you this link, ask them for a fresh one.
           </p>
           <div className="flex flex-col sm:flex-row gap-2.5 justify-center">
-            <Link href="/dashboard" className="bg-paper hover:bg-white text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Go to your dashboard</Link>
+            <Link href="/dashboard" className="bg-paper hover:bg-paper-hover text-ink font-semibold px-5 py-2.5 rounded-lg text-sm">Go to your dashboard</Link>
             <a href="https://voxabase.com" className="border border-rule-2 hover:border-rule-3 text-muted hover:text-paper font-semibold px-5 py-2.5 rounded-lg text-sm">Visit voxabase.com</a>
           </div>
         </div>
