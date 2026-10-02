@@ -7,7 +7,7 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
-import { DEFAULT_BRAND, normalizeBrand } from '@/lib/brand'
+import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle } from '@/lib/brand'
 import { PortalBrand, DeliveredVia } from './[slug]/PortalView'
 
 export const revalidate = 0
@@ -17,7 +17,7 @@ type Params = { params: Promise<{ username: string }> }
 const loadOwner = cache(async (username: string) => {
   const { data } = await supabaseAdmin()
     .from('profiles')
-    .select('business_name, full_name, brand_color, logo_url, brand_display, plan')
+    .select('*') // all columns, so a newly added one (portal_style) can't break the page before its migration runs
     .eq('username', username)
     .maybeSingle()
   return data
@@ -41,7 +41,7 @@ export default async function OwnerPage({ params }: Params) {
   const whiteLabel = !!(await headers()).get(DOMAIN_HEADER) && profile.plan === 'agency'
 
   return (
-    <main className="min-h-screen bg-ink text-paper flex items-center justify-center px-4 py-10">
+    <main data-scheme={resolvePortalStyle(ownerIsPro, profile.portal_style)} className="min-h-screen bg-ink text-paper flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm text-center">
         <div className="mb-7">
           <PortalBrand ownerIsPro={ownerIsPro} brandDisplay={profile.brand_display || 'both'}

@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import PortalTracker from './PortalTracker'
 import PortalPasswordGate from './PortalPasswordGate'
 import PortalView from './PortalView'
-import { DEFAULT_BRAND, normalizeBrand } from '@/lib/brand'
+import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle } from '@/lib/brand'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
@@ -34,7 +34,7 @@ const loadPortal = cache(async (username: string, slug: string) => {
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('business_name, full_name, brand_color, logo_url, brand_display, plan')
+    .select('*') // all columns, so a newly added one (portal_style) can't break the page before its migration runs
     .eq('username', username)
     .single()
   return { portal, profile, displayName: (profile?.business_name || profile?.full_name || username) as string }
@@ -68,7 +68,9 @@ export default async function PortalPage({ params }: Params) {
   const brandInitial = (displayName || 'V').charAt(0).toUpperCase()
   // On an Agency customer's own domain the portal carries no Voxabase branding
   const whiteLabel = !!(await headers()).get(DOMAIN_HEADER) && ownerPlan === 'agency'
-  const brand = { displayName, brandColor, logoUrl, brandDisplay, brandInitial, ownerIsPro, whiteLabel }
+  // Dark or Light: how this owner's portals look to clients (Custom branding)
+  const portalStyle = resolvePortalStyle(ownerIsPro, profile?.portal_style)
+  const brand = { displayName, brandColor, portalStyle, logoUrl, brandDisplay, brandInitial, ownerIsPro, whiteLabel }
 
   // Password-protected and not unlocked yet: send only the name and branding
   // The owner or a teammate looking at their own portal (never on customer
@@ -78,7 +80,7 @@ export default async function PortalPage({ params }: Params) {
 
   if (!(await canOpenPortal(admin, portal, viewer))) {
     return (
-      <main className="min-h-screen bg-ink text-paper">
+      <main data-scheme={portalStyle} className="min-h-screen bg-ink text-paper">
         <PortalPasswordGate portalId={portal.id} portalName={portal.name} {...brand} />
       </main>
     )
@@ -91,7 +93,7 @@ export default async function PortalPage({ params }: Params) {
     .order('sort_order', { ascending: true })
 
   return (
-    <main className="min-h-screen bg-ink text-paper">
+    <main data-scheme={portalStyle} className="min-h-screen bg-ink text-paper">
       <PortalTracker portalId={portal.id} ownerUsername={username} />
       {team && <ClientViewNote portalId={portal.id} locked={awaitingPayment(portal)} />}
       <PortalView
