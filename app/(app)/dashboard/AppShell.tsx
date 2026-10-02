@@ -55,10 +55,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }
   // The dashboard's filter lives in the URL, so the sidebar and the page agree
   const filterParam = searchParams.get('filter')
-  const activeFilter: Filter | null = pathname === '/dashboard'
+  // A click highlights right away. On the dashboard the filter only changes the
+  // URL (the portals are already here), so it skips the server round trip;
+  // from another page it's a real navigation, and the highlight shows meanwhile.
+  const [pending, setPending] = useState<{ key: Filter; from: string } | null>(null)
+  const urlFilter: Filter | null = pathname === '/dashboard'
     ? (filterParam === 'active' || filterParam === 'completed' ? filterParam : 'all')
     : null
-  const onFilterClick = (key: Filter) => { if (confirmLeave()) router.push(key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`) }
+  const activeFilter: Filter | null = pending && pending.from === pathname ? pending.key : urlFilter
+  const onFilterClick = (key: Filter) => {
+    if (!confirmLeave()) return
+    const url = key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`
+    if (pathname === '/dashboard') { window.history.pushState(null, '', url); return }
+    setPending({ key, from: pathname })
+    router.push(url)
+  }
+  useEffect(() => { router.prefetch('/dashboard') }, [router])
 
   const currentWs = wsId
   const myId = user.id

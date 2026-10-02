@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import OnboardingChecklist, { markLinkCopied } from './OnboardingChecklist'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useWorkspace } from '../WorkspaceProvider'
 import { teamName as teamNameOf, teamHeading as teamHeadingOf } from '@/lib/people'
 import { APP_HOST } from '@/lib/appHost'
@@ -19,7 +19,6 @@ type SortKey = 'name' | 'created' | 'views' | 'amount' | 'status'
 // switching workspaces and live updates show here without a page reload.
 export default function DashboardShell() {
   const { ws, portals, views: viewMap, hasFiles, liveDomain: portalHost, refresh } = useWorkspace()
-  const router = useRouter()
   const owner = ws.owner
   const username = owner?.username || ''
   const plan = owner?.plan || 'free'
@@ -37,7 +36,8 @@ export default function DashboardShell() {
   const filterParam = searchParams.get('filter')
   const filter: 'all' | 'active' | 'completed' = filterParam === 'active' || filterParam === 'completed' ? filterParam : 'all'
   const setFilter = (key: 'all' | 'active' | 'completed') =>
-    router.replace(key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`, { scroll: false })
+    // Only the URL changes (the portals are already loaded): no server round trip
+    window.history.replaceState(null, '', key === 'all' ? '/dashboard' : `/dashboard?filter=${key}`)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'created', dir: 'desc' })
   // Stars you've just toggled, shown right away; the live list catches up on its own
