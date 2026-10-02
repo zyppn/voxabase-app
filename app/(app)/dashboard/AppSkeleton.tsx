@@ -90,9 +90,18 @@ export function PageSkeleton({ variant = 'dashboard' }: { variant?: Variant }) {
 
       {variant === 'settings' && (
         <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
-          <div className={`h-7 w-52 mb-2 ${bar}`} /><div className={`h-4 w-72 mb-7 ${bar} opacity-60`} />
-          <div className="grid lg:grid-cols-2 gap-5">
-            {[0, 1].map(i => <div key={i} className={`${card} p-6 h-72`}><div className={`h-4 w-28 mb-5 ${bar}`} /><div className={`h-10 w-full mb-4 ${bar} opacity-70`} /><div className={`h-10 w-full ${bar} opacity-70`} /></div>)}
+          <div className={`h-7 w-32 mb-6 ${bar}`} />
+          <div className="flex flex-col gap-6 md:flex-row md:gap-10">
+            {/* Section menu, then one section of rows */}
+            <div className="flex gap-1 md:w-48 md:flex-none md:flex-col">
+              {[0, 1, 2, 3, 4, 5].map(i => <div key={i} className={`h-9 w-24 md:w-full ${bar} ${i ? 'opacity-50' : ''}`} />)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className={`h-5 w-28 mb-2 ${bar}`} /><div className={`h-4 w-80 max-w-full mb-5 ${bar} opacity-60`} />
+              <div className={`${card} p-6 flex flex-col gap-5`}>
+                {[0, 1, 2, 3].map(i => <div key={i} className="grid gap-3 sm:grid-cols-[13rem_1fr] sm:gap-8"><div className={`h-4 w-24 ${bar}`} /><div className={`h-10 w-full ${bar} opacity-70`} /></div>)}
+              </div>
+            </div>
           </div>
         </div>
       )}
