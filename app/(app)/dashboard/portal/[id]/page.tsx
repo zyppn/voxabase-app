@@ -553,7 +553,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <>
                 <button aria-hidden="true" tabIndex={-1} className="fixed inset-0 z-20 cursor-default" onClick={() => setMoreOpen(false)} />
                 <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-56 bg-ink-2 border border-rule-2 rounded-xl p-1.5 shadow-xl shadow-black/40">
-                  <a role="menuitem" href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="opener"
+                  <a role="menuitem" href={`/${portal.owner_username}/${portal.slug}`}
                     className="block text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">Open client view</a>
                   {isOwner && hasTeams(userPlan) && (
                     <button role="menuitem" onClick={() => { setMoreOpen(false); handleToggleShared() }} disabled={moving}
@@ -731,11 +731,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             <section aria-label="Client link" className="order-2 lg:order-none border border-rule rounded-xl p-5">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <h2 className="font-semibold text-paper text-sm">Client link</h2>
-                {/* rel="opener" lets the client view's "Back to portal" close its tab and return here (both pages are ours) */}
-                <a href={`/${portal.owner_username}/${portal.slug}`} target="_blank" rel="opener"
+                {/* Same tab: the client view's "Back to portal" (or Back) returns here. Cmd/Ctrl-click still opens a new tab. */}
+                <a href={`/${portal.owner_username}/${portal.slug}`}
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-paper hover:underline underline-offset-2">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.58-3.007-9.964-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   Preview
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                 </a>
               </div>
               <button type="button"
