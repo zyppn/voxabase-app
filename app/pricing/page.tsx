@@ -8,6 +8,7 @@ import WorkspaceProvider, { useCrumbs } from '../(app)/WorkspaceProvider'
 import { loadWorkspaceData, type WorkspaceData } from '@/lib/workspaceData'
 import { readWorkspaceCookie } from '@/lib/workspace'
 import Link from 'next/link'
+import Logo from '@/app/_components/Logo'
 
 // Plan features not built yet get a "Soon" tag. Everything listed is live now.
 const COMING_SOON = new Set<string>()
@@ -161,7 +162,7 @@ function PricingContent() {
       <button
         onClick={() => pid && handleUpgrade(pid, plan.key)}
         disabled={loading === plan.key || !pid}
-        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-paper hover:bg-white text-ink shadow-lg shadow-black/30' : 'bg-ink-3 hover:bg-ink-4 text-paper'}`}
+        className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${plan.featured ? 'bg-paper hover:bg-paper-hover text-ink shadow-lg shadow-black/30' : 'bg-ink-3 hover:bg-ink-4 text-paper'}`}
       >
         {loading === plan.key ? 'Redirecting...' : !pid ? 'Unavailable' : plan.key === 'pro' ? 'Upgrade to Pro' : 'Upgrade to Agency'}
       </button>
@@ -274,8 +275,8 @@ function PricingContent() {
   return (
     <main className="min-h-screen bg-ink text-paper">
       <nav className="border-b border-rule px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 bg-ink/85 backdrop-blur-sm z-10">
-        <a href="https://voxabase.com"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
-        <Link href="/signup" className="bg-paper hover:bg-white text-ink text-sm font-semibold px-4 py-2 rounded-lg">Get started</Link>
+        <a href="https://voxabase.com"><Logo className="h-[18px] w-auto" /></a>
+        <Link href="/signup" className="bg-paper hover:bg-paper-hover text-ink text-sm font-semibold px-4 py-2 rounded-lg">Get started</Link>
       </nav>
       {pricingBody}
     </main>

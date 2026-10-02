@@ -114,7 +114,7 @@ export default function StripeSetupContent() {
               <div className="flex flex-col gap-3">
                 <Link
                   href="/dashboard"
-                  className="w-full inline-flex items-center justify-center bg-paper hover:bg-white text-ink font-semibold px-6 py-3 rounded-lg text-sm"
+                  className="w-full inline-flex items-center justify-center bg-paper hover:bg-paper-hover text-ink font-semibold px-6 py-3 rounded-lg text-sm"
                 >
                   Go to dashboard
                 </Link>
@@ -166,7 +166,7 @@ export default function StripeSetupContent() {
               <button
                 onClick={handleConnect}
                 disabled={loading}
-                className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
+                className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
               >
                 {loading ? (
                   <>

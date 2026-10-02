@@ -29,7 +29,7 @@ export default function SessionsCard() {
           <p className="text-sm text-paper">Sign out of all devices, including this one?</p>
           <div className="flex gap-2.5">
             <button type="button" onClick={signOutEverywhere} disabled={busy}
-              className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
+              className="flex-1 bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
               {busy ? 'Signing out...' : 'Yes, sign out everywhere'}
             </button>
             <button type="button" onClick={() => setConfirming(false)}

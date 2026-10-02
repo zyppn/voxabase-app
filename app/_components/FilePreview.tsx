@@ -80,7 +80,7 @@ export default function FilePreview({ files, index, onIndex, onClose, brandColor
   const isPdf = kindOf(file) === 'pdf'
   const mainBtn = 'inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg'
   const mainStyle: CSSProperties | undefined = brandColor ? { background: brandColor, color: textOnBrand(brandColor) } : undefined
-  const mainCls = brandColor ? mainBtn : `${mainBtn} bg-paper hover:bg-white text-ink`
+  const mainCls = brandColor ? mainBtn : `${mainBtn} bg-paper hover:bg-paper-hover text-ink`
   // Opens inline (the server checks access, then hands out a short-lived link)
   const src = `/api/file/${file.id}?view=1`
   const prev = index > 0 ? index - 1 : null
@@ -103,7 +103,7 @@ export default function FilePreview({ files, index, onIndex, onClose, brandColor
 
   return (
     <div role="dialog" aria-modal="true" aria-label={`Preview of ${file.name}`}
-      className="fixed inset-0 z-50 flex flex-col bg-black/85 backdrop-blur-sm">
+      className="scheme-dark fixed inset-0 z-50 flex flex-col bg-black/85 backdrop-blur-sm">
       {/* Top bar */}
       <div className="flex items-center gap-3 px-4 sm:px-6 h-14 border-b border-rule bg-ink-2 flex-shrink-0">
         <div className="min-w-0 flex-1">

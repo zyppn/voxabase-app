@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { DOCS, docBySlug } from '@/lib/docs'
 import { CONTACT_EMAIL } from '../_components/LegalShell'
+import Logo from '@/app/_components/Logo'
 
 export default function DocsShell({ slug, children, intro }: { slug?: string; children: React.ReactNode; intro?: React.ReactNode }) {
   const doc = slug ? docBySlug(slug) : undefined
@@ -14,13 +15,13 @@ export default function DocsShell({ slug, children, intro }: { slug?: string; ch
       <header className="sticky top-0 z-20 border-b border-rule bg-ink/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-4 py-3.5 sm:px-8">
           <div className="flex items-center gap-3">
-            <a href="https://voxabase.com" aria-label="Voxabase home"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
+            <a href="https://voxabase.com" aria-label="Voxabase home"><Logo className="h-[18px] w-auto" /></a>
             <span className="hidden sm:inline text-rule-3" aria-hidden="true">/</span>
             <Link href="/docs" className="hidden sm:inline text-[15px] font-semibold text-paper">Help</Link>
           </div>
           <nav className="flex items-center gap-5 text-[15px]" aria-label="Account">
             <Link href="/dashboard" className="text-muted transition-colors hover:text-paper">Dashboard</Link>
-            <Link href="/signup" className="whitespace-nowrap rounded-md bg-paper px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-white">Get started<span className="hidden sm:inline"> free</span></Link>
+            <Link href="/signup" className="whitespace-nowrap rounded-md bg-paper px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-paper-hover">Get started<span className="hidden sm:inline"> free</span></Link>
           </nav>
         </div>
       </header>

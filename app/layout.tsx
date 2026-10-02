@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Mona_Sans } from "next/font/google";
 import "./globals.css";
+import { THEME_SCRIPT } from "@/lib/theme";
 
 // The landing page's typeface: a variable width axis for display headings.
 const mona = Mona_Sans({
@@ -17,8 +18,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c0b10",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f5f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0b10" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -30,7 +34,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${mona.variable} h-full antialiased`}
+      // The Appearance script sets data-theme before React loads
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col bg-ink text-paper font-sans">{children}</body>
     </html>
   );

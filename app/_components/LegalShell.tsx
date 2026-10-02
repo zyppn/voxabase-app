@@ -1,5 +1,6 @@
 // Shared frame for Privacy, Terms and help guides: the landing page's nav and footer around readable prose.
 import Link from 'next/link'
+import Logo from '@/app/_components/Logo'
 
 export const CONTACT_EMAIL = 'support@voxabase.com'
 
@@ -15,10 +16,10 @@ export default function LegalShell({ title, updated, other, children, kicker = '
     <main className="min-h-screen bg-ink text-paper">
       <header className="sticky top-0 z-10 border-b border-rule bg-ink/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-4 py-3.5 sm:px-8">
-          <a href="https://voxabase.com" aria-label="Voxabase home"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></a>
+          <a href="https://voxabase.com" aria-label="Voxabase home"><Logo className="h-[18px] w-auto" /></a>
           <nav className="flex items-center gap-5 text-[15px]" aria-label="Account">
             <Link href="/login" className="text-muted transition-colors hover:text-paper">Sign in</Link>
-            <Link href="/signup" className="rounded-md bg-paper px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-white">Get started free</Link>
+            <Link href="/signup" className="rounded-md bg-paper px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-paper-hover">Get started free</Link>
           </nav>
         </div>
       </header>

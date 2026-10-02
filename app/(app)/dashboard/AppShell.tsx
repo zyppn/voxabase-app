@@ -10,6 +10,8 @@ import { displayName, teamName, isOnline } from '@/lib/people'
 import type { RosterRow } from '@/lib/workspaceData'
 import { useWorkspace } from '../WorkspaceProvider'
 import Link from 'next/link'
+import Logo from '@/app/_components/Logo'
+import ThemeSwitch from '@/app/_components/ThemeSwitch'
 
 const STORAGE_LIMITS: Record<string, number> = {
   free: 1_073_741_824,
@@ -121,7 +123,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <aside className={`hidden lg:flex flex-col border-r border-rule fixed inset-y-0 left-0 py-5 px-3 ${animate} ${railW}`}>
         {/* Header: logo + collapse toggle */}
         <div className={`flex items-center mb-7 h-8 ${collapsed ? 'justify-center' : 'justify-between px-1'}`}>
-          {!collapsed && <Link href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></Link>}
+          {!collapsed && <Link href="/dashboard"><Logo className="h-[18px] w-auto" /></Link>}
           <button onClick={toggleCollapse} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="p-1.5 rounded-lg text-faint hover:text-paper hover:bg-ink-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
@@ -236,6 +238,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                     <div className="h-px bg-ink-4 my-1 mx-2" />
                   </>
                 )}
+                <div className="flex items-center justify-between gap-2 pl-3 pr-1 py-1">
+                  <span className="text-sm text-paper/85">Appearance</span>
+                  <ThemeSwitch />
+                </div>
+                <div className="h-px bg-ink-4 my-1 mx-2" />
                 <Link href="/stripe-setup" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-paper/85 hover:bg-ink-3 hover:text-paper">
                   <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
                   {stripeConnected ? 'Stripe account' : 'Connect Stripe'}
@@ -277,7 +284,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className={`flex-1 min-w-0 ${animate} ${mainML}`}>
         {/* Mobile top bar */}
         <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-rule sticky top-0 bg-ink/85 backdrop-blur-sm z-20">
-          <Link href="/dashboard"><img src="/vblogo.png" alt="Voxabase" className="h-7 w-auto" /></Link>
+          <Link href="/dashboard"><Logo className="h-[18px] w-auto" /></Link>
           <div className="flex items-center gap-2">
             {teams.length > 0 && (
               <select aria-label="Workspace" value={currentWs || ''} onChange={(e) => switchTo(e.target.value || null)}

@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import Logo from '@/app/_components/Logo'
 
 type Invite = { ownerLabel: string; email: string; status: string }
 
@@ -49,7 +50,7 @@ export default function JoinTeamPage({ params }: { params: Promise<{ token: stri
   return (
     <main className="vb-app min-h-screen bg-ink flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-8" />
+        <Logo className="h-[26px] w-auto mx-auto mb-8" />
         <div className="bg-ink-2 border border-rule rounded-xl p-8 text-center">
           {loading ? (
             <div className="py-6"><div className="w-6 h-6 mx-auto border-2 border-paper/60 border-t-transparent rounded-full animate-spin" /></div>
@@ -74,7 +75,7 @@ export default function JoinTeamPage({ params }: { params: Promise<{ token: stri
 
               {matches ? (
                 <button onClick={join} disabled={busy}
-                  className="mt-6 w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
+                  className="mt-6 w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                   {busy ? 'Joining…' : `Join ${invite.ownerLabel}`}
                 </button>
               ) : userEmail ? (
@@ -83,13 +84,13 @@ export default function JoinTeamPage({ params }: { params: Promise<{ token: stri
                     You’re signed in as <span className="text-paper">{userEmail}</span>. Switch to {invite.email} to accept.
                   </p>
                   <button onClick={switchAccount}
-                    className="mt-4 w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm">
+                    className="mt-4 w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm">
                     Switch account
                   </button>
                 </>
               ) : (
                 <div className="mt-6 flex flex-col gap-2">
-                  <Link href={`/signup?${q}`} className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg text-sm">Create an account</Link>
+                  <Link href={`/signup?${q}`} className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm">Create an account</Link>
                   <Link href={`/login?${q}`} className="w-full border border-rule-2 hover:border-rule-3 text-paper font-semibold py-2.5 rounded-lg text-sm">I already have an account</Link>
                 </div>
               )}

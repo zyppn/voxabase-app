@@ -49,7 +49,7 @@ export default function PasswordProtectPage({
           />
           <button
             type="submit"
-            className="w-full bg-paper hover:bg-white text-ink font-semibold py-3 rounded-lg transition-colors text-sm"
+            className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-3 rounded-lg transition-colors text-sm"
           >
             Unlock portal
           </button>

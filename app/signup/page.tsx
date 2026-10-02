@@ -6,6 +6,7 @@ import { joinNext } from '@/lib/joinNext'
 import { MIN_NAME_LENGTH } from '@/lib/people'
 import { APP_HOST } from '@/lib/appHost'
 import { isReservedUsername } from '@/lib/reservedUsernames'
+import Logo from '@/app/_components/Logo'
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0
@@ -111,7 +112,7 @@ export default function SignupPage() {
     return (
       <main className="vb-app min-h-screen bg-ink flex items-center justify-center px-4 relative overflow-hidden">
         <div className="text-center max-w-md relative z-10">
-          <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-6" />
+          <Logo className="h-[26px] w-auto mx-auto mb-6" />
           <div className="w-12 h-12 bg-ink-3 border border-rule-2 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-6 h-6 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
@@ -133,7 +134,7 @@ export default function SignupPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-6" />
+          <Logo className="h-[26px] w-auto mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-paper mb-1">Create your account</h1>
           <p className="text-muted text-sm">Start delivering work like a studio</p>
         </div>
@@ -255,7 +256,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading || usernameAvailable !== true || password !== confirmPassword || strength.score < 2}
-            className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
+            className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 mt-1 text-sm shadow-lg shadow-black/30"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>

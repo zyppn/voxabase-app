@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Logo from '@/app/_components/Logo'
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0
@@ -118,7 +119,7 @@ export default function ResetPasswordPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="/vblogo.png" alt="Voxabase" className="h-10 w-auto mx-auto mb-6" />
+          <Logo className="h-[26px] w-auto mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-paper mb-1">Set new password</h1>
           <p className="text-muted text-sm">Choose a strong password for your account</p>
         </div>
@@ -199,7 +200,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !sessionReady || password !== confirmPassword || password.length < 8 || strength.score < 2}
-              className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
+              className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 text-sm shadow-lg shadow-black/30 mt-1"
             >
               {loading ? 'Updating...' : 'Update password'}
             </button>

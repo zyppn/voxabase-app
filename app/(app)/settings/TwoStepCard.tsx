@@ -125,7 +125,7 @@ export default function TwoStepCard() {
           </div>
           <div className="flex gap-2.5">
             <button type="submit" disabled={busy || code.length !== 6}
-              className="flex-1 bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
+              className="flex-1 bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm">
               {busy ? 'Checking...' : 'Turn on'}
             </button>
             <button type="button" onClick={cancel}
