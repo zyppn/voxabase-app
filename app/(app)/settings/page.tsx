@@ -368,7 +368,7 @@ function SettingsContent() {
                       <span className="text-muted">{username}</span>
                     </div>
                   </Row>
-                  <Row label="Appearance" hint="Only changes how Voxabase looks to you. Clients see your Portal style, under Branding.">
+                  <Row label="Appearance" hint="Only changes how Voxabase looks to you, on every device you sign in on. Clients see your Portal style, under Branding.">
                     <ThemeSwitch labels />
                   </Row>
                 </div>

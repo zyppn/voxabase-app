@@ -1,8 +1,9 @@
 'use client'
 // System / Light / Dark, as three icon buttons. Used in the profile menu and
-// in Settings → Appearance; both stay in sync.
+// in Settings → Appearance; both stay in sync. Saved to the browser and the account.
 import { useSyncExternalStore } from 'react'
-import { applyTheme, readTheme, THEMES, type Theme } from '@/lib/theme'
+import { applyTheme, readTheme, saveAccountTheme, THEMES, type Theme } from '@/lib/theme'
+import { createClient } from '@/utils/supabase/client'
 
 const subscribe = (cb: () => void) => {
   window.addEventListener('vb-theme', cb)
@@ -28,7 +29,7 @@ export default function ThemeSwitch({ labels = false, className = '' }: { labels
         const on = theme === t
         return (
           <button key={t} type="button" role="radio" aria-checked={on} title={LABEL[t]} aria-label={labels ? undefined : LABEL[t]}
-            onClick={() => applyTheme(t)}
+            onClick={() => { applyTheme(t); saveAccountTheme(createClient(), t) }}
             className={`inline-flex items-center justify-center gap-1.5 rounded-full transition-colors ${labels ? 'px-3 py-1.5 text-sm' : 'h-7 w-8'} ${on ? 'bg-ink-3 text-paper shadow-sm' : 'text-faint hover:text-paper'}`}>
             <Icon theme={t} />
             {labels && <span>{LABEL[t]}</span>}

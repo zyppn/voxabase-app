@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { setWorkspaceCookie } from '@/lib/workspace'
 import { loadLive, loadWorkspaceData, type WorkspaceData } from '@/lib/workspaceData'
+import { syncThemeFromAccount } from '@/lib/theme'
 
 interface WorkspaceContext extends WorkspaceData {
   /** A workspace switch is loading */
@@ -80,6 +81,10 @@ export default function WorkspaceProvider({ initial, children }: { initial: Work
     // A portal page belongs to the workspace you just left
     if (!opts?.stay && pathname.startsWith('/dashboard/portal/')) router.push('/dashboard')
   }, [refresh, pathname, router])
+
+  // Appearance follows the account (saved on another device, or by someone else
+  // who used this browser): apply it once per page load
+  useEffect(() => { syncThemeFromAccount(supabase) }, [supabase])
 
   // Presence check-ins and live updates
   useEffect(() => {
