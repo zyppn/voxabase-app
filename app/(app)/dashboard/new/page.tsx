@@ -6,6 +6,7 @@ import { useCrumbs, useWorkspace } from '../../WorkspaceProvider'
 import { APP_HOST } from '@/lib/appHost'
 import Link from 'next/link'
 import Switch from '@/app/_components/Switch'
+import { cleanAmountInput, invoiceAmountError } from '@/lib/invoice'
 
 function generateRandomSlug(name: string) {
   const random = Math.random().toString(36).slice(2, 7)
@@ -49,6 +50,7 @@ export default function NewPortalPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (invoiceAmountError(invoiceAmount)) return
     setLoading(true)
     setError('')
     const { data: { user } } = await supabase.auth.getUser()
@@ -81,7 +83,7 @@ export default function NewPortalPage() {
       team_shared: inTeam,
       ...(lockUntilPaid && Number(invoiceAmount) > 0 ? { lock_until_paid: true } : {}),
     }).select('id').single()
-    if (error || !created) { setError(error?.message || 'Could not create the portal. Please try again.'); setLoading(false); return }
+    if (error || !created) { setError('Couldn’t create the portal. Please try again.'); setLoading(false); return }
     // The password goes in a private table only the owner and team can read
     if (password) {
       const { error: pwError } = await supabase.from('portal_passwords').insert({ portal_id: created.id, user_id: workspaceOwner, password })
@@ -97,6 +99,7 @@ export default function NewPortalPage() {
   }
 
   const isPro = plan === 'pro' || plan === 'agency'
+  const invoiceError = invoiceAmountError(invoiceAmount)
 
   return (
     <>
@@ -162,23 +165,25 @@ export default function NewPortalPage() {
 
             <div>
               <label htmlFor="portal-invoice" className="text-sm text-muted mb-1.5 block">Invoice amount <span className="text-faint">(optional)</span></label>
-              <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 focus-within:border-accent">
+              <div className={`flex items-center bg-ink border rounded-lg px-3.5 py-2.5 ${invoiceError ? 'border-red-400/60 focus-within:border-red-400' : 'border-rule-2 focus-within:border-accent'}`}>
                 <span className="text-faint text-sm mr-1">$</span>
                 <input id="portal-invoice"
                   type="text"
                   inputMode="decimal"
                   autoComplete="off"
                   value={invoiceAmount}
-                  // Digits and up to two decimal places
-                  onChange={(e) => { const v = e.target.value.replace(/[^0-9.]/g, ''); if (/^\d*(\.\d{0,2})?$/.test(v)) setInvoiceAmount(v) }}
+                  onChange={(e) => setInvoiceAmount(v => cleanAmountInput(e.target.value, v))}
+                  aria-invalid={!!invoiceError}
+                  aria-describedby={invoiceError ? 'portal-invoice-error' : undefined}
                   className="flex-1 min-w-0 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
                   placeholder="0.00"
                 />
               </div>
+              {invoiceError && <p id="portal-invoice-error" role="alert" className="text-xs text-red-400 mt-1.5">{invoiceError}</p>}
             </div>
 
             {/* Files unlock after payment */}
-            {Number(invoiceAmount) > 0 && (
+            {Number(invoiceAmount) > 0 && !invoiceError && (
               <div className="-mt-1 flex items-center gap-4 rounded-lg border border-rule px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <p id="lock-label" className="text-sm text-paper">Lock files until paid</p>
@@ -245,7 +250,7 @@ export default function NewPortalPage() {
 
             <button
               type="submit"
-              disabled={loading || !name}
+              disabled={loading || !name || !!invoiceError}
               className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
               {loading ? 'Creating…' : 'Create portal'}
