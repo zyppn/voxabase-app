@@ -6,6 +6,7 @@ import Link from 'next/link'
 import CodeInput from '@/app/_components/CodeInput'
 import { joinNext } from '@/lib/joinNext'
 import Logo from '@/app/_components/Logo'
+import { syncThemeFromAccount } from '@/lib/theme'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -71,6 +72,7 @@ export default function LoginPage() {
       setMfaCode('')
       setLoading(false)
     } else {
+      await syncThemeFromAccount(supabase) // the account's Appearance, before the app draws
       router.push(joinNext() || '/dashboard')
     }
   }
@@ -104,6 +106,7 @@ export default function LoginPage() {
     } else if (await needsSecondStep()) {
       setLoading(false)
     } else {
+      await syncThemeFromAccount(supabase) // the account's Appearance, before the app draws
       router.push(joinNext() || '/dashboard')
     }
   }
