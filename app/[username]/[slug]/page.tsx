@@ -9,7 +9,7 @@ import { DEFAULT_BRAND, normalizeBrand } from '@/lib/brand'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
-import Link from 'next/link'
+import BackToPortal from './BackToPortal'
 import { awaitingPayment } from '@/lib/paywall'
 
 export const revalidate = 0
@@ -131,7 +131,7 @@ function ClientViewNote({ portalId, locked }: { portalId: string; locked: boolea
         <p>
           You’re previewing what your client sees.
           {locked && ' Files stay locked for them until the invoice is paid; you and your team can open them from the portal page.'}
-          {' '}<Link href={`/dashboard/portal/${portalId}`} className="font-medium text-paper hover:underline underline-offset-2 whitespace-nowrap">Back to portal →</Link>
+          {' '}<BackToPortal href={`/dashboard/portal/${portalId}`} className="font-medium text-paper hover:underline underline-offset-2 whitespace-nowrap">Back to portal →</BackToPortal>
         </p>
       </div>
     </div>
