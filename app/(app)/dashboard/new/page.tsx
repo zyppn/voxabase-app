@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCrumbs, useWorkspace } from '../../WorkspaceProvider'
 import { APP_HOST } from '@/lib/appHost'
 import Link from 'next/link'
+import Switch from '@/app/_components/Switch'
 
 function generateRandomSlug(name: string) {
   const random = Math.random().toString(36).slice(2, 7)
@@ -20,6 +21,8 @@ export default function NewPortalPage() {
   const [invoiceAmount, setInvoiceAmount] = useState('')
   const [lockUntilPaid, setLockUntilPaid] = useState(false)
   const [portalPassword, setPortalPassword] = useState('')
+  // Description and password are tucked under "More options"
+  const [moreOpen, setMoreOpen] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -87,9 +90,10 @@ export default function NewPortalPage() {
         setError('Could not save the portal password. Please try again.'); setLoading(false); return
       }
     }
-    // Show it in the list (and the sidebar counts) straight away
+    // Show it in the list (and the sidebar counts) straight away, then open it
+    // so the next step, adding files, is right there
     await refresh()
-    router.push('/dashboard')
+    router.push(`/dashboard/portal/${created.id}`)
   }
 
   const isPro = plan === 'pro' || plan === 'agency'
@@ -98,10 +102,8 @@ export default function NewPortalPage() {
     <>
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-9">
         <div className="max-w-xl mx-auto">
-          {/* Back button — clean arrow */}
-
           <h1 className="text-2xl font-bold mb-2 tracking-tight">Create a new portal</h1>
-          <p className="text-muted text-sm mb-8">Your client will see this page when you share the link</p>
+          <p className="text-muted text-sm mb-8">Name it, add your files, then share the link with your client</p>
 
           <form onSubmit={handleSubmit} className="border border-rule rounded-xl p-8 flex flex-col gap-5">
             {error && (
@@ -114,7 +116,7 @@ export default function NewPortalPage() {
             )}
 
             <div>
-              <label htmlFor="portal-name" className="text-sm text-muted mb-1.5 block">Client / Project name</label>
+              <label htmlFor="portal-name" className="text-sm text-muted mb-1.5 block">Client or project name</label>
               <input id="portal-name"
                 type="text"
                 value={name}
@@ -159,66 +161,84 @@ export default function NewPortalPage() {
             </div>
 
             <div>
-              <label htmlFor="portal-description" className="text-sm text-muted mb-1.5 block">Description <span className="text-faint">(optional)</span></label>
-              <input id="portal-description"
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
-                placeholder="A short note your client will see"
-              />
-            </div>
-
-            <div>
               <label htmlFor="portal-invoice" className="text-sm text-muted mb-1.5 block">Invoice amount <span className="text-faint">(optional)</span></label>
-              <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-4 py-3 focus-within:border-accent">
+              <div className="flex items-center bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 focus-within:border-accent">
                 <span className="text-faint text-sm mr-1">$</span>
                 <input id="portal-invoice"
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
                   value={invoiceAmount}
-                  onChange={(e) => setInvoiceAmount(e.target.value)}
-                  className="flex-1 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
+                  // Digits and up to two decimal places
+                  onChange={(e) => { const v = e.target.value.replace(/[^0-9.]/g, ''); if (/^\d*(\.\d{0,2})?$/.test(v)) setInvoiceAmount(v) }}
+                  className="flex-1 min-w-0 bg-transparent text-paper placeholder:text-faint focus:outline-none text-sm"
                   placeholder="0.00"
-                  min="0"
-                  step="0.01"
                 />
               </div>
             </div>
 
             {/* Files unlock after payment */}
             {Number(invoiceAmount) > 0 && (
-              <label htmlFor="portal-lock" className="-mt-2 flex items-start gap-3 cursor-pointer">
-                <input id="portal-lock" type="checkbox" checked={lockUntilPaid} onChange={(e) => setLockUntilPaid(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#865fd9]" />
-                <span>
-                  <span className="block text-sm text-paper">Lock files until this invoice is paid</span>
-                  <span className="block text-xs text-faint mt-0.5">Your client sees the file list and can download once they pay.</span>
-                </span>
-              </label>
+              <div className="-mt-1 flex items-center gap-4 rounded-lg border border-rule px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p id="lock-label" className="text-sm text-paper">Lock files until paid</p>
+                  <p className="text-xs text-faint mt-0.5">
+                    {lockUntilPaid ? 'Your client sees the file list and can download once they pay.' : 'Your client can download before paying.'}
+                  </p>
+                </div>
+                <Switch on={lockUntilPaid} labelledBy="lock-label" onClick={() => setLockUntilPaid(v => !v)} />
+              </div>
             )}
 
-            <div>
-              <label htmlFor="portal-password" className="text-sm text-muted mb-1.5 block">
-                Portal password <span className="text-faint">(optional)</span>
-                {!isPro && <span className="ml-2 text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Pro</span>}
-              </label>
-              {isPro ? (
-                <>
-                  <input id="portal-password"
-                    type="text"
-                    value={portalPassword}
-                    onChange={(e) => setPortalPassword(e.target.value)}
-                    className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
-                    placeholder="Leave blank for no password"
-                  />
-                  <p className="text-xs text-faint mt-1">Clients must enter this password to view the portal</p>
-                </>
-              ) : (
-                <div className="bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed flex items-center justify-between">
-                  <span className="text-faint text-sm">Upgrade to Pro to enable password protection</span>
-                  <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                  </svg>
+            {/* Optional extras: also editable later from the portal */}
+            <div className="border-t border-rule pt-4">
+              <button type="button" onClick={() => setMoreOpen(o => !o)} aria-expanded={moreOpen} aria-controls="more-options"
+                className="flex w-full items-center justify-between text-sm text-muted hover:text-paper">
+                <span>More options <span className="text-faint">· description, password</span></span>
+                <svg className={`h-4 w-4 transition-transform ${moreOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+
+              {moreOpen && (
+                <div id="more-options" className="mt-4 flex flex-col gap-5">
+                  <div>
+                    <label htmlFor="portal-description" className="text-sm text-muted mb-1.5 block">Description</label>
+                    <input id="portal-description"
+                      type="text"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                      placeholder="A short note your client will see"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="portal-password" className="text-sm text-muted mb-1.5 block">
+                      Password
+                      {!isPro && <span className="ml-2 text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Pro</span>}
+                    </label>
+                    {isPro ? (
+                      <>
+                        <input id="portal-password"
+                          type="text"
+                          value={portalPassword}
+                          onChange={(e) => setPortalPassword(e.target.value)}
+                          className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                          placeholder="Leave blank for no password"
+                          aria-describedby="portal-password-hint"
+                        />
+                        <p id="portal-password-hint" className="text-xs text-faint mt-1.5">Clients enter this to open the portal</p>
+                      </>
+                    ) : (
+                      <div className="bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 opacity-50 cursor-not-allowed flex items-center justify-between">
+                        <span className="text-faint text-sm">Upgrade to Pro to add a password</span>
+                        <svg className="w-4 h-4 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -226,9 +246,9 @@ export default function NewPortalPage() {
             <button
               type="submit"
               disabled={loading || !name}
-              className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-50 mt-2 text-sm"
+              className="w-full bg-paper hover:bg-white text-ink font-semibold py-2.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? 'Creating...' : 'Create portal'}
+              {loading ? 'Creating…' : 'Create portal'}
             </button>
           </form>
         </div>
