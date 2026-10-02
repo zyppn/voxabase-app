@@ -7,7 +7,14 @@ export type Theme = 'system' | 'light' | 'dark'
 export const THEMES: Theme[] = ['system', 'light', 'dark']
 const KEY = 'vb_theme'
 
-export const THEME_SCRIPT = `(function(){var t='system';try{var s=localStorage.getItem('${KEY}');if(s==='light'||s==='dark')t=s}catch(e){}document.documentElement.setAttribute('data-theme',t)})()`
+// Signed out (no Supabase session cookie), pages follow the device: the saved
+// choice belongs to whoever was signed in, not to the sign-in screen.
+export const THEME_SCRIPT = `(function(){var t='system';try{if(/(?:^|; )sb-[^=]*-auth-token/.test(document.cookie)){var s=localStorage.getItem('${KEY}');if(s==='light'||s==='dark')t=s}}catch(e){}document.documentElement.setAttribute('data-theme',t)})()`
+
+/** This browser's saved choice (what the page shows when signed in) */
+function storedTheme(): Theme {
+  try { const s = localStorage.getItem(KEY); return s === 'light' || s === 'dark' ? s : 'system' } catch { return 'system' }
+}
 
 export function readTheme(): Theme {
   const t = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : null
@@ -51,6 +58,9 @@ export async function syncThemeFromAccount(supabase: SupabaseClient) {
   if (saved === 'system' || saved === 'light' || saved === 'dark') {
     if (saved !== readTheme()) applyTheme(saved)
   } else {
-    await supabase.from('profiles').update({ app_theme: readTheme() }).eq('id', id)
+    // Adopt this browser's saved choice (the signed-out page shows System, so not what's on screen)
+    const mine = storedTheme()
+    if (mine !== readTheme()) applyTheme(mine)
+    await supabase.from('profiles').update({ app_theme: mine }).eq('id', id)
   }
 }
