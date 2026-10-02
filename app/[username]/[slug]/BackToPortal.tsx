@@ -1,26 +1,21 @@
 'use client'
-// "Back to portal" on the owner's client-view note. Opened from the portal
-// page's Preview (a new tab), it closes this tab and returns to the portal page
-// that opened it, instead of leaving two tabs open. Visited any other way, it's
-// an ordinary link.
+// "Back to portal" on the owner's client-view note. Preview opens the client
+// view in the same tab, so when you came from the portal page this simply goes
+// back (keeping history tidy: Back won't bounce you to the preview again).
+// Reached any other way, it's an ordinary link.
 import type { ReactNode } from 'react'
 
 export default function BackToPortal({ href, className, children }: { href: string; className?: string; children: ReactNode }) {
   const onClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    let opener: Window | null = null
+    // Let Cmd/Ctrl/Shift-click open a new tab or window as usual
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
     try {
-      // Only our own app's tab (reading another site's location throws)
-      if (window.opener && !window.opener.closed && window.opener.location.origin === window.location.origin) opener = window.opener
-    } catch { opener = null }
-    if (!opener) return
-    e.preventDefault()
-    try {
-      if (opener.location.pathname !== href) opener.location.assign(href)
-      opener.focus()
-    } catch { /* still close below */ }
-    window.close()
-    // If the browser keeps the tab open anyway, go there in this tab
-    setTimeout(() => { if (!window.closed) window.location.assign(href) }, 300)
+      const from = document.referrer ? new URL(document.referrer) : null
+      if (from && from.origin === window.location.origin && from.pathname === href && window.history.length > 1) {
+        e.preventDefault()
+        window.history.back()
+      }
+    } catch { /* plain link */ }
   }
   return <a href={href} onClick={onClick} className={className}>{children}</a>
 }
