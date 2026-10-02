@@ -355,7 +355,14 @@ function SettingsContent() {
                 const showLogo = brandDisplay === 'both' || brandDisplay === 'logo'
                 const showName = brandDisplay === 'both' || brandDisplay === 'name'
                 return (
-                  <div className="scheme-dark mb-5 overflow-hidden rounded-[14px] border border-rule bg-ink-2" aria-label="Preview of your client portal">
+                  // Shown on a soft stage so it reads as a window into the portal: client
+                  // portals are always dark, whatever this app's Appearance is
+                  <figure className="mb-5 rounded-xl border border-rule bg-ink p-4 sm:p-5">
+                    <figcaption className="mb-3 flex items-center gap-1.5 text-xs font-medium text-faint">
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      What your clients see
+                    </figcaption>
+                  <div className="scheme-dark overflow-hidden rounded-[14px] border border-rule bg-ink-2 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.6)]" aria-label="Preview of your client portal">
                     <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         {showLogo && (logoUrl ? (
@@ -393,6 +400,7 @@ function SettingsContent() {
                       </span>
                     </div>
                   </div>
+                  </figure>
                 )
               })()}
 
