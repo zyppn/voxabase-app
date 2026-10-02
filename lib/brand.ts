@@ -1,5 +1,6 @@
 // Brand color helpers for client portals: whatever color a freelancer picks,
-// text on it and text tinted with it stays readable on the dark portal.
+// text on it and text tinted with it stays readable, on a dark portal or a
+// light one (Portal style, a branding setting).
 
 export const DEFAULT_BRAND = '#865fd9'
 const INK = '#0c0b10'
@@ -27,13 +28,34 @@ export function textOnBrand(hex: string): string {
   return withWhite >= withInk ? '#ffffff' : INK
 }
 
-/** The brand color lifted toward paper, for text, icons and dots on the dark portal. */
-export function brandInk(hex: string): string {
-  return `color-mix(in oklab, ${hex} 55%, ${PAPER})`
+/** How the owner's portals look to clients. Dark unless a Pro owner picked Light. */
+export type PortalStyle = 'dark' | 'light'
+export function resolvePortalStyle(ownerIsPro: boolean, saved: unknown): PortalStyle {
+  return ownerIsPro && saved === 'light' ? 'light' : 'dark'
 }
 
-export function brandSurface(hex: string): string {
-  return `color-mix(in oklab, ${hex} 16%, ${INK})`
+const hexToRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+const rgbToHex = (rgb: number[]) => '#' + rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')
+const contrast = (a: string, b: string) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+/** For text, icons and dots in the brand color. On dark it's lifted toward
+ *  paper; on light it's deepened just enough to read on white (4.5:1). */
+export function brandInk(hex: string, style: PortalStyle = 'dark'): string {
+  if (style === 'dark') return `color-mix(in oklab, ${hex} 55%, ${PAPER})`
+  const [r, g, b] = hexToRgb(hex), ink = hexToRgb(INK)
+  for (let k = 0; k <= 1; k += 0.05) {
+    const c = rgbToHex([r + (ink[0] - r) * k, g + (ink[1] - g) * k, b + (ink[2] - b) * k])
+    if (contrast(c, '#ffffff') >= 4.5) return c
+  }
+  return INK
+}
+
+/** A faint brand-tinted background (file badges, notices) */
+export function brandSurface(hex: string, style: PortalStyle = 'dark'): string {
+  return style === 'dark' ? `color-mix(in oklab, ${hex} 16%, ${INK})` : `color-mix(in oklab, ${hex} 9%, #ffffff)`
 }
 
 export function brandLine(hex: string): string {

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { brandInk, brandLine, brandSurface, DEFAULT_BRAND } from '@/lib/brand'
+import { brandInk, brandLine, brandSurface, DEFAULT_BRAND, type PortalStyle } from '@/lib/brand'
 import FileThumb from '@/app/_components/FileThumb'
 import FilePreview, { opensNatively } from '@/app/_components/FilePreview'
 
@@ -17,6 +17,7 @@ interface FilesListProps {
   locked?: boolean
   showLimit?: number
   brandColor?: string
+  portalStyle?: PortalStyle
 }
 
 function formatSize(bytes: number | null) {
@@ -25,7 +26,7 @@ function formatSize(bytes: number | null) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function FileRow({ file, brandColor, onView, locked }: { file: PortalFile; brandColor: string; onView: () => void; locked: boolean }) {
+function FileRow({ file, brandColor, portalStyle, onView, locked }: { file: PortalFile; brandColor: string; portalStyle: PortalStyle; onView: () => void; locked: boolean }) {
   const size = formatSize(file.file_size)
   // The server checks access, then hands out a short-lived download link
   const downloadUrl = `/api/file/${file.id}`
@@ -37,7 +38,7 @@ function FileRow({ file, brandColor, onView, locked }: { file: PortalFile; brand
         <>
           <FileThumb file={file} preview={false}
             className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
-            style={{ background: brandSurface(brandColor), color: brandInk(brandColor), borderColor: brandLine(brandColor) }} />
+            style={{ background: brandSurface(brandColor, portalStyle), color: brandInk(brandColor, portalStyle), borderColor: brandLine(brandColor) }} />
           <span className="min-w-0 truncate text-sm font-medium text-paper/80" title={file.name}>{file.name}</span>
           <span className="hidden text-xs text-faint sm:block">{size}</span>
           <span className="inline-flex items-center gap-1.5 px-3 py-[7px] text-xs font-semibold text-faint" title="Unlocks after payment">
@@ -54,7 +55,7 @@ function FileRow({ file, brandColor, onView, locked }: { file: PortalFile; brand
           <FileThumb
             file={file}
             className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
-            style={{ background: brandSurface(brandColor), color: brandInk(brandColor), borderColor: brandLine(brandColor) }}
+            style={{ background: brandSurface(brandColor, portalStyle), color: brandInk(brandColor, portalStyle), borderColor: brandLine(brandColor) }}
           />
         </button>
         <button type="button" onClick={onView} title={`Preview ${file.name}`}
@@ -77,7 +78,7 @@ function FileRow({ file, brandColor, onView, locked }: { file: PortalFile; brand
   )
 }
 
-export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_BRAND, locked = false }: FilesListProps) {
+export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_BRAND, portalStyle = 'dark', locked = false }: FilesListProps) {
   const [showAll, setShowAll] = useState(false)
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const view = (i: number) => {
@@ -92,7 +93,7 @@ export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_B
     <div className="px-3">
       <ul className="grid gap-1.5">
         {visibleFiles.map((file) => (
-          <FileRow key={file.id} file={file} brandColor={brandColor} locked={locked} onView={() => view(files.indexOf(file))} />
+          <FileRow key={file.id} file={file} brandColor={brandColor} portalStyle={portalStyle} locked={locked} onView={() => view(files.indexOf(file))} />
         ))}
       </ul>
       {hiddenCount > 0 && (
@@ -100,7 +101,7 @@ export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_B
           type="button"
           onClick={() => setShowAll(!showAll)}
           className="mt-1.5 px-1 py-1.5 text-left text-xs font-semibold transition-opacity hover:opacity-80"
-          style={{ color: brandInk(brandColor) }}
+          style={{ color: brandInk(brandColor, portalStyle) }}
         >
           {showAll ? 'Show fewer files' : `Show ${hiddenCount} more file${hiddenCount !== 1 ? 's' : ''}`}
         </button>

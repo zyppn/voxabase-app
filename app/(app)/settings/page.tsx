@@ -8,7 +8,7 @@ import ThemeSwitch from '@/app/_components/ThemeSwitch'
 import { verifyPassword } from '@/lib/verifyPassword'
 import { MIN_NAME_LENGTH } from '@/lib/people'
 import { storageSafeName } from '@/lib/files'
-import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand } from '@/lib/brand'
+import { brandInk, brandLine, brandSurface, normalizeBrand, textOnBrand, type PortalStyle } from '@/lib/brand'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
@@ -39,6 +39,10 @@ function SettingsContent() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [brandDisplay, setBrandDisplay] = useState('both')
+  // How portals look to clients (not this app's Appearance). savedPortalStyle is
+  // what's in the database, so saving only sends it when it changed.
+  const [portalStyle, setPortalStyle] = useState<PortalStyle>('dark')
+  const [savedPortalStyle, setSavedPortalStyle] = useState<PortalStyle>('dark')
   const [subscriptionPeriodEnd, setSubscriptionPeriodEnd] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [savingBrand, setSavingBrand] = useState(false)
@@ -65,7 +69,7 @@ function SettingsContent() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, business_name, username, plan, subscription_period_end, brand_color, logo_url, brand_display, stripe_onboarding_complete')
+        .select('*') // all columns, so a newly added one (portal_style) can't break this page before its migration runs
         .eq('id', user.id)
         .single()
 
@@ -78,6 +82,8 @@ function SettingsContent() {
         setBrandColor(profile.brand_color || '#865fd9')
         setLogoUrl(profile.logo_url || null)
         setBrandDisplay(profile.brand_display || 'both')
+        const style: PortalStyle = profile.portal_style === 'light' ? 'light' : 'dark'
+        setPortalStyle(style); setSavedPortalStyle(style)
       }
 
       setLoading(false)
@@ -117,10 +123,10 @@ function SettingsContent() {
     if (!user) return
     const { error } = await supabase
       .from('profiles')
-      .update({ brand_color: brandColor, brand_display: brandDisplay })
+      .update({ brand_color: brandColor, brand_display: brandDisplay, ...(portalStyle !== savedPortalStyle ? { portal_style: portalStyle } : {}) })
       .eq('id', user.id)
-    if (error) setErrorMessage(error.message)
-    else { setSuccessMessage('Branding updated — your portals will use the new color'); setTimeout(() => setSuccessMessage(''), 4000) }
+    if (error) setErrorMessage(/portal_style/.test(error.message) ? 'Couldn’t save the portal style yet. Please try again in a few minutes.' : error.message)
+    else { setSavedPortalStyle(portalStyle); setSuccessMessage('Branding saved: your portals use it now'); setTimeout(() => setSuccessMessage(''), 4000) }
     setSavingBrand(false)
   }
 
@@ -301,7 +307,7 @@ function SettingsContent() {
             <div className="border border-rule bg-card rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="font-semibold text-paper">Appearance</h2>
-                <p className="text-sm text-faint mt-1">System follows your device. Client portals keep their own look.</p>
+                <p className="text-sm text-faint mt-1">Only changes how Voxabase looks to you. Clients see your Portal style, under Custom branding.</p>
               </div>
               <ThemeSwitch labels />
             </div>
@@ -355,14 +361,14 @@ function SettingsContent() {
                 const showLogo = brandDisplay === 'both' || brandDisplay === 'logo'
                 const showName = brandDisplay === 'both' || brandDisplay === 'name'
                 return (
-                  // Shown on a soft stage so it reads as a window into the portal: client
-                  // portals are always dark, whatever this app's Appearance is
+                  // Shown on a soft stage so it reads as a window into the portal. It
+                  // follows Portal style (what clients see), not this app's Appearance
                   <figure className="mb-5 rounded-xl border border-rule bg-ink p-4 sm:p-5">
                     <figcaption className="mb-3 flex items-center gap-1.5 text-xs font-medium text-faint">
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                       What your clients see
                     </figcaption>
-                  <div className="scheme-dark overflow-hidden rounded-[14px] border border-rule bg-ink-2 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.6)]" aria-label="Preview of your client portal">
+                  <div className={`${portalStyle === 'light' ? 'scheme-light' : 'scheme-dark'} overflow-hidden rounded-[14px] border border-rule bg-ink-2 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.6)]`} aria-label="Preview of your client portal">
                     <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         {showLogo && (logoUrl ? (
@@ -375,17 +381,17 @@ function SettingsContent() {
                         {showName && <span className="truncate text-sm font-bold text-paper">{name}</span>}
                       </div>
                       <span className="flex flex-none items-center gap-2 text-xs text-faint">
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: brandInk(c) }} aria-hidden="true" />
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: brandInk(c, portalStyle) }} aria-hidden="true" />
                         Ready
                       </span>
                     </div>
                     <div className="px-4 pb-3 pt-4">
-                      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: brandInk(c) }}>Delivered by {name}</p>
+                      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: brandInk(c, portalStyle) }}>Delivered by {name}</p>
                       <p className="text-base font-bold tracking-[-0.02em] text-paper">Example project</p>
                     </div>
                     <div className="px-3">
                       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
-                        <span className="grid h-[34px] w-[34px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]" style={{ background: brandSurface(c), color: brandInk(c), borderColor: brandLine(c) }}>PDF</span>
+                        <span className="grid h-[34px] w-[34px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]" style={{ background: brandSurface(c, portalStyle), color: brandInk(c, portalStyle), borderColor: brandLine(c) }}>PDF</span>
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-medium text-paper">Example.pdf</span>
                           <span className="block text-xs text-faint">2.4 MB</span>
@@ -407,15 +413,17 @@ function SettingsContent() {
               {/* Logo */}
               <p className="text-xs text-faint mb-1.5 font-medium">Logo <span className="text-faint font-normal">· PNG, JPG, or SVG · max 2MB</span></p>
               {logoUrl ? (
-                <div className="flex items-center gap-3 bg-ink border border-rule-2 rounded-lg p-2.5 mb-4">
-                  <img src={logoUrl} alt="Logo" className="h-8 w-auto max-w-[120px] object-contain" />
+                // Any shape works: wide wordmarks and square marks both fit (portals show up to 28px tall, 120px wide)
+                <div className="flex items-center gap-3 bg-ink border border-rule-2 rounded-lg pl-3 pr-3.5 py-2 mb-4">
+                  <img src={logoUrl} alt="Logo" className="h-6 w-auto max-w-[140px] object-contain" />
                   <div className="flex-1" />
-                  <label className="text-xs text-muted hover:text-paper border border-rule-2 hover:border-rule-3 px-2.5 py-1.5 rounded-lg cursor-pointer">
-                    Replace
+                  <label className="text-xs font-medium text-muted hover:text-paper cursor-pointer">
+                    {uploadingLogo ? 'Uploading…' : 'Replace'}
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
                   </label>
+                  <span className="text-rule-3" aria-hidden="true">·</span>
                   <button onClick={handleRemoveLogo} disabled={uploadingLogo}
-                    className="text-xs text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/40 px-2.5 py-1.5 rounded-lg">Remove</button>
+                    className="text-xs font-medium text-red-400 hover:text-red-300 disabled:opacity-50">Remove</button>
                 </div>
               ) : (
                 <label className="flex items-center justify-center gap-2 bg-ink border border-dashed border-rule-2 hover:border-accent/40 rounded-lg py-3 cursor-pointer mb-4">
@@ -474,6 +482,34 @@ function SettingsContent() {
                 <input id="brand-hex" type="text" value={brandColor}
                   onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setBrandColor(v) }}
                   className="w-28 bg-ink border border-rule-2 rounded-lg px-3 py-1.5 text-paper focus:outline-none focus:border-accent text-xs font-mono" />
+              </div>
+
+              {/* Portal style: how every client sees the portals. Deliberately unlike
+                  Appearance (a personal setting): picked with portal thumbnails, here only */}
+              <p className="text-xs text-faint mb-1.5 font-medium">Portal style <span className="font-normal">· what every client sees</span></p>
+              <div role="radiogroup" aria-label="Portal style" className="grid grid-cols-2 gap-3 mb-5">
+                {(['dark', 'light'] as const).map(st => {
+                  const on = portalStyle === st
+                  const c = normalizeBrand(brandColor)
+                  return (
+                    <button key={st} type="button" role="radio" aria-checked={on} onClick={() => setPortalStyle(st)}
+                      className={`rounded-xl border p-2 text-left transition-colors ${on ? 'border-accent ring-2 ring-accent/25' : 'border-rule-2 hover:border-rule-3'}`}>
+                      {/* A tiny portal in this style and the accent color */}
+                      <div className={`${st === 'light' ? 'scheme-light' : 'scheme-dark'} rounded-lg border border-rule bg-ink p-2`} aria-hidden="true">
+                        <div className="rounded-md border border-rule bg-ink-2 p-2 flex flex-col gap-1.5">
+                          <span className="h-1 w-9 rounded-full" style={{ background: brandInk(c, st) }} />
+                          <span className="h-1.5 w-14 rounded-full bg-paper/80" />
+                          <span className="h-3 rounded border border-rule bg-ink" />
+                          <span className="h-3 rounded" style={{ background: c }} />
+                        </div>
+                      </div>
+                      <span className="mt-2 flex items-center justify-between px-1">
+                        <span className={`text-sm font-medium ${on ? 'text-paper' : 'text-muted'}`}>{st === 'dark' ? 'Dark' : 'Light'}</span>
+                        {on && <svg className="h-4 w-4 text-accent-text" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
 
               <button onClick={handleSaveBranding} disabled={savingBrand}

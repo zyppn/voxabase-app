@@ -5,13 +5,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DeliveredVia, PortalBrand } from './PortalView'
-import { DEFAULT_BRAND, brandInk, brandLine, brandSurface, textOnBrand } from '@/lib/brand'
+import { DEFAULT_BRAND, brandInk, brandLine, brandSurface, textOnBrand, type PortalStyle } from '@/lib/brand'
 
 interface Props {
   portalId: string
   portalName: string
   displayName: string
   brandColor?: string
+  portalStyle?: PortalStyle
   logoUrl?: string | null
   brandDisplay?: string
   brandInitial?: string
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export default function PortalPasswordGate({
-  portalId, portalName, displayName, brandColor = DEFAULT_BRAND, logoUrl = null, brandDisplay = 'both', brandInitial = 'V', ownerIsPro = false, whiteLabel = false,
+  portalId, portalName, displayName, brandColor = DEFAULT_BRAND, portalStyle = 'dark', logoUrl = null, brandDisplay = 'both', brandInitial = 'V', ownerIsPro = false, whiteLabel = false,
 }: Props) {
   const router = useRouter()
   const [input, setInput] = useState('')
@@ -54,7 +55,7 @@ export default function PortalPasswordGate({
         </div>
         <form onSubmit={handleSubmit} className="rounded-[14px] border border-rule bg-ink-2 p-6">
           <div className="mb-5 flex items-center gap-3.5">
-            <span className="grid h-11 w-11 flex-none place-items-center rounded-xl border" style={{ background: brandSurface(brandColor), borderColor: brandLine(brandColor), color: brandInk(brandColor) }}>
+            <span className="grid h-11 w-11 flex-none place-items-center rounded-xl border" style={{ background: brandSurface(brandColor, portalStyle), borderColor: brandLine(brandColor), color: brandInk(brandColor, portalStyle) }}>
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
@@ -75,7 +76,7 @@ export default function PortalPasswordGate({
             autoFocus
             autoComplete="off"
             className="w-full rounded-lg border border-rule-2 bg-ink px-4 py-3 text-sm text-paper placeholder:text-faint transition-colors focus:outline-none focus:border-(--brand)"
-            style={{ ['--brand' as string]: brandInk(brandColor), caretColor: brandInk(brandColor) }}
+            style={{ ['--brand' as string]: brandInk(brandColor, portalStyle), caretColor: brandInk(brandColor, portalStyle) }}
             placeholder="Enter the portal password"
           />
           <button

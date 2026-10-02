@@ -64,6 +64,12 @@
   html:has([data-scheme="dark"]), html:has([data-scheme="dark"]) body {
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   }
+  /* A client page whose owner picked the Light Portal style (Custom
+     branding). It sits inside the dark default above, so it comes after it. */
+  html:has([data-scheme="light"]) { color-scheme: light; }
+  html:has([data-scheme="light"]), html:has([data-scheme="light"]) body {
+    -webkit-font-smoothing: auto; -moz-osx-font-smoothing: auto;
+  }
   body {
     background: var(--color-ink);
     color: var(--color-paper);
@@ -90,6 +96,21 @@
     --color-paper: #eeeae3; --color-paper-hover: #ffffff; --color-muted: #a39eaf; --color-faint: #8a8595;
     --color-accent-mark: #9c7de8; --color-accent-text: #baa8f2; --color-accent-soft: #211737; --color-accent-deep: #5e3d9e;
     --color-logo-ink: #eeeae3; --color-logo-accent: #9c7de8;
+    color: var(--color-paper);
+  }
+}
+
+/* The light palette pinned on one part of a page: the Settings preview of a
+   Light Portal style while the app itself is dark. */
+@layer components {
+  .scheme-light {
+    color-scheme: light;
+    --color-card: #ffffff; --color-row-hover: #f0eee9;
+    --color-ink: #f3f2ee; --color-ink-2: #ffffff; --color-ink-3: #ebe9e3; --color-ink-4: #e2dfd8;
+    --color-rule: #d3cec4; --color-rule-2: #bdb7ab; --color-rule-3: #9a9488;
+    --color-paper: #111016; --color-paper-hover: #2c2935; --color-muted: #46414f; --color-faint: #5f5a69;
+    --color-accent-mark: #865fd9; --color-accent-text: #5e3d9e; --color-accent-soft: #efe9fb; --color-accent-deep: #baa8f2;
+    --color-logo-ink: #0c0b10; --color-logo-accent: #865fd9;
     color: var(--color-paper);
   }
 }

@@ -1,14 +1,15 @@
 'use client'
 // Client-side approval: approve the delivery, or request changes with a note.
 import { useState } from 'react'
-import { brandInk, brandLine, brandSurface, textOnBrand } from '@/lib/brand'
+import { brandInk, brandLine, brandSurface, textOnBrand, type PortalStyle } from '@/lib/brand'
 
 type Status = 'approved' | 'changes_requested' | null
 
-export default function ApprovalPanel({ portalId, displayName, brandColor, initialStatus, initialNote, initialName, initialAt}: {
+export default function ApprovalPanel({ portalId, displayName, brandColor, portalStyle = 'dark', initialStatus, initialNote, initialName, initialAt}: {
   portalId: string
   displayName: string
   brandColor: string
+  portalStyle?: PortalStyle
   initialStatus: Status
   initialNote: string | null
   initialName: string | null
@@ -63,7 +64,7 @@ export default function ApprovalPanel({ portalId, displayName, brandColor, initi
   }
 
   const field = "w-full rounded-lg border border-rule-2 bg-ink px-3.5 py-2.5 text-sm text-paper placeholder:text-faint focus:border-(--brand) focus:outline-none"
-  const brandVar = { ['--brand' as string]: brandInk(brandColor) }
+  const brandVar = { ['--brand' as string]: brandInk(brandColor, portalStyle) }
 
   // Compact by default: one row, one click to approve. Name and notes only
   // appear when the client asks for changes, which is when they're useful.
@@ -83,7 +84,7 @@ export default function ApprovalPanel({ portalId, displayName, brandColor, initi
             </button>
             <button type="button" disabled={busy} onClick={() => send('approve')}
               className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-[10px] border px-4 text-sm font-semibold transition hover:brightness-125 disabled:opacity-50 sm:flex-none"
-              style={{ background: brandSurface(brandColor), borderColor: brandLine(brandColor), color: brandInk(brandColor) }}>
+              style={{ background: brandSurface(brandColor, portalStyle), borderColor: brandLine(brandColor), color: brandInk(brandColor, portalStyle) }}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               {busy ? 'Sending…' : 'Approve'}
             </button>

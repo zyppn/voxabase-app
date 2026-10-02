@@ -4,7 +4,7 @@ import DownloadAllButton from './DownloadAllButton'
 import FilesList, { type PortalFile } from './FilesList'
 import PayInvoiceButton from './PayInvoiceButton'
 import ApprovalPanel from './ApprovalPanel'
-import { brandInk, brandLine, brandSurface, textOnBrand } from '@/lib/brand'
+import { brandInk, brandLine, brandSurface, textOnBrand, type PortalStyle } from '@/lib/brand'
 import Logo from '@/app/_components/Logo'
 
 export interface PortalViewProps {
@@ -13,6 +13,8 @@ export interface PortalViewProps {
   portalDescription: string | null
   displayName: string
   brandColor: string
+  /** Dark or Light, the owner's Portal style */
+  portalStyle: PortalStyle
   logoUrl: string | null
   brandDisplay: string
   brandInitial: string
@@ -62,8 +64,8 @@ export function DeliveredVia() {
       <a href="https://voxabase.com/?ref=portal" target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 transition-colors hover:text-paper">
         Delivered via
         <svg className="h-3.5 w-3.5" viewBox="0 0 40 40" aria-hidden="true">
-          <path fill="#eeeae3" d="M3.2 7H11.2L19.2 20V33Z" />
-          <path fill="#9c7de8" d="M36.8 7H28.8L20.8 20V33Z" />
+          <path fill="var(--color-logo-ink)" d="M3.2 7H11.2L19.2 20V33Z" />
+          <path fill="var(--color-logo-accent)" d="M36.8 7H28.8L20.8 20V33Z" />
         </svg>
         <span className="font-semibold text-muted">Voxabase</span>
       </a>
@@ -83,14 +85,14 @@ export default function PortalView(p: PortalViewProps) {
         <header className="flex items-center justify-between gap-3 border-b border-rule px-5 py-3.5">
           <PortalBrand {...p} />
           <span className="flex flex-none items-center gap-2 text-xs text-faint">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.isReady ? brandInk(p.brandColor) : '#facc15' }} aria-hidden="true" />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.isReady ? brandInk(p.brandColor, p.portalStyle) : '#facc15' }} aria-hidden="true" />
             {p.isReady ? 'Ready' : 'Preparing'}
           </span>
         </header>
 
         {/* Project */}
         <div className="px-5 pb-3.5 pt-5">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: brandInk(p.brandColor) }}>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: brandInk(p.brandColor, p.portalStyle) }}>
             Delivered by {p.displayName}
           </p>
           <h1 className="text-xl font-bold leading-tight tracking-[-0.02em] text-paper [font-stretch:100%]">{p.portalName}</h1>
@@ -118,8 +120,8 @@ export default function PortalView(p: PortalViewProps) {
           <>
             {p.locked && (
               <div className="mx-3 mb-2 flex items-center gap-3 rounded-[10px] border px-3.5 py-3"
-                style={{ background: brandSurface(p.brandColor), borderColor: brandLine(p.brandColor) }}>
-                <svg className="h-5 w-5 flex-none" style={{ color: brandInk(p.brandColor) }} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                style={{ background: brandSurface(p.brandColor, p.portalStyle), borderColor: brandLine(p.brandColor) }}>
+                <svg className="h-5 w-5 flex-none" style={{ color: brandInk(p.brandColor, p.portalStyle) }} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
                 <div className="min-w-0">
@@ -128,7 +130,7 @@ export default function PortalView(p: PortalViewProps) {
                 </div>
               </div>
             )}
-            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} locked={p.locked} />
+            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} portalStyle={p.portalStyle} locked={p.locked} />
             {fileCount > 1 && !p.locked && <DownloadAllButton portalId={p.portalId} portalName={p.portalName} />}
           </>
         )}
@@ -139,6 +141,7 @@ export default function PortalView(p: PortalViewProps) {
             portalId={p.portalId}
             displayName={p.displayName}
             brandColor={p.brandColor}
+            portalStyle={p.portalStyle}
             initialStatus={p.approvalStatus ?? null}
             initialNote={p.approvalNote ?? null}
             initialName={p.approvalName ?? null}
