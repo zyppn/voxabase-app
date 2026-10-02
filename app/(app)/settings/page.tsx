@@ -97,11 +97,12 @@ function SettingsContent() {
   const upgraded = searchParams.get('upgraded')
   const asked = searchParams.get('section')
   const section: SectionId = SECTIONS.some(x => x.id === asked) ? asked as SectionId : upgraded ? 'plan' : 'general'
-  const setSection = (id: SectionId) => router.replace(`/settings?section=${id}`, { scroll: false })
+  // Sections are all on this page: switching only changes the URL, instantly
+  const setSection = (id: SectionId) => window.history.replaceState(null, '', `/settings?section=${id}`)
   useEffect(() => {
     const h = window.location.hash.slice(1)
-    if (SECTIONS.some(x => x.id === h)) router.replace(`/settings?section=${h}`, { scroll: false })
-  }, [router])
+    if (SECTIONS.some(x => x.id === h)) window.history.replaceState(null, '', `/settings?section=${h}`)
+  }, [])
 
   useEffect(() => {
     const load = async () => {
