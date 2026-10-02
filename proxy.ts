@@ -6,9 +6,8 @@
 //    its code before private pages or account APIs work (a password alone is not enough).
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { DOMAIN_HEADER } from '@/lib/domainHeader'
+import { DOMAIN_HEADER, OWN_HOST } from '@/lib/domainHeader'
 
-const OWN_HOST = /(^|\.)voxabase\.com$|\.vercel\.app$|^localhost$|^127\.0\.0\.1$/
 
 const PROTECTED = [
   '/dashboard', '/settings', '/stripe-setup',
