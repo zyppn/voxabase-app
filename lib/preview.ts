@@ -1,6 +1,8 @@
 // Locked previews (browser side): a small, watermarked picture of a file that
 // the client sees before paying. Photos are shrunk, videos give one frame and
 // PDFs their first page; every preview is covered in the business's name.
+// Logos and other flat graphics are also blurred: a watermark alone is easy
+// to edit out of a few flat colors, and a small copy is all a logo needs.
 // Made in the owner's browser at upload, so the server never needs to open
 // the original to build one.
 
@@ -14,6 +16,9 @@ export function previewable(file: { name: string; file_type: string | null }) {
 const MAX_SIDE = 720
 const MAX_CHARS = 250_000
 
+// Graphics are shown smaller (and blurred)
+const GRAPHIC_SIDE = 480
+
 type Source = { draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void; width: number; height: number; cleanup?: () => void }
 
 export async function makeLockedPreview(file: Blob, type: string, mark: string): Promise<string | null> {
@@ -23,7 +28,9 @@ export async function makeLockedPreview(file: Blob, type: string, mark: string):
       : await imageSource(file)
     if (!src) return null
     try {
-      const scale = Math.min(1, MAX_SIDE / Math.max(src.width, src.height))
+      const graphic = !type.startsWith('video/') && type !== 'application/pdf' && isGraphic(src)
+      const side = graphic ? GRAPHIC_SIDE : MAX_SIDE
+      const scale = Math.min(1, side / Math.max(src.width, src.height))
       const w = Math.max(1, Math.round(src.width * scale)), h = Math.max(1, Math.round(src.height * scale))
       const canvas = document.createElement('canvas')
       canvas.width = w
@@ -33,7 +40,8 @@ export async function makeLockedPreview(file: Blob, type: string, mark: string):
       // Transparent images (logos) sit on white, like a page
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, w, h)
-      src.draw(ctx, w, h)
+      if (graphic) drawBlurred(ctx, src, w, h)
+      else src.draw(ctx, w, h)
       watermark(ctx, w, h, mark)
       for (const q of [0.72, 0.55, 0.4]) {
         const url = canvas.toDataURL('image/jpeg', q)
@@ -47,6 +55,51 @@ export async function makeLockedPreview(file: Blob, type: string, mark: string):
     console.warn('[preview] could not make a preview', e)
     return null
   }
+}
+
+// A logo, icon or illustration rather than a photo: see-through areas, or
+// only a handful of distinct colors (photos have thousands)
+function isGraphic(src: Source) {
+  const n = 64
+  const c = document.createElement('canvas')
+  c.width = c.height = n
+  const ctx = c.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return false
+  src.draw(ctx, n, n)
+  const px = ctx.getImageData(0, 0, n, n).data
+  const colors = new Set<number>()
+  let clear = 0
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] < 250) { clear++; continue }
+    colors.add(((px[i] >> 4) << 8) | ((px[i + 1] >> 4) << 4) | (px[i + 2] >> 4))
+  }
+  return clear > n * n * 0.02 || colors.size < 160
+}
+
+// Shrink hard, then scale back up smoothly: the shapes and colors stay
+// recognizable, the edges and detail don't (works in every browser, unlike
+// the canvas blur filter)
+function drawBlurred(ctx: CanvasRenderingContext2D, src: Source, w: number, h: number) {
+  const tiny = document.createElement('canvas')
+  const k = 28 / Math.max(w, h)
+  tiny.width = Math.max(1, Math.round(w * k))
+  tiny.height = Math.max(1, Math.round(h * k))
+  const t = tiny.getContext('2d')
+  if (!t) return src.draw(ctx, w, h)
+  t.fillStyle = '#ffffff'
+  t.fillRect(0, 0, tiny.width, tiny.height)
+  t.imageSmoothingQuality = 'high'
+  src.draw(t, tiny.width, tiny.height)
+  // Two steps up looks like a soft blur rather than blocks
+  const mid = document.createElement('canvas')
+  mid.width = tiny.width * 4
+  mid.height = tiny.height * 4
+  const m = mid.getContext('2d')
+  if (!m) return src.draw(ctx, w, h)
+  m.imageSmoothingQuality = 'high'
+  m.drawImage(tiny, 0, 0, mid.width, mid.height)
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(mid, 0, 0, w, h)
 }
 
 // Diagonal rows of "Business name · PREVIEW" across the whole picture
