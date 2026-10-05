@@ -2,6 +2,7 @@
 // fits and hands back a signed link; the file goes straight to storage (B2),
 // then the server confirms it arrived and adds it to the portal.
 import { hasThumbnail } from '@/lib/files'
+import { makeLockedPreview, previewable } from '@/lib/preview'
 
 export type UploadOutcome =
   | { ok: true }
@@ -14,6 +15,8 @@ export type UploadOutcome =
 export async function uploadFile(portalId: string, file: File, opts: {
   replaceId?: string
   onProgress?: (fraction: number) => void
+  /** The business name written across the locked preview */
+  watermark?: string
 } = {}): Promise<UploadOutcome> {
   const res = await fetch('/api/files/upload-url', {
     method: 'POST',
@@ -38,11 +41,14 @@ export async function uploadFile(portalId: string, file: File, opts: {
   })
   if (!sent) return { ok: false, reason: 'failed', message: 'The upload was interrupted. Check your connection and try again.' }
 
-  const thumb = hasThumbnail({ file_type: file.type }) ? await makeThumb(file) : null
+  const [thumb, preview] = await Promise.all([
+    hasThumbnail({ file_type: file.type }) ? makeThumb(file) : null,
+    previewable({ name: file.name, file_type: file.type }) ? makeLockedPreview(file, file.type, opts.watermark || '') : null,
+  ])
   const done = await fetch('/api/files/complete', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ key: start.key, name: file.name, type: file.type, thumb, replaceId: opts.replaceId }),
+    body: JSON.stringify({ key: start.key, name: file.name, type: file.type, thumb, preview, replaceId: opts.replaceId }),
   }).catch(() => null)
   if (!done) return { ok: false, reason: 'failed', message: 'Check your connection and try again.' }
   if (!done.ok) {

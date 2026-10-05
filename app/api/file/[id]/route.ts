@@ -22,12 +22,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!team && (!portal.files_ready || !(await canOpenPortal(admin, portal, viewer)))) {
     return new NextResponse('Not found', { status: 404 })
   }
+  const search = new URL(request.url).searchParams
+  // The watermarked preview: shown before payment (unless the owner turned
+  // previews off); it's a small marked-up copy, never the file itself
+  if (search.get('preview') === '1') {
+    if (!team && portal.locked_previews === false) return new NextResponse('Not found', { status: 404 })
+    const { data: preview } = await admin.from('file_previews').select('data').eq('file_id', file.id).maybeSingle()
+    const m = preview?.data.match(/^data:image\/jpeg;base64,(.+)$/)
+    if (!m) return new NextResponse('Preview unavailable', { status: 404 })
+    return new Response(Buffer.from(m[1], 'base64'), {
+      headers: { 'content-type': 'image/jpeg', 'cache-control': 'private, max-age=300', 'x-content-type-options': 'nosniff' },
+    })
+  }
+
   // Files unlock after payment: the client can't view or download until the invoice is paid
   if (!team && awaitingPayment(portal)) {
     return new NextResponse('Pay the invoice to unlock this file', { status: 402 })
   }
 
-  const search = new URL(request.url).searchParams
   // Small preview for the file lists (images only). Storage resizes it, so a
   // big photo isn't downloaded just to fill a 40px square.
   if (search.get('thumb') === '1') {

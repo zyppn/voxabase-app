@@ -34,6 +34,7 @@ export default function Page() {
       <p>Turn on <strong>Lock files until paid</strong> in the portal’s Invoice card (or tick it when you create the portal) and your client can’t open or download anything until the invoice is paid.</p>
       <ul>
         <li>Your client still sees the portal, the file names and sizes, and the invoice, with a note that the files unlock after payment.</li>
+        <li>With <strong>Show watermarked previews</strong> on (it is unless you turn it off), your client can also look at a small preview of each photo, video (one frame) and PDF (first page), marked with your business name. The full-quality files stay locked.</li>
         <li>The moment the payment goes through, the files unlock on their own. There’s nothing for you to do.</li>
         <li>You and your team can always open every file.</li>
         <li>Connect Stripe first: without it your client can’t pay, so the files would stay locked.</li>
