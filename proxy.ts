@@ -10,9 +10,9 @@ import { DOMAIN_HEADER, OWN_HOST } from '@/lib/domainHeader'
 
 
 const PROTECTED = [
-  '/dashboard', '/settings', '/stripe-setup',
+  '/dashboard', '/settings', '/stripe-setup', '/storage-setup',
   '/api/billing-portal', '/api/subscription', '/api/stripe-connect', '/api/verify-password',
-  '/api/team', '/api/domains',
+  '/api/team', '/api/domains', '/api/files',
 ]
 
 // Domain → username, cached briefly per server instance

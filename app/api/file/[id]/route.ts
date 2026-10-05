@@ -6,11 +6,12 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
 import { hasThumbnail, viewContentType } from '@/lib/files'
 import { awaitingPayment } from '@/lib/paywall'
+import { downloadUrl, presign } from '@/lib/b2'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const admin = supabaseAdmin()
-  const { data: file } = await admin.from('files').select('id, portal_id, file_path, name, file_type').eq('id', id).maybeSingle()
+  const { data: file } = await admin.from('files').select('id, portal_id, file_path, name, file_type, storage').eq('id', id).maybeSingle()
   if (!file) return new NextResponse('Not found', { status: 404 })
   const { data: portal } = await admin
     .from('portals').select('*').eq('id', file.portal_id).maybeSingle()
@@ -31,6 +32,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // big photo isn't downloaded just to fill a 40px square.
   if (search.get('thumb') === '1') {
     if (!hasThumbnail(file)) return new NextResponse('Not found', { status: 404 })
+    // B2 files: a preview made at upload, kept in the database
+    if (file.storage === 'b2') {
+      const { data: thumb } = await admin.from('file_thumbs').select('data').eq('file_id', file.id).maybeSingle()
+      const m = thumb?.data.match(/^data:(image\/(?:webp|jpeg|png));base64,(.+)$/)
+      if (!m) return new NextResponse('Preview unavailable', { status: 404 })
+      return new Response(Buffer.from(m[2], 'base64'), {
+        headers: { 'content-type': m[1], 'cache-control': 'private, max-age=300', 'x-content-type-options': 'nosniff' },
+      })
+    }
     const { data, error } = await admin.storage.from('deliverables')
       .createSignedUrl(file.file_path, 600, { transform: { width: 96, height: 96, resize: 'cover' } })
     if (error || !data?.signedUrl) return new NextResponse('Preview unavailable', { status: 404 })
@@ -43,11 +53,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // Viewing (the preview, or "open in new tab"): sent from this address, so the
   // tab shows the portal's own domain, never the storage link behind it
   if (search.get('view') === '1') {
-    const { data, error } = await admin.storage.from('deliverables').createSignedUrl(file.file_path, 60)
-    if (error || !data?.signedUrl) return new NextResponse('File unavailable', { status: 404 })
+    let signedUrl: string
+    if (file.storage === 'b2') {
+      signedUrl = presign('GET', file.file_path, { expires: 60 })
+    } else {
+      const { data, error } = await admin.storage.from('deliverables').createSignedUrl(file.file_path, 60)
+      if (error || !data?.signedUrl) return new NextResponse('File unavailable', { status: 404 })
+      signedUrl = data.signedUrl
+    }
     // Pass Range through so videos can seek
     const range = request.headers.get('range')
-    const upstream = await fetch(data.signedUrl, { headers: range ? { range } : {} })
+    const upstream = await fetch(signedUrl, { headers: range ? { range } : {} })
     if (!upstream.ok || !upstream.body) return new NextResponse('File unavailable', { status: 404 })
     const headers = new Headers()
     for (const h of ['content-length', 'content-range', 'accept-ranges', 'etag', 'last-modified']) {
@@ -65,6 +81,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   // Downloads go straight to storage (no need to pass big files through here)
+  if (file.storage === 'b2') return NextResponse.redirect(downloadUrl(file.file_path, file.name), 302)
   const { data, error } = await admin.storage.from('deliverables')
     .createSignedUrl(file.file_path, 120, { download: file.name })
   if (error || !data?.signedUrl) return new NextResponse('File unavailable', { status: 404 })
