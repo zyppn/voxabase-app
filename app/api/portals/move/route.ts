@@ -36,9 +36,11 @@ export async function POST(request: Request) {
 
   // Copy stored files into the owner's folder first; only then switch the records over
   const bucket = admin.storage.from('deliverables')
-  const { data: files } = await admin.from('files').select('id, file_path').eq('portal_id', portalId)
+  const { data: files } = await admin.from('files').select('id, file_path, storage').eq('portal_id', portalId)
   const moved: { id: string; from: string; to: string }[] = []
-  for (const f of files || []) {
+  // Files in B2 stay where they are (access is checked by the server, not by
+  // folder); only Supabase Storage files move into the owner's folder
+  for (const f of (files || []).filter((f) => f.storage !== 'b2')) {
     const to = `${toOwner}/${portalId}/${f.file_path.split('/').pop()}`
     const { error } = await bucket.copy(f.file_path, to)
     if (error) {
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Could not move the portal. Nothing was changed; please try again.' }, { status: 500 })
   }
   await Promise.all(moved.map((m) => admin.from('files').update({ user_id: toOwner, file_path: m.to }).eq('id', m.id)))
+  await admin.from('files').update({ user_id: toOwner }).eq('portal_id', portalId).eq('storage', 'b2')
   await admin.from('portal_passwords').update({ user_id: toOwner }).eq('portal_id', portalId)
   if (moved.length) await bucket.remove(moved.map((m) => m.from))
 

@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Switch from '@/app/_components/Switch'
 import { storageSafeName } from '@/lib/files'
+import { STORAGE_LIMITS } from '@/lib/storageLimits'
+import { sweepDeleted, uploadFile, type UploadOutcome } from '@/lib/upload'
 import { cleanAmountInput, invoiceAmountError } from '@/lib/invoice'
 import { PageSkeleton } from '../../AppSkeleton'
 import { useCrumbs, useWorkspace } from '../../../WorkspaceProvider'
@@ -49,6 +51,8 @@ interface FileRecord {
   file_type: string | null
   created_at: string
   sort_order: number
+  /** Where it's stored: Supabase Storage (older files) or Backblaze B2 */
+  storage?: 'supabase' | 'b2'
 }
 
 export default function PortalDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -58,7 +62,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   // "Uploading 2 of 5…" while a batch goes up
-  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number; fraction?: number } | null>(null)
   // Upload blocked by the plan's storage limit: the error offers an upgrade
   const [storageFull, setStorageFull] = useState(false)
   const [replacingId, setReplacingId] = useState<string | null>(null)
@@ -227,19 +231,18 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     setSavingApproval(false)
   }
 
-  const STORAGE_LIMITS: Record<string, number> = {
-    free: 1_073_741_824,       // 1GB
-    pro: 26_843_545_600,       // 25GB
-    agency: 268_435_456_000,   // 250GB
-  }
-
-  // Per-file upload ceiling. Bump this when the Storage limit is raised.
-  const MAX_FILE_MB = 50
-  const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
+  // Per-file upload ceiling: 50 MB in Supabase Storage, more once files go to
+  // B2 (the server says which, and checks every upload again itself)
+  const [maxFileBytes, setMaxFileBytes] = useState(50 * 1024 * 1024)
+  useEffect(() => {
+    fetch('/api/files/upload-url').then((r) => r.json()).then((j) => { if (j.maxBytes) setMaxFileBytes(j.maxBytes) }).catch(() => {})
+  }, [])
+  const MAX_FILE_BYTES = maxFileBytes
+  const MAX_FILE_LABEL = maxFileBytes >= 1024 ** 3 ? `${+(maxFileBytes / 1024 ** 3).toFixed(1)} GB` : `${Math.round(maxFileBytes / 1024 ** 2)} MB`
 
   // Turn a Supabase Storage upload error into a clear, user-facing message.
   const tooLarge = (fileName: string, fileSize: number) =>
-    `“${fileName}” is ${(fileSize / 1048576).toFixed(0)} MB, over the ${MAX_FILE_MB} MB limit per file. Try exporting a smaller version, or split it into parts.`
+    `“${fileName}” is ${(fileSize / 1048576).toFixed(0)} MB, over the ${MAX_FILE_LABEL} limit per file. Try exporting a smaller version, or split it into parts.`
 
   const describeUploadError = (err: unknown, fileName: string, fileSize: number): string => {
     const raw = (err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : String(err)).toLowerCase()
@@ -252,6 +255,15 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       return `"${fileName}" could not be uploaded — that file type is not supported.`
     }
     return `"${fileName}" failed to upload: ${(err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message) : 'unknown error'}.`
+  }
+
+  // What to tell the user when an upload to B2 didn't go through
+  const outcomeMessage = (sent: Exclude<UploadOutcome, { ok: true } | { reason: 'use_supabase' }>, file: File) => {
+    if (sent.reason === 'too_large') return tooLarge(file.name, file.size)
+    if (sent.reason === 'plan_full') return `Not enough storage for “${file.name}”. Your plan’s storage is full.`
+    if (sent.reason === 'cap_full') return `Uploads are paused for now while we add storage space. Your existing files are safe; please try again later.`
+    if (sent.reason !== 'failed') return ''
+    return `“${file.name}” failed to upload. ${sent.message}`
   }
 
   const uploadFiles = async (fileList: FileList) => {
@@ -287,6 +299,16 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       // Block oversized files up front so the user gets an instant, clean message.
       if (file.size > MAX_FILE_BYTES) {
         failures.push(tooLarge(file.name, file.size))
+        continue
+      }
+      const sent = await uploadFile(portal.id, file, {
+        onProgress: (f) => setUploadProgress({ done: i, total: batch.length, fraction: f }),
+      })
+      if (sent.ok) continue
+      if (sent.reason !== 'use_supabase') {
+        failures.push(outcomeMessage(sent, file))
+        if (sent.reason === 'plan_full') { setStorageFull(true); break }
+        if (sent.reason === 'cap_full') break
         continue
       }
       const filePath = `${portal.user_id}/${portal.id}/${Date.now()}-${storageSafeName(file.name)}`
@@ -347,6 +369,20 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     if (!user) return
     // Upload the new file first, and only remove the old one once the record
     // points at the new one: a failed replace leaves the original intact
+    const sent = await uploadFile(portal.id, file, { replaceId: existingFile.id })
+    if (sent.ok || sent.reason !== 'use_supabase') {
+      if (sent.ok) {
+        const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', portal.user_id).order('sort_order', { ascending: true })
+        setFiles(filesData || [])
+      } else {
+        setUploadError(outcomeMessage(sent, file))
+        setStorageFull(sent.reason === 'plan_full')
+      }
+      setReplacingId(null)
+      setUploading(false)
+      if (replaceInputRef.current) replaceInputRef.current.value = ''
+      return
+    }
     const newPath = `${portal.user_id}/${portal.id}/${Date.now()}-${storageSafeName(file.name)}`
     const { error: upErr } = await supabase.storage.from('deliverables').upload(newPath, file)
     if (!upErr) {
@@ -363,8 +399,11 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   }
 
   const handleDeleteFile = async (fileId: string, filePath: string) => {
-    await supabase.storage.from('deliverables').remove([filePath])
+    const stored = files.find(f => f.id === fileId)?.storage
+    if (stored !== 'b2') await supabase.storage.from('deliverables').remove([filePath])
+    // A B2 file's stored copy is queued when its record goes; the server removes it
     await supabase.from('files').delete().eq('id', fileId)
+    if (stored === 'b2') sweepDeleted()
     const newFiles = files.filter(f => f.id !== fileId)
     setFiles(newFiles)
     setDeleteFileId(null)
@@ -500,10 +539,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const handleDeletePortal = async () => {
     if (!portal) return
     setDeleting(true)
-    for (const file of files) {
-      await supabase.storage.from('deliverables').remove([file.file_path])
-    }
+    const inSupabase = files.filter(f => f.storage !== 'b2').map(f => f.file_path)
+    if (inSupabase.length) await supabase.storage.from('deliverables').remove(inSupabase)
     await supabase.from('files').delete().eq('portal_id', portal.id)
+    if (files.some(f => f.storage === 'b2')) sweepDeleted()
     await supabase.from('portals').delete().eq('id', portal.id)
     await refresh()
     router.push('/dashboard')
@@ -534,9 +573,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const shareUrl = portalUrl(portal, liveDomain)
 
   const canToggleReady = files.length > 0
+  const pct = uploadProgress?.fraction !== undefined ? ` ${Math.round(uploadProgress.fraction * 100)}%` : ''
   const uploadLabel = uploadProgress && uploadProgress.total > 1
-    ? `Uploading ${uploadProgress.done + 1} of ${uploadProgress.total}…`
-    : 'Uploading…'
+    ? `Uploading ${uploadProgress.done + 1} of ${uploadProgress.total}…${pct}`
+    : `Uploading…${pct}`
   const isPro = userPlan === 'pro' || userPlan === 'agency'
 
   return (
@@ -641,7 +681,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                     </svg>
                   </div>
                   <p className="text-muted text-sm font-medium">{uploading ? uploadLabel : 'Click or drag files here to upload'}</p>
-                  <p className="text-faint text-xs mt-1">PDFs, images, videos, zips, any file type · up to {MAX_FILE_MB} MB each</p>
+                  <p className="text-faint text-xs mt-1">PDFs, images, videos, zips, any file type · up to {MAX_FILE_LABEL} each</p>
                 </div>
               ) : (
                 <div className="divide-y divide-rule">
@@ -705,7 +745,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   ))}
                   <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
                     className="w-full text-sm text-faint hover:text-paper hover:bg-row-hover text-left px-4 sm:px-6 py-3.5 rounded-b-xl">
-                    {uploading ? uploadLabel : `+ Add more files (or drop them here) · up to ${MAX_FILE_MB} MB each`}
+                    {uploading ? uploadLabel : `+ Add more files (or drop them here) · up to ${MAX_FILE_LABEL} each`}
                   </button>
                 </div>
               )}
@@ -1054,7 +1094,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               </svg>
             </div>
             <p className="text-lg font-semibold text-paper">Drop files to upload</p>
-            <p className="text-sm text-muted mt-1">to {portal.name} · up to {MAX_FILE_MB} MB each</p>
+            <p className="text-sm text-muted mt-1">to {portal.name} · up to {MAX_FILE_LABEL} each</p>
           </div>
         </div>
       )}

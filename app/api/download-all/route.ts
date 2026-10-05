@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
 import { awaitingPayment } from '@/lib/paywall'
+import { presign } from '@/lib/b2'
 
 export async function GET(request: Request) {
   const portalId = new URL(request.url).searchParams.get('portalId')
@@ -22,14 +23,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Pay the invoice to unlock these files' }, { status: 402 })
   }
 
-  const { data: files } = await admin.from('files').select('name, file_path').eq('portal_id', portalId).order('sort_order')
+  const { data: files } = await admin.from('files').select('name, file_path, storage').eq('portal_id', portalId).order('sort_order')
   if (!files || files.length === 0) return NextResponse.json({ error: 'No files found' }, { status: 404 })
 
   const JSZip = (await import('jszip')).default
   const zip = new JSZip()
   const used = new Set<string>()
   await Promise.all(files.map(async (file) => {
-    const { data } = await admin.storage.from('deliverables').download(file.file_path)
+    const data = file.storage === 'b2'
+      ? await fetch(presign('GET', file.file_path, { expires: 300 })).then((r) => (r.ok ? r.blob() : null)).catch(() => null)
+      : (await admin.storage.from('deliverables').download(file.file_path)).data
     if (!data) return
     // Two files with the same name would overwrite each other in the zip
     let name = file.name, n = 2

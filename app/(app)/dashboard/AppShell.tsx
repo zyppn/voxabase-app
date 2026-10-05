@@ -13,12 +13,8 @@ import Link from 'next/link'
 import Logo from '@/app/_components/Logo'
 import ThemeSwitch from '@/app/_components/ThemeSwitch'
 import { confirmLeave } from '@/lib/unsaved'
+import { STORAGE_LIMITS } from '@/lib/storageLimits'
 
-const STORAGE_LIMITS: Record<string, number> = {
-  free: 1_073_741_824,
-  pro: 26_843_545_600,
-  agency: 268_435_456_000,
-}
 
 type Filter = 'all' | 'active' | 'completed'
 

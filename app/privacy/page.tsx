@@ -60,6 +60,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Stripe</strong> — payment processing and subscription billing. See <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe&rsquo;s privacy policy</a>.</li>
           <li><strong>Supabase</strong> — database, authentication, and file storage. See <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase&rsquo;s privacy policy</a>.</li>
+          <li><strong>Backblaze</strong> — storage for delivered files. See <a href="https://www.backblaze.com/company/privacy" target="_blank" rel="noopener noreferrer">Backblaze&rsquo;s privacy policy</a>.</li>
           <li><strong>Vercel</strong> — application hosting and content delivery. See <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel&rsquo;s privacy policy</a>.</li>
         </ul>
         <p>
