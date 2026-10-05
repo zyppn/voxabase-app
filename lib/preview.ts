@@ -102,27 +102,31 @@ function drawBlurred(ctx: CanvasRenderingContext2D, src: Source, w: number, h: n
   ctx.drawImage(mid, 0, 0, w, h)
 }
 
-// Diagonal rows of "Business name · PREVIEW" across the whole picture
+// Diagonal rows of "Business name · PREVIEW" across the whole picture, in
+// thin, even lettering: dark on light pictures, light on dark ones
 function watermark(ctx: CanvasRenderingContext2D, w: number, h: number, mark: string) {
-  const text = `${(mark || 'Preview').trim()}  ·  PREVIEW`
-  const size = Math.max(12, Math.round(Math.min(w, h) / 16))
+  const text = `${(mark || 'Preview').trim()}   ·   PREVIEW`
+  const size = Math.max(11, Math.round(Math.min(w, h) / 22))
+  // How light the picture is, from a sample of its pixels
+  const px = ctx.getImageData(0, 0, w, h).data
+  let sum = 0, n = 0
+  for (let i = 0; i < px.length; i += 4 * 97) { sum += 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]; n++ }
+  const light = n > 0 && sum / n > 150
   ctx.save()
   ctx.translate(w / 2, h / 2)
   ctx.rotate(-Math.PI / 7)
-  ctx.font = `600 ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`
+  ctx.font = `500 ${size}px system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif`
   ctx.textBaseline = 'middle'
-  const step = ctx.measureText(text).width + size * 2
+  if ('letterSpacing' in ctx) ctx.letterSpacing = `${(size * 0.04).toFixed(1)}px`
+  ctx.shadowColor = light ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.45)'
+  ctx.shadowBlur = Math.max(2, size / 4)
+  ctx.fillStyle = light ? 'rgba(17, 17, 24, 0.26)' : 'rgba(255, 255, 255, 0.55)'
+  const step = ctx.measureText(text).width + size * 3
   const diag = Math.hypot(w, h)
   let row = 0
-  for (let y = -diag / 2; y < diag / 2; y += size * 3.2, row++) {
+  for (let y = -diag / 2; y < diag / 2; y += size * 4.2, row++) {
     // Stagger rows so the marks don't line up into one clean column
-    for (let x = -diag / 2 - (row % 2) * step / 2; x < diag / 2; x += step) {
-      ctx.lineWidth = Math.max(1, size / 10)
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.28)'
-      ctx.strokeText(text, x, y)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-      ctx.fillText(text, x, y)
-    }
+    for (let x = -diag / 2 - (row % 2) * step / 2; x < diag / 2; x += step) ctx.fillText(text, x, y)
   }
   ctx.restore()
 }
