@@ -6,7 +6,7 @@ export const metadata = {
   description: 'The terms that govern your use of Voxabase.',
 }
 
-const LAST_UPDATED = 'September 30, 2026'
+const LAST_UPDATED = 'October 5, 2026'
 
 export default function TermsPage() {
   return (
@@ -83,7 +83,7 @@ export default function TermsPage() {
 
         <h2>Third-party services</h2>
         <p>
-          The Service relies on third parties including Stripe, Supabase, and Vercel. Your use of features that
+          The Service relies on third parties including Stripe, Supabase, Backblaze, and Vercel. Your use of features that
           depend on them may also be subject to their terms. We are not responsible for third-party services.
         </p>
 

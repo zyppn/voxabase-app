@@ -6,7 +6,7 @@ export const metadata = {
   description: 'How Voxabase collects, uses, and protects your information.',
 }
 
-const LAST_UPDATED = 'September 30, 2026'
+const LAST_UPDATED = 'October 5, 2026'
 
 export default function PrivacyPage() {
   return (
@@ -59,7 +59,7 @@ export default function PrivacyPage() {
         </p>
         <ul>
           <li><strong>Stripe</strong> — payment processing and subscription billing. See <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe&rsquo;s privacy policy</a>.</li>
-          <li><strong>Supabase</strong> — database, authentication, and file storage. See <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase&rsquo;s privacy policy</a>.</li>
+          <li><strong>Supabase</strong> — database, authentication, and storage for logos. See <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase&rsquo;s privacy policy</a>.</li>
           <li><strong>Backblaze</strong> — storage for delivered files. See <a href="https://www.backblaze.com/company/privacy" target="_blank" rel="noopener noreferrer">Backblaze&rsquo;s privacy policy</a>.</li>
           <li><strong>Vercel</strong> — application hosting and content delivery. See <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel&rsquo;s privacy policy</a>.</li>
         </ul>
