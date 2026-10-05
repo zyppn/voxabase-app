@@ -4,6 +4,10 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
 import { awaitingPayment } from '@/lib/paywall'
 import { presign } from '@/lib/b2'
+import { downloadZip } from 'client-zip'
+
+// Big deliveries take a while to send
+export const maxDuration = 60
 
 export async function GET(request: Request) {
   const portalId = new URL(request.url).searchParams.get('portalId')
@@ -23,30 +27,37 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Pay the invoice to unlock these files' }, { status: 402 })
   }
 
-  const { data: files } = await admin.from('files').select('name, file_path, storage').eq('portal_id', portalId).order('sort_order')
+  const { data: files } = await admin.from('files').select('name, file_path, storage, created_at').eq('portal_id', portalId).order('sort_order')
   if (!files || files.length === 0) return NextResponse.json({ error: 'No files found' }, { status: 404 })
 
-  const JSZip = (await import('jszip')).default
-  const zip = new JSZip()
+  // Streamed: the zip is sent as each file arrives from storage, one at a
+  // time, so the download starts at once and nothing big is held in memory.
+  // Files are stored as-is (most are already compressed: images, video, zips).
   const used = new Set<string>()
-  await Promise.all(files.map(async (file) => {
-    const data = file.storage === 'b2'
-      ? await fetch(presign('GET', file.file_path, { expires: 300 })).then((r) => (r.ok ? r.blob() : null)).catch(() => null)
-      : (await admin.storage.from('deliverables').download(file.file_path)).data
-    if (!data) return
-    // Two files with the same name would overwrite each other in the zip
-    let name = file.name, n = 2
-    while (used.has(name)) name = file.name.replace(/(\.[^.]*)?$/, ` (${n++})$1`)
-    used.add(name)
-    zip.file(name, await data.arrayBuffer())
-  }))
+  async function* entries() {
+    for (const file of files!) {
+      let url: string | null
+      if (file.storage === 'b2') url = presign('GET', file.file_path, { expires: 600 })
+      else url = (await admin.storage.from('deliverables').createSignedUrl(file.file_path, 600)).data?.signedUrl ?? null
+      const res = url ? await fetch(url).catch(() => null) : null
+      if (!res?.ok || !res.body) {
+        console.error('[download-all] skipped a file that could not be read', file.file_path, res?.status)
+        continue
+      }
+      // Two files with the same name would overwrite each other in the zip
+      let name = file.name, n = 2
+      while (used.has(name)) name = file.name.replace(/(\.[^.]*)?$/, ` (${n++})$1`)
+      used.add(name)
+      yield { name, input: res, lastModified: file.created_at ? new Date(file.created_at) : new Date() }
+    }
+  }
 
-  const zipBuffer = await zip.generateAsync({ type: 'arraybuffer' })
   const safe = (portal.name || 'deliverables').replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '').toLowerCase() || 'deliverables'
-  return new Response(zipBuffer, {
+  return new Response(downloadZip(entries()).body, {
     headers: {
       'Content-Type': 'application/zip',
       'Content-Disposition': `attachment; filename="${safe}-files.zip"`,
+      'Cache-Control': 'private, no-store',
     },
   })
 }
