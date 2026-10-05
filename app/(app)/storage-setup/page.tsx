@@ -34,6 +34,38 @@ export default function StorageSetupPage() {
   const load = () => fetch('/api/files/storage-setup').then((r) => r.json()).then(setStatus).catch(() => setStatus({}))
   useEffect(() => { load() }, [])
 
+  // Files uploaded before the switch, still in Supabase Storage
+  const [older, setOlder] = useState<{ files: number; bytes: number } | null>(null)
+  const [moving, setMoving] = useState(false)
+  const [moveNote, setMoveNote] = useState('')
+  const loadOlder = () => fetch('/api/files/migrate').then((r) => r.json()).then((j) => setOlder(typeof j.files === 'number' ? j : null)).catch(() => {})
+  useEffect(() => { loadOlder() }, [])
+
+  const moveOlder = async () => {
+    setMoving(true)
+    setMoveNote('')
+    let total = 0
+    const failed = new Set<string>()
+    // A batch at a time until nothing's left (or a batch moves nothing)
+    for (;;) {
+      const res = await fetch('/api/files/migrate', { method: 'POST' }).catch(() => null)
+      const j = res ? await res.json().catch(() => ({})) : {}
+      if (!res?.ok) { setMoveNote(j.error || 'Something went wrong. Please try again.'); break }
+      total += j.moved
+      ;(j.failed || []).forEach((n: string) => failed.add(n))
+      setOlder({ files: j.files, bytes: j.bytes })
+      if (j.error) { setMoveNote(j.error); break }
+      if (j.files === 0 || j.moved === 0) {
+        setMoveNote(failed.size
+          ? `Moved ${total} file${total === 1 ? '' : 's'}. ${failed.size} couldn’t be moved and still work from Supabase: ${[...failed].join(', ')}.`
+          : `Moved ${total} file${total === 1 ? '' : 's'} to Backblaze.`)
+        break
+      }
+    }
+    setMoving(false)
+  }
+  const mb = (b: number) => `${(b / 1048576).toFixed(1)} MB`
+
   const apply = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true)
@@ -73,7 +105,27 @@ export default function StorageSetupPage() {
         </div>
 
         {ready ? (
-          <p className="text-sm text-green-400">All set. New uploads go to Backblaze.</p>
+          <>
+            <p className="text-sm text-green-400">All set. New uploads go to Backblaze.</p>
+            {older && (older.files > 0 || moveNote) && (
+              <div className="mt-6 border border-rule bg-card rounded-xl p-5 space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-paper">Older files</p>
+                  <p className="mt-1 text-xs leading-relaxed text-faint">
+                    {older.files > 0
+                      ? <>{older.files} file{older.files === 1 ? '' : 's'} ({mb(older.bytes)}) uploaded before the switch {older.files === 1 ? 'is' : 'are'} still in Supabase. They work as they are; moving them frees up Supabase&rsquo;s storage. Each file is copied and checked before the old copy is removed.</>
+                      : 'Every file is in Backblaze.'}
+                  </p>
+                </div>
+                {moveNote && <p className="text-sm text-muted">{moveNote}</p>}
+                {older.files > 0 && (
+                  <button onClick={moveOlder} disabled={moving} className="w-full bg-paper hover:bg-paper-hover text-ink font-semibold px-6 py-3 rounded-lg text-sm disabled:opacity-50">
+                    {moving ? `Moving… ${older.files} left` : 'Move them to Backblaze'}
+                  </button>
+                )}
+              </div>
+            )}
+          </>
         ) : status?.configured && status.keyWorks && status.bucketFound ? (
           <form onSubmit={apply} className="border border-rule bg-card rounded-xl p-5 space-y-4">
             <div>
