@@ -10,7 +10,7 @@ import { DOMAIN_HEADER, OWN_HOST } from '@/lib/domainHeader'
 
 
 const PROTECTED = [
-  '/dashboard', '/settings', '/stripe-setup', '/storage-setup',
+  '/dashboard', '/settings', '/stripe-setup',
   '/api/billing-portal', '/api/subscription', '/api/stripe-connect', '/api/verify-password',
   '/api/team', '/api/domains', '/api/files',
 ]
