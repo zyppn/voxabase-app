@@ -3,12 +3,15 @@ import { useState } from 'react'
 import { brandInk, brandLine, brandSurface, DEFAULT_BRAND, type PortalStyle } from '@/lib/brand'
 import FileThumb from '@/app/_components/FileThumb'
 import FilePreview, { opensNatively } from '@/app/_components/FilePreview'
+import LockedPreview from './LockedPreview'
 
 export interface PortalFile {
   id: string
   name: string
   file_size: number | null
   file_type: string | null
+  /** Has a watermarked preview to show before payment */
+  has_preview?: boolean
 }
 
 interface FilesListProps {
@@ -18,6 +21,8 @@ interface FilesListProps {
   showLimit?: number
   brandColor?: string
   portalStyle?: PortalStyle
+  /** Locked: the button in a preview that leads to the invoice */
+  unlockLabel?: string
 }
 
 function formatSize(bytes: number | null) {
@@ -34,12 +39,30 @@ function FileRow({ file, brandColor, portalStyle, onView, locked }: { file: Port
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-[10px] border border-rule bg-ink px-2.5 py-[9px]">
       {locked ? (
-        // Unpaid and locked: the name shows, the file doesn't open
+        // Unpaid and locked: the name shows and, if there's one, a watermarked
+        // preview opens; the file itself doesn't
         <>
-          <FileThumb file={file} preview={false}
-            className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
-            style={{ background: brandSurface(brandColor, portalStyle), color: brandInk(brandColor, portalStyle), borderColor: brandLine(brandColor) }} />
-          <span className="min-w-0 truncate text-sm font-medium text-paper/80" title={file.name}>{file.name}</span>
+          {file.has_preview ? (
+            <>
+              <button type="button" onClick={onView} aria-label={`Preview ${file.name}`} className="relative rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element -- served by the portal after its access check */}
+                <img src={`/api/file/${file.id}?preview=1`} alt="" loading="lazy" decoding="async" draggable={false}
+                  className="h-[38px] w-[38px] rounded-lg border object-cover" style={{ borderColor: brandLine(brandColor) }} />
+                <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-ink-2 text-faint ring-1 ring-rule" aria-hidden="true">
+                  <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2.6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75M6.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                </span>
+              </button>
+              <button type="button" onClick={onView} title={`Preview ${file.name}`}
+                className="min-w-0 truncate text-left text-sm font-medium text-paper/80 hover:underline underline-offset-2">{file.name}</button>
+            </>
+          ) : (
+            <>
+              <FileThumb file={file} preview={false}
+                className="grid h-[38px] w-[38px] place-items-center rounded-lg border text-[10px] font-bold tracking-[0.04em]"
+                style={{ background: brandSurface(brandColor, portalStyle), color: brandInk(brandColor, portalStyle), borderColor: brandLine(brandColor) }} />
+              <span className="min-w-0 truncate text-sm font-medium text-paper/80" title={file.name}>{file.name}</span>
+            </>
+          )}
           <span className="hidden text-xs text-faint sm:block">{size}</span>
           <span className="inline-flex items-center gap-1.5 px-3 py-[7px] text-xs font-semibold text-faint" title="Unlocks after payment">
             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -78,11 +101,15 @@ function FileRow({ file, brandColor, portalStyle, onView, locked }: { file: Port
   )
 }
 
-export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_BRAND, portalStyle = 'dark', locked = false }: FilesListProps) {
+export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_BRAND, portalStyle = 'dark', locked = false, unlockLabel }: FilesListProps) {
   const [showAll, setShowAll] = useState(false)
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+  // Locked: only the files with a watermarked preview open, one after another
+  const previews = files.filter(f => f.has_preview)
+  const [lockedIndex, setLockedIndex] = useState<number | null>(null)
   const view = (i: number) => {
     const f = files[i]
+    if (locked) { if (f.has_preview) setLockedIndex(previews.indexOf(f)); return }
     if (opensNatively(f)) window.open(`/api/file/${f.id}?view=1`, '_blank', 'noopener')
     else setPreviewIndex(i)
   }
@@ -108,6 +135,9 @@ export default function FilesList({ files, showLimit = 6, brandColor = DEFAULT_B
       )}
       {previewIndex !== null && files[previewIndex] && (
         <FilePreview files={files} index={previewIndex} onIndex={setPreviewIndex} onClose={() => setPreviewIndex(null)} brandColor={brandColor} />
+      )}
+      {locked && lockedIndex !== null && previews[lockedIndex] && (
+        <LockedPreview files={previews} index={lockedIndex} onIndex={setLockedIndex} onClose={() => setLockedIndex(null)} brandColor={brandColor} unlockLabel={unlockLabel} />
       )}
     </div>
   )

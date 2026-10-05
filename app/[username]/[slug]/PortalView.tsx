@@ -126,11 +126,14 @@ export default function PortalView(p: PortalViewProps) {
                 </svg>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-paper">Files unlock after payment</p>
-                  <p className="text-xs text-muted">Pay the invoice below to download {fileCount === 1 ? 'your file' : `all ${fileCount} files`}.</p>
+                  <p className="text-xs text-muted">
+                    {p.files.some(f => f.has_preview) ? 'Preview the work, then pay' : 'Pay'} the invoice below to download {fileCount === 1 ? 'your file' : `all ${fileCount} files`}.
+                  </p>
                 </div>
               </div>
             )}
-            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} portalStyle={p.portalStyle} locked={p.locked} />
+            <FilesList files={p.files} showLimit={4} brandColor={p.brandColor} portalStyle={p.portalStyle} locked={p.locked}
+              unlockLabel={amount && !p.invoicePaid ? `Pay $${amount} to unlock` : undefined} />
             {fileCount > 1 && !p.locked && <DownloadAllButton portalId={p.portalId} portalName={p.portalName} />}
           </>
         )}
@@ -151,7 +154,7 @@ export default function PortalView(p: PortalViewProps) {
 
         {/* Invoice */}
         {amount && (
-          <section className={`${showReview ? '' : 'mt-4 '}border-t border-rule px-5 py-[18px]`} aria-label="Invoice">
+          <section id="invoice" className={`${showReview ? '' : 'mt-4 '}border-t border-rule px-5 py-[18px]`} aria-label="Invoice">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">Invoice</p>

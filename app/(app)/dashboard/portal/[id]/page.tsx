@@ -9,6 +9,7 @@ import Switch from '@/app/_components/Switch'
 import { storageSafeName } from '@/lib/files'
 import { STORAGE_LIMITS } from '@/lib/storageLimits'
 import { sweepDeleted, uploadFile, type UploadOutcome } from '@/lib/upload'
+import { makeLockedPreview, previewable } from '@/lib/preview'
 import { cleanAmountInput, invoiceAmountError } from '@/lib/invoice'
 import { PageSkeleton } from '../../AppSkeleton'
 import { useCrumbs, useWorkspace } from '../../../WorkspaceProvider'
@@ -38,6 +39,7 @@ interface Portal {
   approval_name?: string | null
   approval_at?: string | null
   lock_until_paid?: boolean | null
+  locked_previews?: boolean | null
 }
 
 // Marks a drag as a reorder of the file list (not files from outside)
@@ -116,6 +118,8 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const isOwner = ws.isOwner
   const editInvoiceError = portal && !portal.invoice_paid ? invoiceAmountError(editInvoice) : null
   const userPlan = ws.owner?.plan || 'free'
+  // Written across the watermarked previews clients see before paying
+  const watermark = ws.owner?.business_name || ws.owner?.full_name || ws.owner?.username || ''
   // Teams you've joined, which you can move your own portals into
   const myTeams = ws.isOwner ? teams.filter(t => t.owner_id !== user.id) : []
   const ownerId = ws.ownerId
@@ -182,6 +186,51 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     else { setPortal({ ...portal, lock_until_paid: next }); refresh() }
     setSavingLock(false)
   }
+
+  // Watermarked previews of locked files (on by default)
+  const handleTogglePreviews = async () => {
+    if (!portal) return
+    setSavingLock(true); setLockError('')
+    const next = portal.locked_previews === false
+    const { error } = await supabase.from('portals').update({ locked_previews: next }).eq('id', portal.id)
+    if (error) setLockError('Couldn’t save this setting. Please try again.')
+    else setPortal({ ...portal, locked_previews: next })
+    setSavingLock(false)
+  }
+
+  // Files uploaded before locked previews existed get one now, made here in
+  // the owner's browser from the file itself (once each, in the background)
+  const previewsChecked = useRef(new Set<string>())
+  useEffect(() => {
+    if (!portal || !files.length) return
+    // Files this browser couldn't make a preview of (say, a video format it
+    // can't play) aren't downloaded again on every visit
+    let failed: string[] = []
+    try { failed = JSON.parse(localStorage.getItem('vb_preview_failed') || '[]') } catch {}
+    const todo = files.filter(f => previewable(f) && (f.file_size || 0) <= 50 * 1024 * 1024 && !previewsChecked.current.has(f.id) && !failed.includes(f.id))
+    if (!todo.length) return
+    todo.forEach(f => previewsChecked.current.add(f.id))
+    let live = true
+    ;(async () => {
+      const res = await fetch(`/api/files/preview?portalId=${portal.id}`).catch(() => null)
+      if (!res?.ok) return
+      const have = new Set<string>((await res.json()).ids || [])
+      for (const f of todo) {
+        if (!live) return
+        if (have.has(f.id)) continue
+        const blob = await fetch(`/api/file/${f.id}?view=1`).then(r => (r.ok ? r.blob() : null)).catch(() => null)
+        // Viewing sends some types as plain text, so use the saved type
+        const data = blob ? await makeLockedPreview(blob, f.file_type || '', watermark) : null
+        if (data) await fetch('/api/files/preview', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fileId: f.id, data }) }).catch(() => {})
+        else if (blob) {
+          failed = [...failed, f.id].slice(-200)
+          try { localStorage.setItem('vb_preview_failed', JSON.stringify(failed)) } catch {}
+        }
+      }
+    })()
+    return () => { live = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs as files arrive; watermark is read when each preview is made
+  }, [files, portal?.id])
 
   // Client approvals (Agency): turn the review step on/off, or clear a response
   // so the client sees a fresh review after you've made changes.
@@ -302,6 +351,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
         continue
       }
       const sent = await uploadFile(portal.id, file, {
+        watermark,
         onProgress: (f) => setUploadProgress({ done: i, total: batch.length, fraction: f }),
       })
       if (sent.ok) continue
@@ -369,7 +419,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     if (!user) return
     // Upload the new file first, and only remove the old one once the record
     // points at the new one: a failed replace leaves the original intact
-    const sent = await uploadFile(portal.id, file, { replaceId: existingFile.id })
+    const sent = await uploadFile(portal.id, file, { replaceId: existingFile.id, watermark })
     if (sent.ok || sent.reason !== 'use_supabase') {
       if (sent.ok) {
         const { data: filesData } = await supabase.from('files').select('*').eq('portal_id', portal.id).eq('user_id', portal.user_id).order('sort_order', { ascending: true })
@@ -865,13 +915,24 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                         : portal.invoice_paid
                         ? (portal.lock_until_paid ? 'Paid, so the files are unlocked.' : 'Invoice paid.')
                         : portal.lock_until_paid
-                        ? 'Your client sees the file list and can download once they pay.'
+                        ? (portal.locked_previews === false
+                          ? 'Your client sees the file list and can download once they pay.'
+                          : 'Your client sees watermarked previews and can download once they pay.')
                         : 'Your client can download before paying.'}
                     </p>
                   </div>
                   <Switch on={!!portal.lock_until_paid} labelledBy="lock-label" onClick={handleToggleLock}
                     disabled={savingLock || !portal.invoice_amount || portal.invoice_paid} />
                 </div>
+                {portal.lock_until_paid && !!portal.invoice_amount && !portal.invoice_paid && (
+                  <div className="mt-3 flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p id="previews-label" className="text-sm font-medium text-paper">Show watermarked previews</p>
+                      <p className="text-xs text-faint mt-1">Small previews of photos, videos and PDFs, marked with {watermark ? <>&ldquo;{watermark}&rdquo;</> : 'your business name'}. The full files stay locked.</p>
+                    </div>
+                    <Switch on={portal.locked_previews !== false} labelledBy="previews-label" onClick={handleTogglePreviews} disabled={savingLock} />
+                  </div>
+                )}
                 {portal.lock_until_paid && !!portal.invoice_amount && !portal.invoice_paid && ws.owner?.stripe_onboarding_complete !== true && (
                   <p className="mt-3 text-xs text-amber-400">
                     {isOwner

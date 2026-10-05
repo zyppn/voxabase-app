@@ -9,6 +9,7 @@ import { isOwnerOrTeam } from '@/lib/portalAccess'
 import { deleteObject, headObject } from '@/lib/b2'
 import { sweepB2 } from '@/lib/b2Sweep'
 import { hasThumbnail } from '@/lib/files'
+import { validPreview } from '@/lib/previewData'
 
 // A small image preview made in the browser (about 96px square)
 const THUMB_RE = /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/]+=*$/
@@ -21,6 +22,8 @@ export async function POST(request: Request) {
   const type = typeof body?.type === 'string' ? body.type.slice(0, 255) : ''
   const replaceId = typeof body?.replaceId === 'string' ? body.replaceId : null
   const thumb = typeof body?.thumb === 'string' && body.thumb.length <= MAX_THUMB_CHARS && THUMB_RE.test(body.thumb) ? body.thumb : null
+  // The watermarked preview clients see before paying (if one could be made)
+  const preview = validPreview(body?.preview) ? body.preview : null
   if (!key || !name) return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
 
   const supabase = createClient(await cookies())
@@ -73,6 +76,8 @@ export async function POST(request: Request) {
   } else {
     await admin.from('file_thumbs').delete().eq('file_id', fileId)
   }
+  if (preview) await admin.from('file_previews').upsert({ file_id: fileId, data: preview })
+  else await admin.from('file_previews').delete().eq('file_id', fileId)
   after(() => sweepB2(admin))
   return NextResponse.json({ ok: true, id: fileId })
 }

@@ -92,6 +92,14 @@ export default async function PortalPage({ params }: Params) {
     .eq('portal_id', portal.id)
     .order('sort_order', { ascending: true })
 
+  // Before payment: which files have a watermarked preview to show
+  let previewIds = new Set<string>()
+  if (awaitingPayment(portal) && portal.locked_previews !== false && files?.length) {
+    const { data: previews } = await admin.from('file_previews').select('file_id').in('file_id', files.map((f) => f.id))
+    previewIds = new Set((previews || []).map((r) => r.file_id))
+  }
+  const listed = (files || []).map((f) => ({ ...f, has_preview: previewIds.has(f.id) }))
+
   return (
     <main data-scheme={portalStyle} className="min-h-screen bg-ink text-paper">
       <PortalTracker portalId={portal.id} ownerUsername={username} />
@@ -102,7 +110,7 @@ export default async function PortalPage({ params }: Params) {
         portalDescription={portal.description}
         {...brand}
         isReady={portal.files_ready}
-        files={portal.files_ready ? files || [] : []}
+        files={portal.files_ready ? listed : []}
         invoiceAmount={portal.invoice_amount}
         invoicePaid={portal.invoice_paid}
         username={username}
