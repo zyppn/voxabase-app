@@ -20,7 +20,7 @@ export default function Page() {
           <tr><td>Your own portal domain</td><td>—</td><td>—</td><td>Yes</td></tr>
         </tbody>
       </table>
-      <p>Every plan has a 50 MB limit per file. Paying yearly saves 20%.</p>
+      <p>Every plan lets you upload files up to 1 GB each. Paying yearly saves 20%.</p>
 
       <h2>Upgrade</h2>
       <p>Go to <Link href="/pricing">Pricing</Link>, choose monthly or yearly, and pick a plan. You pay through Stripe’s secure checkout, and the new features turn on right away.</p>

@@ -17,7 +17,7 @@ export default function Page() {
 
       <h2>2. Add your files</h2>
       <ul>
-        <li>Drag files onto the upload area, or click it to choose them. Each file can be up to <strong>50 MB</strong>.</li>
+        <li>Drag files onto the upload area, or click it to choose them. Each file can be up to <strong>1 GB</strong>.</li>
         <li>With more than one file, drag them to change the order your client sees.</li>
         <li>Sending a revision? Use <strong>Replace</strong> on a file to swap in the new version without changing the link.</li>
       </ul>
