@@ -70,7 +70,7 @@ function PricingContent() {
       key: 'free',
       name: 'Starter',
       features: [
-        '3 client portals',
+        'Unlimited client portals',
         '1 GB file storage',
         'Shareable portal links',
         'File activity tracking',

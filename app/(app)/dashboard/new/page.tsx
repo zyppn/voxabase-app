@@ -57,18 +57,6 @@ export default function NewPortalPage() {
     if (!user) { router.push('/login'); return }
     const workspaceOwner = ownerId || user.id
 
-    if (plan === 'free') {
-      const { count } = await supabase
-        .from('portals')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', workspaceOwner)
-      if (count !== null && count >= 3) {
-        setError('Free plan is limited to 3 portals. Upgrade to Pro for unlimited portals.')
-        setLoading(false)
-        return
-      }
-    }
-
     const finalSlug = isPro && useCustomSlug && customSlug ? customSlug : slug
 
     const password = isPro ? portalPassword.trim() : ''
