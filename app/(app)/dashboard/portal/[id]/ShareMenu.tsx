@@ -25,6 +25,9 @@ export default function ShareMenu({ subject, body, onShared }: {
 }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  // Outlook sometimes drops the message (for example after its sign-in
+  // page), so the message is copied too and this note says to paste it
+  const [pasteNote, setPasteNote] = useState(false)
   // Shown only after the portal has loaded in the browser, so storage is there
   const [last, setLast] = useState<Via | null>(() => {
     try { return typeof window === 'undefined' ? null : (localStorage.getItem(LAST_KEY) as Via | null) } catch { return null }
@@ -41,8 +44,9 @@ export default function ShareMenu({ subject, body, onShared }: {
     const urls: Record<Exclude<Via, 'copy'>, string> = {
       // Without fs=1 the message opens in Gmail’s usual layout, not a bare page
       gmail: `https://mail.google.com/mail/?view=cm&su=${s}&body=${b}`,
-      outlook: `https://outlook.live.com/mail/0/deeplink/compose?subject=${s}&body=${b}`,
-      office: `https://outlook.office.com/mail/deeplink/compose?subject=${s}&body=${b}`,
+      // The older "owa" form keeps the message through Outlook's sign-in more reliably
+      outlook: `https://outlook.live.com/owa/?path=/mail/action/compose&subject=${s}&body=${b}`,
+      office: `https://outlook.office.com/owa/?path=/mail/action/compose&subject=${s}&body=${b}`,
       mail: `mailto:?subject=${s}&body=${b}`,
     }
     if (via === 'copy') {
@@ -52,6 +56,13 @@ export default function ShareMenu({ subject, body, onShared }: {
     } else if (via === 'mail') {
       window.location.assign(urls.mail)
     } else {
+      if (via === 'outlook' || via === 'office') {
+        // Started before the new tab opens, while this page still has focus
+        navigator.clipboard?.writeText(body).then(() => {
+          setPasteNote(true)
+          setTimeout(() => setPasteNote(false), 12000)
+        }).catch(() => {})
+      }
       window.open(urls[via], '_blank', 'noopener')
     }
     onShared?.()
@@ -78,6 +89,13 @@ export default function ShareMenu({ subject, body, onShared }: {
         </svg>
         {copied ? 'Message copied' : 'Share'}
       </button>
+      {pasteNote && !open && (
+        <div role="status" className="absolute right-0 top-full mt-1.5 z-30 w-64 bg-ink-2 border border-rule-2 rounded-xl px-3.5 py-3 shadow-xl shadow-black/40 text-xs leading-relaxed text-muted">
+          <p className="font-medium text-paper mb-0.5">Message copied</p>
+          If Outlook opens without it, start a new email there and paste it in.
+          <button type="button" onClick={() => setPasteNote(false)} className="block mt-2 font-medium text-paper hover:underline underline-offset-2">Got it</button>
+        </div>
+      )}
       {open && (
         <>
           <button aria-hidden="true" tabIndex={-1} className="fixed inset-0 z-20 cursor-default" onClick={() => setOpen(false)} />
