@@ -121,7 +121,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const editInvoiceError = portal && !portal.invoice_paid ? invoiceAmountError(editInvoice) : null
   const userPlan = ws.owner?.plan || 'free'
   // Written across the watermarked previews clients see before paying
-  const watermark = ws.owner?.business_name || ws.owner?.full_name || ws.owner?.username || ''
+  const watermark = (ws.owner?.business_name || ws.owner?.full_name || ws.owner?.username || '').replace(/\s+/g, ' ').trim()
   // Teams you've joined, which you can move your own portals into
   const myTeams = ws.isOwner ? teams.filter(t => t.owner_id !== user.id) : []
   const ownerId = ws.ownerId
