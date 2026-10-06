@@ -39,7 +39,8 @@ export default function ShareMenu({ subject, body, onShared }: {
     setLast(via)
     const s = encodeURIComponent(subject), b = encodeURIComponent(body)
     const urls: Record<Exclude<Via, 'copy'>, string> = {
-      gmail: `https://mail.google.com/mail/?view=cm&fs=1&su=${s}&body=${b}`,
+      // Without fs=1 the message opens in Gmail’s usual layout, not a bare page
+      gmail: `https://mail.google.com/mail/?view=cm&su=${s}&body=${b}`,
       outlook: `https://outlook.live.com/mail/0/deeplink/compose?subject=${s}&body=${b}`,
       office: `https://outlook.office.com/mail/deeplink/compose?subject=${s}&body=${b}`,
       mail: `mailto:?subject=${s}&body=${b}`,
