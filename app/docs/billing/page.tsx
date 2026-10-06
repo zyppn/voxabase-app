@@ -11,7 +11,7 @@ export default function Page() {
         <thead><tr><th></th><th>Free</th><th>Pro</th><th>Agency</th></tr></thead>
         <tbody>
           <tr><td>Price</td><td>$0</td><td>$15/mo, or $12/mo billed yearly</td><td>$49/mo, or $39/mo billed yearly</td></tr>
-          <tr><td>Portals</td><td>3</td><td>Unlimited</td><td>Unlimited</td></tr>
+          <tr><td>Portals</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
           <tr><td>Storage</td><td>1 GB</td><td>25 GB</td><td>250 GB</td></tr>
           <tr><td>Voxabase payment fee</td><td>2%</td><td>0%</td><td>0%</td></tr>
           <tr><td>Branding, passwords, custom links</td><td>—</td><td>Yes</td><td>Yes</td></tr>
@@ -32,7 +32,7 @@ export default function Page() {
       <ul>
         <li>Cancel anytime from <strong>Manage billing</strong>.</li>
         <li>You keep your plan until the end of the period you paid for, then move to Free.</li>
-        <li>Nothing is deleted, and links you’ve already sent keep working. On Free you can’t create portals past the 3-portal limit or upload past 1 GB.</li>
+        <li>Nothing is deleted, and links you’ve already sent keep working. On Free you can’t upload past 1 GB, and client payments carry the 2% fee again.</li>
       </ul>
 
       <h2>Questions about a charge</h2>

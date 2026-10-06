@@ -44,8 +44,8 @@ export default function Page() {
 
       <h2>Limits on the Free plan</h2>
       <p>
-        Free includes 3 portals and 1 GB of storage, and payments carry a 2% Voxabase fee. Pro removes the portal limit,
-        raises storage to 25 GB and drops the fee to 0%. See <Link href="/docs/billing">Plans &amp; billing</Link>.
+        Free includes unlimited portals and 1 GB of storage, and payments carry a 2% Voxabase fee. Pro adds your
+        branding and password-protected portals, raises storage to 25 GB and drops the fee to 0%. See <Link href="/docs/billing">Plans &amp; billing</Link>.
       </p>
     </DocsShell>
   )

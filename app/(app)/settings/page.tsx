@@ -625,7 +625,7 @@ function SettingsContent() {
                   {plan !== 'free' && <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border border-rule-2 text-muted`}>Active</span>}
                 </div>
                 {plan === 'free' ? (
-                  <p className="text-faint text-sm mt-0.5">Free forever — upgrade for branding, unlimited portals & more</p>
+                  <p className="text-faint text-sm mt-0.5">Free forever. Upgrade for your branding, 0% payment fee and more</p>
                 ) : subscriptionPeriodEnd ? (
                   <p className="text-faint text-sm mt-0.5">Renews {formatDate(subscriptionPeriodEnd)}</p>
                 ) : (
