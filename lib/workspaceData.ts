@@ -69,15 +69,17 @@ async function loadTeams(supabase: SupabaseClient, user: WorkspaceData['user'], 
   const { data } = await supabase.from('team_members').select('owner_id, owner_label, owner_username')
     .eq('member_id', user.id).eq('status', 'active')
   const joined = (data || []) as Team[]
-  // owner_label is a snapshot from the invite, so prefer the owner's current
-  // name where their profile is readable
+  // The owner's profile is readable only while this user holds one of their
+  // seats (see team_seat_ok), so teams that are paused (owner on Free, or over
+  // the seat limit after the 7-day grace) are left out of the switcher.
+  // owner_label is a snapshot from the invite, so the current name is used.
   const { data: owners } = joined.length
     ? await supabase.from('profiles').select('id, business_name, full_name, username').in('id', joined.map(t => t.owner_id))
     : { data: [] }
   const own: Team[] = hasTeams(me?.plan) ? [{ owner_id: user.id, owner_label: teamName({ ...me, email: user.email }), owner_username: me?.username ?? null }] : []
-  return [...own, ...joined.map(t => {
+  return [...own, ...joined.flatMap(t => {
     const o = owners?.find(p => p.id === t.owner_id)
-    return o ? { ...t, owner_label: teamName(o) } : t
+    return o ? [{ ...t, owner_label: teamName(o) }] : []
   })]
 }
 

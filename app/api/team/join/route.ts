@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { WS_COOKIE, hasTeams } from '@/lib/workspace'
+import { WS_COOKIE, hasTeams, seatsFor } from '@/lib/workspace'
 
 async function findInvite(token: string) {
   if (!token || token.length > 100) return null
@@ -16,7 +16,7 @@ async function findInvite(token: string) {
     .maybeSingle()
   if (!data) return null
   const { data: owner } = await admin.from('profiles').select('plan').eq('id', data.owner_id).single()
-  return { ...data, ownerOnAgency: hasTeams(owner?.plan) }
+  return { ...data, ownerOnAgency: hasTeams(owner?.plan), seats: seatsFor(owner?.plan) }
 }
 
 export async function GET(request: Request) {
@@ -45,6 +45,13 @@ export async function POST(request: Request) {
   }
 
   if (invite.status !== 'active') {
+    // After a downgrade the team can already be full of people who joined
+    // earlier; an old pending invite doesn't get a seat on top of them.
+    const { count } = await supabaseAdmin().from('team_members').select('id', { count: 'exact', head: true })
+      .eq('owner_id', invite.owner_id).eq('status', 'active')
+    if ((count || 0) >= invite.seats) {
+      return NextResponse.json({ error: 'This team has no free seats right now. Ask the team owner to make room or upgrade.' }, { status: 409 })
+    }
     const { error } = await supabaseAdmin().from('team_members').update({
       member_id: user.id, status: 'active', joined_at: new Date().toISOString(),
     }).eq('id', invite.id).eq('status', 'pending')

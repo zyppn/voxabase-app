@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/utils/supabase/server'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { cookies } from 'next/headers'
 import { assertStripeEnv } from '@/lib/stripe-guard'
 import { planForPrice } from '@/lib/plans'
@@ -40,7 +41,8 @@ export async function POST(request: Request) {
         metadata: { supabase_user_id: user.id },
       })
       customerId = customer.id
-      await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
+      // Billing columns are server-only (see *_profiles_protect_billing.sql)
+      await supabaseAdmin().from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
     }
 
     const session = await stripe.checkout.sessions.create({

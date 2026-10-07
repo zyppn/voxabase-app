@@ -22,10 +22,9 @@ export async function POST(request: Request) {
   const { data: portal } = await admin.from('portals').select('id, user_id, slug').eq('id', portalId).maybeSingle()
   if (!portal || portal.user_id !== user.id) return NextResponse.json({ error: 'You can only move your own portals.' }, { status: 403 })
 
-  const { data: membership } = await admin.from('team_members').select('id')
-    .eq('owner_id', toOwner).eq('member_id', user.id).eq('status', 'active').maybeSingle()
+  const { data: seatOk } = await admin.rpc('team_seat_ok', { p_owner: toOwner, p_member: user.id })
   const { data: owner } = await admin.from('profiles').select('username, plan').eq('id', toOwner).maybeSingle()
-  if (!membership || !hasTeams(owner?.plan) || !owner?.username) {
+  if (seatOk !== true || !hasTeams(owner?.plan) || !owner?.username) {
     return NextResponse.json({ error: 'You’re not on that team anymore.' }, { status: 403 })
   }
 

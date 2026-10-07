@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { assertStripeEnv } from '@/lib/stripe-guard'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -27,7 +28,8 @@ export async function GET() {
       && account.capabilities?.card_payments === 'active'
 
     if (profile.stripe_onboarding_complete !== ready) {
-      await supabase.from('profiles').update({ stripe_onboarding_complete: ready }).eq('id', user.id)
+      // Billing columns are server-only (see *_profiles_protect_billing.sql)
+      await supabaseAdmin().from('profiles').update({ stripe_onboarding_complete: ready }).eq('id', user.id)
     }
     return NextResponse.json({
       status: ready ? 'connected' : 'incomplete',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/utils/supabase/server'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { cookies } from 'next/headers'
 import { assertStripeEnv } from '@/lib/stripe-guard'
 
@@ -41,7 +42,8 @@ export async function POST() {
       })
       stripeAccountId = account.id
 
-      await supabase
+      // Billing columns are server-only (see *_profiles_protect_billing.sql)
+      await supabaseAdmin()
         .from('profiles')
         .update({ stripe_account_id: stripeAccountId })
         .eq('id', user.id)
