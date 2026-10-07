@@ -61,3 +61,16 @@ export function brandSurface(hex: string, style: PortalStyle = 'dark'): string {
 export function brandLine(hex: string): string {
   return `color-mix(in oklab, ${hex} 34%, transparent)`
 }
+
+/**
+ * A logo address is only used if it's an upload in our own branding storage
+ * (the only place Settings puts logos). The column can be written directly,
+ * and the link-preview image fetches the logo on the server, so any other
+ * address is ignored rather than fetched or shown to clients.
+ */
+export function safeLogoUrl(url: string | null | undefined): string | null {
+  const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/branding/`
+  if (!url || !process.env.NEXT_PUBLIC_SUPABASE_URL || !url.startsWith(base)) return null
+  const path = url.slice(base.length)
+  return /^[0-9a-f-]{36}\/[A-Za-z0-9._-]+$/.test(path) && !path.includes('..') ? url : null
+}

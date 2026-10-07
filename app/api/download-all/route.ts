@@ -36,8 +36,10 @@ export async function GET(request: Request) {
   const used = new Set<string>()
   const plan = files.map((file) => {
     // Two files with the same name would overwrite each other in the zip
-    let name = file.name, n = 2
-    while (used.has(name)) name = file.name.replace(/(\.[^.]*)?$/, ` (${n++})$1`)
+    // A name like "../../x" or "a/b" would land outside the folder when unzipped
+    const base = file.name.replace(/[\\/]+/g, '-').replace(/^\.+/, '') || 'file'
+    let name = base, n = 2
+    while (used.has(name)) name = base.replace(/(\.[^.]*)?$/, ` (${n++})$1`)
     used.add(name)
     return { file, name, size: Number(file.file_size), lastModified: file.created_at ? new Date(file.created_at) : new Date() }
   })

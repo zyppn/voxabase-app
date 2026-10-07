@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   if (!(await canOpenPortal(admin, portal))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const { data: owner } = await admin.from('profiles').select('plan').eq('username', portal.owner_username).single()
+  const { data: owner } = await admin.from('profiles').select('plan').eq('id', portal.user_id).single()
   if (owner?.plan !== 'agency') {
     return NextResponse.json({ error: 'Approvals aren’t available for this portal.' }, { status: 404 })
   }

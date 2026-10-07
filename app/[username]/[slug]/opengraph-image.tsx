@@ -9,7 +9,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { loadPortal } from './loadPortal'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { DEFAULT_BRAND, normalizeBrand, textOnBrand } from '@/lib/brand'
+import { DEFAULT_BRAND, normalizeBrand, textOnBrand, safeLogoUrl } from '@/lib/brand'
 import { formatMoney } from '@/lib/invoice'
 import { needsPassword } from '@/lib/portalAccess'
 
@@ -81,7 +81,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
   const brand = pro ? normalizeBrand(hit?.profile?.brand_color) : DEFAULT_BRAND
   const name = hit?.displayName || 'Client delivery'
   const showLogo = pro && (hit?.profile?.brand_display || 'both') !== 'name'
-  const logo = showLogo ? await loadLogo(hit?.profile?.logo_url || null) : null
+  const logo = showLogo ? await loadLogo(safeLogoUrl(hit?.profile?.logo_url)) : null
   // Agency portals can run on the customer's own domain without Voxabase
   // branding, so their picture never mentions Voxabase either
   const showVia = plan !== 'agency'

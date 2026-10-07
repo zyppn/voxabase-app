@@ -176,7 +176,8 @@ async function pdfSource(file: Blob): Promise<Source | null> {
   // The legacy build works in older browsers too (Safari before 18, older Chrome)
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
   pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url).toString()
-  const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise
+  const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) })
+  const doc = await task.promise
   try {
     const page = await doc.getPage(1)
     const base = page.getViewport({ scale: 1 })
@@ -191,6 +192,6 @@ async function pdfSource(file: Blob): Promise<Source | null> {
     await page.render({ canvas, canvasContext: ctx, viewport }).promise
     return { width: canvas.width, height: canvas.height, draw: (c, w, h) => c.drawImage(canvas, 0, 0, w, h) }
   } finally {
-    doc.destroy()
+    task.destroy()
   }
 }

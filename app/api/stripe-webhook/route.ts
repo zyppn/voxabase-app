@@ -30,6 +30,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
 
+  // Only Voxabase's own events count. Events from freelancers' connected
+  // accounts (if this endpoint ever receives them) could carry any metadata,
+  // like another portal's id, so they never mark anything paid.
+  if (event.account) return NextResponse.json({ received: true })
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!

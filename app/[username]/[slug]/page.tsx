@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import PortalTracker from './PortalTracker'
 import PortalPasswordGate from './PortalPasswordGate'
 import PortalView from './PortalView'
-import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle } from '@/lib/brand'
+import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle, safeLogoUrl } from '@/lib/brand'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, needsPassword, viewerId } from '@/lib/portalAccess'
@@ -50,7 +50,7 @@ export default async function PortalPage({ params }: Params) {
   // Branding is a Pro feature. Free owners' saved color/logo stay in the DB
   // but are NOT applied — portals fall back to the default purple + no logo.
   const brandColor = ownerIsPro ? normalizeBrand(profile?.brand_color) : DEFAULT_BRAND
-  const logoUrl = ownerIsPro ? (profile?.logo_url || null) : null
+  const logoUrl = ownerIsPro ? safeLogoUrl(profile?.logo_url) : null
   const brandDisplay = profile?.brand_display || 'both'
   const brandInitial = (displayName || 'V').charAt(0).toUpperCase()
   // On an Agency customer's own domain the portal carries no Voxabase branding

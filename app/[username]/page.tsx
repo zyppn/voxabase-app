@@ -7,7 +7,7 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
-import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle } from '@/lib/brand'
+import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle, safeLogoUrl } from '@/lib/brand'
 import { PortalBrand, DeliveredVia } from './[slug]/PortalView'
 
 export const revalidate = 0
@@ -45,7 +45,7 @@ export default async function OwnerPage({ params }: Params) {
       <div className="w-full max-w-sm text-center">
         <div className="mb-7">
           <PortalBrand ownerIsPro={ownerIsPro} brandDisplay={profile.brand_display || 'both'}
-            logoUrl={ownerIsPro ? profile.logo_url || null : null} displayName={displayName}
+            logoUrl={ownerIsPro ? safeLogoUrl(profile.logo_url) : null} displayName={displayName}
             brandInitial={displayName.charAt(0).toUpperCase()}
             brandColor={ownerIsPro ? normalizeBrand(profile.brand_color) : DEFAULT_BRAND} centered />
         </div>
