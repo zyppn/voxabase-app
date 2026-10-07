@@ -67,15 +67,17 @@ export default function NewPortalPage() {
       description: description || null,
       owner_username: username,
       invoice_amount: invoiceAmount ? parseFloat(invoiceAmount) : null,
-      password_protected: !!password,
       team_shared: inTeam,
       ...(lockUntilPaid && Number(invoiceAmount) > 0 ? { lock_until_paid: true } : {}),
     }).select('id').single()
     if (error || !created) { setError('Couldn’t create the portal. Please try again.'); setLoading(false); return }
-    // The password goes in a private table only the owner and team can read
+    // The server stores the password (hashed); nobody can read it back
     if (password) {
-      const { error: pwError } = await supabase.from('portal_passwords').insert({ portal_id: created.id, user_id: workspaceOwner, password })
-      if (pwError) {
+      const res = await fetch('/api/portals/password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalId: created.id, password }),
+      }).catch(() => null)
+      if (!res?.ok) {
         await supabase.from('portals').delete().eq('id', created.id)
         setError('Could not save the portal password. Please try again.'); setLoading(false); return
       }
@@ -215,7 +217,7 @@ export default function NewPortalPage() {
                       <>
                         <input id="portal-password"
                           type="text"
-                          value={portalPassword}
+                          value={portalPassword} maxLength={200}
                           onChange={(e) => setPortalPassword(e.target.value)}
                           className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
                           placeholder="Leave blank for no password"

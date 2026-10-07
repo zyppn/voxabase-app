@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient as createSupabase } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { allow } from '@/lib/rateLimit'
 
 export async function POST(request: Request) {
   const { password } = await request.json().catch(() => ({ password: '' }))
@@ -15,6 +17,10 @@ export async function POST(request: Request) {
   const supabase = createClient(await cookies())
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  // 10 tries every 10 minutes per account
+  if (!(await allow(supabaseAdmin(), `verify:${user.id}`, 10, 10 * 60))) {
+    return NextResponse.json({ ok: false, error: 'Too many attempts. Wait a few minutes and try again.' }, { status: 429 })
+  }
 
   const temp = createSupabase(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
