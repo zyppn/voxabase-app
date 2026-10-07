@@ -8,7 +8,6 @@ import { createHash, timingSafeEqual } from 'crypto'
 import { cookies } from 'next/headers'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server'
-import { hasTeams } from '@/lib/workspace'
 
 export type PortalAccessRow = { id: string; user_id: string; is_active: boolean; password_protected: boolean }
 
@@ -33,15 +32,12 @@ export async function viewerId(): Promise<string | null> {
   }
 }
 
-/** Owner, or an active teammate of an Agency owner. */
+/** Owner, or a teammate holding one of the owner's seats (see team_seat_ok). */
 export async function isOwnerOrTeam(admin: SupabaseClient, userId: string | null, ownerId: string) {
   if (!userId) return false
   if (userId === ownerId) return true
-  const { data } = await admin
-    .from('team_members').select('id').eq('owner_id', ownerId).eq('member_id', userId).eq('status', 'active').maybeSingle()
-  if (!data) return false
-  const { data: owner } = await admin.from('profiles').select('plan').eq('id', ownerId).single()
-  return hasTeams(owner?.plan)
+  const { data } = await admin.rpc('team_seat_ok', { p_owner: ownerId, p_member: userId })
+  return data === true
 }
 
 export async function storedPassword(admin: SupabaseClient, portalId: string): Promise<string | null> {

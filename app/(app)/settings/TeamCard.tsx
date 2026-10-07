@@ -8,7 +8,7 @@ import { hasTeams, seatsFor, readWorkspaceCookie, setWorkspaceCookie } from '@/l
 import { displayName, isOnline } from '@/lib/people'
 
 type Row = { id: string; email: string; status: 'pending' | 'active'; token: string; invited_at: string; joined_at: string | null }
-type Membership = { id: string; owner_id: string; owner_label: string | null }
+type Membership = { id: string; owner_id: string; owner_label: string | null; paused?: boolean }
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
@@ -24,6 +24,8 @@ export default function TeamCard({ plan }: { plan: string }) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [justInvited, setJustInvited] = useState<string | null>(null)
+  // After a downgrade leaves more teammates than seats: when the extra ones lose access
+  const [graceUntil, setGraceUntil] = useState<string | null>(null)
   // Pro: 1 teammate, Agency: 4
   const isAgency = hasTeams(plan)
   const seats = seatsFor(plan)
@@ -43,7 +45,16 @@ export default function TeamCard({ plan }: { plan: string }) {
         setError('Couldn’t load your team. Refresh the page, and contact support if it keeps happening.')
       }
       setRows((mine || []) as Row[])
-      setMemberships((onTeams || []) as Membership[])
+      // A team you're on is paused when its owner is on Free, or is over their
+      // seats and you're past the limit (see team_seat_ok)
+      const teams = (onTeams || []) as Membership[]
+      const [access, { data: grace }] = await Promise.all([
+        Promise.all(teams.map((m) => supabase.rpc('is_team_member_of', { owner: m.owner_id }))),
+        supabase.from('team_seat_grace').select('until').eq('owner_id', user.id).maybeSingle(),
+      ])
+      if (!active) return
+      setMemberships(teams.map((m, i) => ({ ...m, paused: access[i].data === false })))
+      setGraceUntil(grace?.until ?? null)
       // Names and online status of people who have joined
       const { data: roster } = await supabase.rpc('team_roster', { p_owner: user.id })
       if (!active) return
@@ -102,7 +113,12 @@ export default function TeamCard({ plan }: { plan: string }) {
 
   const used = rows.length
   const full = used >= seats
-  const over = used > seats
+  // Teammates beyond the seat limit, newest first to lose access (same order as team_seat_ok)
+  const joined = rows.filter((r) => r.status === 'active')
+    .sort((a, b) => (a.joined_at || '').localeCompare(b.joined_at || '') || a.id.localeCompare(b.id))
+  const extra = new Set(joined.slice(seats).map((r) => r.id))
+  const inGrace = !!graceUntil && new Date(graceUntil) > new Date()
+  const fix = plan === 'pro' ? 'remove someone or upgrade to Agency' : 'remove someone'
 
   return (
     <div id="team" className="mt-5 border border-rule bg-card rounded-xl p-6 scroll-mt-16">
@@ -133,8 +149,12 @@ export default function TeamCard({ plan }: { plan: string }) {
 
       {error && <div role="alert" className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3 mb-4">{error}</div>}
 
-      {isAgency && over && (
-        <p className="mb-4 text-sm text-amber-400/90">You have more teammates than your plan includes. They keep access, but you can’t invite anyone new until you remove someone{plan === 'pro' ? ' or upgrade to Agency' : ''}.</p>
+      {isAgency && extra.size > 0 && (
+        <p className="mb-4 text-sm text-amber-400/90">
+          {inGrace
+            ? <>Your plan includes {seats} teammate{seats === 1 ? '' : 's'}, and you have {joined.length}. On {fmt(graceUntil!)}, the {extra.size === 1 ? 'teammate' : `${extra.size} teammates`} marked below will lose access to your Team workspace unless you {fix}.</>
+            : <>Your plan includes {seats} teammate{seats === 1 ? '' : 's'}, so the {extra.size === 1 ? 'teammate' : `${extra.size} teammates`} marked below can’t open your Team workspace. They’ll get access back when you {fix}.</>}
+        </p>
       )}
 
       {isAgency && (
@@ -170,6 +190,9 @@ export default function TeamCard({ plan }: { plan: string }) {
                     {row.status === 'active'
                       ? `${names[row.email]?.online ? 'Online' : 'Offline'} · joined ${row.joined_at ? fmt(row.joined_at) : ''}`
                       : `Invited ${fmt(row.invited_at)} · waiting to join`}
+                    {isAgency && extra.has(row.id) && (
+                      <span className="text-amber-400/90">· {inGrace ? `Access ends ${fmt(graceUntil!)}` : 'Paused, over your seat limit'}</span>
+                    )}
                   </p>
                 </div>
                 {confirmId === row.id ? (
@@ -212,7 +235,10 @@ export default function TeamCard({ plan }: { plan: string }) {
           <ul className="flex flex-col gap-2">
             {memberships.map((m) => (
               <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 bg-ink border border-rule rounded-lg px-4 py-3">
-                <span className="text-sm text-paper">{m.owner_label || 'Team'}</span>
+                <span className="text-sm text-paper">
+                  {m.owner_label || 'Team'}
+                  {m.paused && <span className="block text-xs text-amber-400/90 mt-0.5">Paused: the owner’s plan doesn’t include your seat right now</span>}
+                </span>
                 {confirmId === m.id ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted">Leave this team?</span>

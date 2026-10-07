@@ -48,22 +48,17 @@ export function setWorkspaceCookie(ownerId: string | null) {
 
 /**
  * Resolve the workspace for this user. `preferred` is the cookie value; it is
- * only honored if the user is an active teammate of that owner and the owner
- * is still on Agency (otherwise the owner's profile isn't readable).
+ * only honored if the user holds one of that owner's team seats (an active
+ * teammate, on a plan with teams, within the seat limit or its 7-day grace).
  */
 export async function loadWorkspace(supabase: SupabaseClient, userId: string, preferred: string | null | undefined): Promise<Workspace> {
   const { data: me } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', userId).single()
   const iAmAgency = hasTeams(me?.plan)
   if (preferred === userId && iAmAgency) return { ownerId: userId, isOwner: true, shared: true, owner: me, me }
   if (preferred && preferred !== userId) {
-    const { data: membership } = await supabase
-      .from('team_members')
-      .select('owner_id')
-      .eq('member_id', userId)
-      .eq('owner_id', preferred)
-      .eq('status', 'active')
-      .maybeSingle()
-    if (membership) {
+    // Active teammate holding one of the owner's seats (see team_seat_ok)
+    const { data: member } = await supabase.rpc('is_team_member_of', { owner: preferred })
+    if (member === true) {
       const { data: owner } = await supabase.from('profiles').select(PROFILE_FIELDS).eq('id', preferred).maybeSingle()
       if (owner && hasTeams(owner.plan)) return { ownerId: preferred, isOwner: false, shared: true, owner, me }
     }

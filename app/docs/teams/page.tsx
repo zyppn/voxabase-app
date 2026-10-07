@@ -52,6 +52,7 @@ export default function Page() {
 
       <h2>If the owner’s plan changes</h2>
       <p>If the owner drops to Free, teammates can’t open the Team workspace until the owner upgrades again. Nothing is deleted.</p>
+      <p>If the owner moves to a plan with fewer seats (Agency to Pro), everyone keeps access for 7 days. After that, the teammates who joined first keep their seats, up to the plan’s limit, and the rest are paused until the owner removes someone or upgrades. Settings → Team shows who’s affected and the date.</p>
     </DocsShell>
   )
 }
