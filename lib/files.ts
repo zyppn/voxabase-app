@@ -29,14 +29,27 @@ const extOf = (name: string) => (name.includes('.') ? name.split('.').pop()!.toL
 export const isTextFile = (file: NamedFile) =>
   TEXT_EXTS.has(extOf(file.name)) || !!file.file_type?.startsWith('text/') || file.file_type === 'application/json'
 
-// Types that would run as a web page (scripts) if a browser opened them from
-// this site. Opened for viewing, they're sent as plain text instead.
-const ACTIVE_TYPES = new Set(['text/html', 'application/xhtml+xml', 'text/xml', 'application/xml', 'text/javascript', 'application/javascript', 'application/x-javascript'])
+// What a file may be shown as when opened from this site. The type comes from
+// the uploader's browser, so it's never trusted as-is: it's reduced to its
+// lowercase essence ("IMAGE/SVG+XML; x" → "image/svg+xml") and only types that
+// can't run scripts are shown inline. Text and code show as plain text;
+// anything else is sent as a download.
+const INLINE_TYPES = new Set([
+  'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/bmp',
+  'application/pdf',
+])
+const mimeEssence = (t: string | null) => (t || '').split(';')[0].trim().toLowerCase()
 
 /** What to send a file as when it's opened for viewing (not downloaded) */
 export function viewContentType(file: NamedFile): string {
-  if (isTextFile(file) || ACTIVE_TYPES.has(file.file_type || '')) return 'text/plain; charset=utf-8'
-  return file.file_type || 'application/octet-stream'
+  const type = mimeEssence(file.file_type)
+  // SVG can hold scripts: shown only under a sandbox (see the file route)
+  if (type === 'image/svg+xml') return type
+  if (isTextFile(file) || type.startsWith('text/') || type.endsWith('+xml') || type.endsWith('/xml') || type.includes('javascript') || type.endsWith('json')) {
+    return 'text/plain; charset=utf-8'
+  }
+  if (INLINE_TYPES.has(type) || /^(video|audio)\/[a-z0-9.+-]+$/.test(type)) return type
+  return 'application/octet-stream'
 }
 
 // Storage keys only allow plain ASCII letters, digits and a few symbols, so a

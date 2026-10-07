@@ -87,8 +87,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     headers.set('content-disposition', `inline; filename*=UTF-8''${encodeURIComponent(file.name)}`)
     headers.set('x-content-type-options', 'nosniff')
     headers.set('cache-control', 'private, max-age=300')
-    // An SVG opened in a tab could run scripts on this site: shown as a picture only
-    if (type === 'image/svg+xml') headers.set('content-security-policy', "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:")
+    // An SVG opened in a tab could run scripts on this site: shown as a picture only.
+    // (This route sets its own policy; next.config.ts leaves it out.)
+    headers.set('content-security-policy', type === 'image/svg+xml'
+      ? "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'"
+      : "frame-ancestors 'self'")
     return new Response(upstream.body, { status: upstream.status, headers })
   }
 

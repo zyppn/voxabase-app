@@ -23,6 +23,9 @@ export const loadPortal = cache(async (username: string, slug: string) => {
     .select('*') // all columns, so a newly added one (portal_style) can't break the page before its migration runs
     .eq('username', username)
     .single()
+  // The address's username must be the portal's real owner: otherwise someone
+  // else's name and logo would front a portal that pays its creator
+  if (!profile || profile.id !== portal.user_id) return null
   return { portal, profile, displayName: (profile?.business_name || profile?.full_name || username) as string }
 })
 
