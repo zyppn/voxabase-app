@@ -25,7 +25,7 @@ export default function Page() {
       <h2>Change or remove it</h2>
       <ul>
         <li><strong>Change:</strong> enter a new password with <strong>Edit</strong>. Everyone who unlocked with the old one is asked for the new one.</li>
-        <li><strong>Remove:</strong> clear the field and save. The portal opens with just the link again.</li>
+        <li><strong>Remove:</strong> in Edit, click <strong>Remove password</strong> under the field, then save. The portal opens with just the link again.</li>
       </ul>
       <p className="note">We can’t show you a portal password after it’s saved. If you forget it, just set a new one.</p>
 

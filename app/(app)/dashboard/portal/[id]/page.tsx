@@ -90,7 +90,9 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
   const [editDescription, setEditDescription] = useState('')
   const [editInvoice, setEditInvoice] = useState('')
   const [editError, setEditError] = useState('')
+  // A new password to set (passwords are stored hashed, so the current one can't be shown)
   const [editPassword, setEditPassword] = useState('')
+  const [removePassword, setRemovePassword] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingReady, setTogglingReady] = useState(false)
@@ -137,11 +139,6 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       setEditName(portalData.name)
       setEditDescription(portalData.description || '')
       setEditInvoice(portalData.invoice_amount?.toString() || '')
-      // Passwords live in a private table only the owner and team can read
-      if (portalData.password_protected) {
-        const { data: pw } = await supabase.from('portal_passwords').select('password').eq('portal_id', id).maybeSingle()
-        setEditPassword(pw?.password || '')
-      }
 
       const { data: filesData } = await supabase
         .from('files')
@@ -566,23 +563,29 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
       name: editName,
       description: editDescription || null,
       invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
-      ...(userPlan !== 'free' ? { password_protected: !!editPassword } : {}),
     }).eq('id', portal.id)
     if (error) { setEditError('Couldn’t save your changes. Please try again.'); setSaving(false); return }
-    if (userPlan !== 'free') {
-      if (editPassword) {
-        await supabase.from('portal_passwords').upsert({ portal_id: portal.id, user_id: portal.user_id, password: editPassword })
-      } else {
-        await supabase.from('portal_passwords').delete().eq('portal_id', portal.id)
-      }
+    // The server sets or removes the password (stored hashed)
+    const newPassword = editPassword.trim()
+    let passwordProtected = portal.password_protected
+    if (newPassword || (removePassword && portal.password_protected)) {
+      const res = await fetch('/api/portals/password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalId: portal.id, password: removePassword ? '' : newPassword }),
+      }).catch(() => null)
+      const data = await res?.json().catch(() => ({}))
+      if (!res?.ok) { setEditError(data?.error || 'Couldn’t save the password. Please try again.'); setSaving(false); return }
+      passwordProtected = !!data.protected
     }
     setPortal({
       ...portal,
       name: editName,
       description: editDescription,
       invoice_amount: portal.invoice_paid ? portal.invoice_amount : (editInvoice ? parseFloat(editInvoice) : null),
-      password_protected: userPlan !== 'free' ? !!editPassword : portal.password_protected,
+      password_protected: passwordProtected,
     })
+    setEditPassword('')
+    setRemovePassword(false)
     setSaving(false)
     setShowEditModal(false)
     refresh()
@@ -1090,13 +1093,28 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
                   Portal password <span className="text-faint">(optional)</span>
                   {!isPro && <span className="ml-2 text-xs bg-accent-soft text-accent-text border border-accent/30 px-2 py-0.5 rounded-full">Pro</span>}
                 </label>
-                {isPro ? (
+                {portal.password_protected && removePassword ? (
+                  <div className="bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 flex items-center justify-between gap-3 text-sm">
+                    <span className="text-muted">The password will be removed when you save.</span>
+                    <button type="button" onClick={() => setRemovePassword(false)} className="text-paper hover:underline underline-offset-2">Undo</button>
+                  </div>
+                ) : isPro ? (
                   <>
-                    <input id="edit-password" type="text" value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
-                      className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper focus:outline-none focus:border-accent text-sm"
-                      placeholder="Leave blank to remove password" />
-                    <p className="text-xs text-faint mt-1">Clients must enter this password to view the portal</p>
+                    <input id="edit-password" type="text" value={editPassword} maxLength={200} onChange={(e) => setEditPassword(e.target.value)}
+                      className="w-full bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-faint focus:outline-none focus:border-accent text-sm"
+                      placeholder={portal.password_protected ? 'Enter a new password to change it' : 'Set a password'} />
+                    <p className="text-xs text-faint mt-1 flex flex-wrap items-center gap-x-2">
+                      {portal.password_protected
+                        ? <>A password is set. For security it can’t be shown, only changed.
+                            <button type="button" onClick={() => { setRemovePassword(true); setEditPassword('') }} className="text-muted hover:text-red-400 hover:underline underline-offset-2">Remove password</button></>
+                        : 'Clients must enter this password to view the portal'}
+                    </p>
                   </>
+                ) : portal.password_protected ? (
+                  <div className="bg-ink border border-rule-2 rounded-lg px-3.5 py-2.5 flex items-center justify-between gap-3 text-sm">
+                    <span className="text-muted">A password is set.</span>
+                    <button type="button" onClick={() => setRemovePassword(true)} className="text-muted hover:text-red-400 hover:underline underline-offset-2">Remove password</button>
+                  </div>
                 ) : (
                   <div className="bg-ink border border-rule-2 rounded-lg px-4 py-3 opacity-50 cursor-not-allowed flex items-center justify-between">
                     <span className="text-faint text-sm">Upgrade to Pro to enable password protection</span>
@@ -1109,7 +1127,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
             </div>
             {editError && <p role="alert" className="mt-4 text-sm text-red-400">{editError}</p>}
             <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowEditModal(false); setEditError('') }} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
+              <button onClick={() => { setShowEditModal(false); setEditError(''); setEditPassword(''); setRemovePassword(false) }} className="flex-1 border border-rule-2 text-muted hover:text-paper py-2.5 rounded-lg text-sm">Cancel</button>
               <button onClick={handleEditSave} disabled={saving || !!editInvoiceError} className="flex-1 bg-paper hover:bg-paper-hover text-ink font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save changes'}
               </button>
