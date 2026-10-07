@@ -7,7 +7,7 @@ import PortalView from './PortalView'
 import { DEFAULT_BRAND, normalizeBrand, resolvePortalStyle } from '@/lib/brand'
 import { DOMAIN_HEADER } from '@/lib/domainHeader'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
+import { canOpenPortal, isOwnerOrTeam, needsPassword, viewerId } from '@/lib/portalAccess'
 import BackToPortal from './BackToPortal'
 import { awaitingPayment } from '@/lib/paywall'
 import { loadPortal } from './loadPortal'
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username, slug } = await params
   const hit = await loadPortal(username, slug)
   if (!hit) return {}
-  const priv = !!hit.portal.password_protected
+  const priv = await needsPassword(supabaseAdmin(), hit.portal)
   const title = priv ? `Private delivery · ${hit.displayName}` : `${hit.portal.name} · ${hit.displayName}`
   const description = (!priv && hit.portal.description) || `Files from ${hit.displayName}`
   return {
