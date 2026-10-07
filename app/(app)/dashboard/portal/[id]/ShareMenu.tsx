@@ -5,13 +5,12 @@
 // default mail app, or copies it. Nothing is sent by Voxabase.
 import { useState } from 'react'
 
-type Via = 'gmail' | 'outlook' | 'office' | 'mail' | 'copy'
+type Via = 'gmail' | 'outlook' | 'mail' | 'copy'
 const LAST_KEY = 'vb_share_via'
 
 const OPTIONS: { id: Via; label: string; hint?: string }[] = [
   { id: 'gmail', label: 'Gmail' },
-  { id: 'outlook', label: 'Outlook', hint: 'Outlook.com' },
-  { id: 'office', label: 'Outlook for work', hint: 'Microsoft 365' },
+  { id: 'outlook', label: 'Outlook' },
   { id: 'mail', label: 'Other email app' },
   { id: 'copy', label: 'Copy message' },
 ]
@@ -30,7 +29,12 @@ export default function ShareMenu({ subject, body, onShared }: {
   const [pasteNote, setPasteNote] = useState(false)
   // Shown only after the portal has loaded in the browser, so storage is there
   const [last, setLast] = useState<Via | null>(() => {
-    try { return typeof window === 'undefined' ? null : (localStorage.getItem(LAST_KEY) as Via | null) } catch { return null }
+    try {
+      if (typeof window === 'undefined') return null
+      const v = localStorage.getItem(LAST_KEY)
+      // The two Outlook options used to be separate
+      return (v === 'office' ? 'outlook' : v) as Via | null
+    } catch { return null }
   })
 
   // The way you shared last time comes first
@@ -44,9 +48,11 @@ export default function ShareMenu({ subject, body, onShared }: {
     const urls: Record<Exclude<Via, 'copy'>, string> = {
       // Without fs=1 the message opens in Gmail’s usual layout, not a bare page
       gmail: `https://mail.google.com/mail/?view=cm&su=${s}&body=${b}`,
-      // The older "owa" form keeps the message through Outlook's sign-in more reliably
-      outlook: `https://outlook.live.com/owa/?path=/mail/action/compose&subject=${s}&body=${b}`,
-      office: `https://outlook.office.com/owa/?path=/mail/action/compose&subject=${s}&body=${b}`,
+      // Outlook on the web for work and school accounts (Microsoft 365), where
+      // most businesses' email is. The older "owa" form keeps the message
+      // through sign-in more reliably. Personal Outlook.com accounts land in
+      // their inbox instead, so the message is also copied (below) to paste.
+      outlook: `https://outlook.office.com/owa/?path=/mail/action/compose&subject=${s}&body=${b}`,
       mail: `mailto:?subject=${s}&body=${b}`,
     }
     if (via === 'copy') {
@@ -56,7 +62,7 @@ export default function ShareMenu({ subject, body, onShared }: {
     } else if (via === 'mail') {
       window.location.assign(urls.mail)
     } else {
-      if (via === 'outlook' || via === 'office') {
+      if (via === 'outlook') {
         // Started before the new tab opens, while this page still has focus
         navigator.clipboard?.writeText(body).then(() => {
           setPasteNote(true)
