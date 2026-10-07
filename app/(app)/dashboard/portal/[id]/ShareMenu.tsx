@@ -8,24 +8,24 @@ import { useState } from 'react'
 type Via = 'gmail' | 'outlook' | 'mail' | 'copy'
 const LAST_KEY = 'vb_share_via'
 
-// Each option's icon: the service's own logo for Gmail and Outlook (as they
-// look in a browser), plain icons for the rest
+// Each option's icon: the service's own logo for Gmail and Outlook, plain
+// icons for the rest
 const ICONS: Record<Via, React.ReactNode> = {
+  // Google's Gmail logo (2020) and Microsoft's Outlook icon, unmodified
   gmail: (
-    <svg viewBox="0 0 48 48" className="w-4 h-4" aria-hidden="true">
-      <path fill="#4caf50" d="M45 16.2l-5 2.75-5 4.75V40h7a3 3 0 003-3V16.2z" />
-      <path fill="#1e88e5" d="M3 16.2l3.61 1.71L13 23.7V40H6a3 3 0 01-3-3V16.2z" />
-      <path fill="#e53935" d="M35 11.2l-11 8.25-11-8.25-1 5.8 1 6.7 11 8.25 11-8.25 1-6.7z" />
-      <path fill="#c62828" d="M3 12.3v3.9l10 7.5V11.2L9.88 8.86A4.3 4.3 0 003 12.3z" />
-      <path fill="#fbc02d" d="M45 12.3v3.9l-10 7.5V11.2l3.12-2.34A4.3 4.3 0 0145 12.3z" />
+    <svg viewBox="0 0 256 193" className="w-4 h-4" aria-hidden="true">
+      <path fill="#4285F4" d="M58.18 192.05V93.14L27.51 65.08L0 49.5v125.09c0 9.66 7.83 17.46 17.45 17.46z" />
+      <path fill="#34A853" d="M197.82 192.05h40.73c9.66 0 17.45-7.83 17.45-17.46V49.5l-31.16 17.84l-27.02 25.8z" />
+      <path fill="#EA4335" d="m58.18 93.14l-4.17-38.65l4.17-36.99L128 69.87l69.82-52.37l4.67 34.99l-4.67 40.65L128 145.5z" />
+      <path fill="#FBBC04" d="M197.82 17.5v75.64L256 49.5V26.23c0-21.59-24.64-33.89-41.89-20.94z" />
+      <path fill="#C5221F" d="m0 49.5l26.76 20.07l31.42 23.57V17.5L41.89 5.29C24.61-7.66 0 4.65 0 26.23z" />
     </svg>
   ),
   outlook: (
-    <svg viewBox="0 0 48 48" className="w-4 h-4" aria-hidden="true">
-      <path fill="#1e88e5" d="M20 10h22a2 2 0 012 2v24a2 2 0 01-2 2H20z" />
-      <path fill="#90caf9" d="M44 14L30 24 20 17v-5z" />
-      <path fill="#0d47a1" d="M27 39H6a2 2 0 01-2-2V11a2 2 0 012-2h21a2 2 0 012 2v26a2 2 0 01-2 2z" />
-      <path fill="#fff" d="M16.5 15C12.4 15 10 18.6 10 24s2.4 9 6.5 9 6.5-3.6 6.5-9-2.4-9-6.5-9zm0 14.6c-1.9 0-3-2.2-3-5.6s1.1-5.6 3-5.6 3 2.2 3 5.6-1.1 5.6-3 5.6z" />
+    <svg viewBox="0 0 32 32" className="w-4 h-4" aria-hidden="true">
+      <path fill="#0072c6" d="M19.484 7.937v5.477l1.916 1.205a.5.5 0 0 0 .21 0l8.238-5.554a1.174 1.174 0 0 0-.959-1.128Z" />
+      <path fill="#0072c6" d="m19.484 15.457l1.747 1.2a.52.52 0 0 0 .543 0c-.3.181 8.073-5.378 8.073-5.378v10.066a1.408 1.408 0 0 1-1.49 1.555h-8.874zm-9.044-2.525a1.61 1.61 0 0 0-1.42.838a4.13 4.13 0 0 0-.526 2.218A4.05 4.05 0 0 0 9.02 18.2a1.6 1.6 0 0 0 2.771.022a4 4 0 0 0 .515-2.2a4.37 4.37 0 0 0-.5-2.281a1.54 1.54 0 0 0-1.366-.809" />
+      <path fill="#0072c6" d="M2.153 5.155v21.427L18.453 30V2Zm10.908 14.336a3.23 3.23 0 0 1-2.7 1.361a3.19 3.19 0 0 1-2.64-1.318A5.46 5.46 0 0 1 6.706 16.1a5.87 5.87 0 0 1 1.036-3.616a3.27 3.27 0 0 1 2.744-1.384a3.12 3.12 0 0 1 2.61 1.321a5.64 5.64 0 0 1 1 3.484a5.76 5.76 0 0 1-1.035 3.586" />
     </svg>
   ),
   mail: (
