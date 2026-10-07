@@ -84,7 +84,7 @@ function PricingContent() {
       name: 'Pro',
       featured: true,
       features: [
-        'Unlimited client portals',
+        'Everything in Starter',
         '25 GB file storage',
         'Stripe payments, 0% Voxabase fee',
         'Password-protected portals',
