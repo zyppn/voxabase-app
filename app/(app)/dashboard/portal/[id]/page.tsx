@@ -639,6 +639,10 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
     'Thanks,',
     watermark || 'Me',
   ].join('\n')
+  // For texts and chats (the phone share sheet): short, with the link sent
+  // separately and last, so Messages shows the preview card
+  const shareShort = `Your files from ${watermark || 'me'} are ready: ${portal.name}.` +
+    (unpaid && portal.lock_until_paid ? ` They unlock as soon as the invoice (${formatMoney(Number(portal.invoice_amount))}) is paid.` : '')
 
   const canToggleReady = files.length > 0
   const pct = uploadProgress?.fraction !== undefined ? ` ${Math.round(uploadProgress.fraction * 100)}%` : ''
@@ -850,7 +854,7 @@ export default function PortalDetailPage({ params }: { params: Promise<{ id: str
               <div className="flex items-center justify-between gap-3 mb-3">
                 <h2 className="font-semibold text-paper text-sm">Client link</h2>
                 <div className="flex items-center gap-4">
-                <ShareMenu subject={shareSubject} body={shareBody} onShared={markLinkCopied} />
+                <ShareMenu subject={shareSubject} body={shareBody} shortText={shareShort} url={shareUrl} onShared={markLinkCopied} />
                 {/* Same tab: the client view's "Back to portal" (or Back) returns here. Cmd/Ctrl-click still opens a new tab. */}
                 <a href={`/${portal.owner_username}/${portal.slug}`}
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-paper hover:underline underline-offset-2">

@@ -1,11 +1,12 @@
 'use client'
 // Share the client link from your own email or apps. Phones get the system
-// share sheet (Messages, WhatsApp, the Gmail and Outlook apps); computers get
-// a menu that opens a ready-made message in Gmail, Outlook (web) or the
-// default mail app, or copies it. Nothing is sent by Voxabase.
+// share sheet (AirDrop, Messages, WhatsApp, the Gmail and Outlook apps);
+// computers get a menu that opens a ready-made message in Gmail, Outlook
+// (web) or the default mail app, copies it, or (where the browser has one)
+// opens the computer's own share sheet. Nothing is sent by Voxabase.
 import { useState } from 'react'
 
-type Via = 'gmail' | 'outlook' | 'mail' | 'copy'
+type Via = 'gmail' | 'outlook' | 'mail' | 'copy' | 'system'
 const LAST_KEY = 'vb_share_via'
 
 // Each option's icon: the service's own logo for Gmail and Outlook, plain
@@ -33,6 +34,11 @@ const ICONS: Record<Via, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.24a2.25 2.25 0 01-1.07 1.92l-7.5 4.61a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.92V6.75" />
     </svg>
   ),
+  system: (
+    <svg viewBox="0 0 24 24" className="w-4 h-4 text-muted" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3v11.25" />
+    </svg>
+  ),
   copy: (
     <svg viewBox="0 0 24 24" className="w-4 h-4 text-muted" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.38c0 .62-.5 1.12-1.12 1.12h-9.75c-.63 0-1.13-.5-1.13-1.12V7.88c0-.63.5-1.13 1.13-1.13H6.75m9 10.5h3.38c.62 0 1.12-.5 1.12-1.12V11.25c0-4.46-3.24-8.16-7.5-8.88a9 9 0 00-1.5-.12H9.38c-.63 0-1.13.5-1.13 1.13v3.5m7.5 10.37H9.38c-.63 0-1.13-.5-1.13-1.12v-9.25m12 6.62v-1.87a3.38 3.38 0 00-3.38-3.38h-1.5c-.62 0-1.12-.5-1.12-1.12v-1.5a3.38 3.38 0 00-3.38-3.38H9.75" />
@@ -45,12 +51,19 @@ const OPTIONS: { id: Via; label: string; hint?: string }[] = [
   { id: 'outlook', label: 'Outlook' },
   { id: 'mail', label: 'Other email app' },
   { id: 'copy', label: 'Copy message' },
+  // The computer's share sheet: AirDrop and Messages on a Mac, Nearby
+  // Sharing on Windows. Only where the browser offers it.
+  { id: 'system', label: 'More options…' },
 ]
 
-export default function ShareMenu({ subject, body, onShared }: {
+export default function ShareMenu({ subject, body, shortText, url, onShared }: {
   subject: string
-  /** The whole message, link included */
+  /** The whole message, link included (email) */
   body: string
+  /** A short note without the link, for texts and chats: the link goes
+   *  last, so Messages and others show it as a preview card */
+  shortText: string
+  url: string
   /** Called after any way of sharing (counts as sending the link) */
   onShared?: () => void
 }) {
@@ -69,15 +82,27 @@ export default function ShareMenu({ subject, body, onShared }: {
     } catch { return null }
   })
 
+  // The menu is only shown in the browser (after the portal loads), so the
+  // share sheet check is safe here
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+  const available = OPTIONS.filter(o => o.id !== 'system' || canShare)
   // The way you shared last time comes first
-  const options = last ? [...OPTIONS].sort((a, b) => (a.id === last ? -1 : b.id === last ? 1 : 0)) : OPTIONS
+  const options = last ? [...available].sort((a, b) => (a.id === last ? -1 : b.id === last ? 1 : 0)) : available
+
+  // The system share sheet: a short note with the link last
+  const systemShare = async () => {
+    try {
+      await navigator.share({ title: subject, text: shortText, url })
+      onShared?.()
+    } catch { /* closed without sharing */ }
+  }
 
   const share = async (via: Via) => {
     setOpen(false)
     try { localStorage.setItem(LAST_KEY, via) } catch {}
     setLast(via)
     const s = encodeURIComponent(subject), b = encodeURIComponent(body)
-    const urls: Record<Exclude<Via, 'copy'>, string> = {
+    const urls: Record<Exclude<Via, 'copy' | 'system'>, string> = {
       // Without fs=1 the message opens in Gmail’s usual layout, not a bare page
       gmail: `https://mail.google.com/mail/?view=cm&su=${s}&body=${b}`,
       // Outlook on the web for work and school accounts (Microsoft 365), where
@@ -86,6 +111,10 @@ export default function ShareMenu({ subject, body, onShared }: {
       // their inbox instead, so the message is also copied (below) to paste.
       outlook: `https://outlook.office.com/owa/?path=/mail/action/compose&subject=${s}&body=${b}`,
       mail: `mailto:?subject=${s}&body=${b}`,
+    }
+    if (via === 'system') {
+      await systemShare()
+      return
     }
     if (via === 'copy') {
       try { await navigator.clipboard.writeText(body) } catch { return }
@@ -108,11 +137,8 @@ export default function ShareMenu({ subject, body, onShared }: {
 
   const onClick = async () => {
     // Phones and tablets: the system share sheet already lists every app
-    if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
-      try {
-        await navigator.share({ title: subject, text: body })
-        onShared?.()
-      } catch { /* closed without sharing */ }
+    if (canShare && window.matchMedia('(pointer: coarse)').matches) {
+      await systemShare()
       return
     }
     setOpen(o => !o)
