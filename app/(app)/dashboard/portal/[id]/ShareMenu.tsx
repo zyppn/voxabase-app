@@ -8,6 +8,38 @@ import { useState } from 'react'
 type Via = 'gmail' | 'outlook' | 'mail' | 'copy'
 const LAST_KEY = 'vb_share_via'
 
+// Each option's icon: the service's own logo for Gmail and Outlook (as they
+// look in a browser), plain icons for the rest
+const ICONS: Record<Via, React.ReactNode> = {
+  gmail: (
+    <svg viewBox="0 0 48 48" className="w-4 h-4" aria-hidden="true">
+      <path fill="#4caf50" d="M45 16.2l-5 2.75-5 4.75V40h7a3 3 0 003-3V16.2z" />
+      <path fill="#1e88e5" d="M3 16.2l3.61 1.71L13 23.7V40H6a3 3 0 01-3-3V16.2z" />
+      <path fill="#e53935" d="M35 11.2l-11 8.25-11-8.25-1 5.8 1 6.7 11 8.25 11-8.25 1-6.7z" />
+      <path fill="#c62828" d="M3 12.3v3.9l10 7.5V11.2L9.88 8.86A4.3 4.3 0 003 12.3z" />
+      <path fill="#fbc02d" d="M45 12.3v3.9l-10 7.5V11.2l3.12-2.34A4.3 4.3 0 0145 12.3z" />
+    </svg>
+  ),
+  outlook: (
+    <svg viewBox="0 0 48 48" className="w-4 h-4" aria-hidden="true">
+      <path fill="#1e88e5" d="M20 10h22a2 2 0 012 2v24a2 2 0 01-2 2H20z" />
+      <path fill="#90caf9" d="M44 14L30 24 20 17v-5z" />
+      <path fill="#0d47a1" d="M27 39H6a2 2 0 01-2-2V11a2 2 0 012-2h21a2 2 0 012 2v26a2 2 0 01-2 2z" />
+      <path fill="#fff" d="M16.5 15C12.4 15 10 18.6 10 24s2.4 9 6.5 9 6.5-3.6 6.5-9-2.4-9-6.5-9zm0 14.6c-1.9 0-3-2.2-3-5.6s1.1-5.6 3-5.6 3 2.2 3 5.6-1.1 5.6-3 5.6z" />
+    </svg>
+  ),
+  mail: (
+    <svg viewBox="0 0 24 24" className="w-4 h-4 text-muted" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.24a2.25 2.25 0 01-1.07 1.92l-7.5 4.61a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.92V6.75" />
+    </svg>
+  ),
+  copy: (
+    <svg viewBox="0 0 24 24" className="w-4 h-4 text-muted" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.38c0 .62-.5 1.12-1.12 1.12h-9.75c-.63 0-1.13-.5-1.13-1.12V7.88c0-.63.5-1.13 1.13-1.13H6.75m9 10.5h3.38c.62 0 1.12-.5 1.12-1.12V11.25c0-4.46-3.24-8.16-7.5-8.88a9 9 0 00-1.5-.12H9.38c-.63 0-1.13.5-1.13 1.13v3.5m7.5 10.37H9.38c-.63 0-1.13-.5-1.13-1.12v-9.25m12 6.62v-1.87a3.38 3.38 0 00-3.38-3.38h-1.5c-.62 0-1.12-.5-1.12-1.12v-1.5a3.38 3.38 0 00-3.38-3.38H9.75" />
+    </svg>
+  ),
+}
+
 const OPTIONS: { id: Via; label: string; hint?: string }[] = [
   { id: 'gmail', label: 'Gmail' },
   { id: 'outlook', label: 'Outlook' },
@@ -109,8 +141,9 @@ export default function ShareMenu({ subject, body, onShared }: {
             <p className="px-3 pt-1.5 pb-1 text-[11px] font-medium text-faint">Send the link with a ready-made message</p>
             {options.map(o => (
               <button key={o.id} role="menuitem" onClick={() => share(o.id)}
-                className="w-full flex items-center justify-between gap-3 text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">
-                <span>{o.label}</span>
+                className="w-full flex items-center gap-3 text-left text-sm text-paper hover:bg-ink-3 rounded-lg px-3 py-2">
+                <span className="flex-none w-4 h-4 grid place-items-center">{ICONS[o.id]}</span>
+                <span className="flex-1">{o.label}</span>
                 {o.hint && <span className="text-[11px] text-faint whitespace-nowrap">{o.hint}</span>}
               </button>
             ))}
