@@ -1,4 +1,3 @@
-import { cache } from 'react'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
@@ -11,45 +10,33 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { canOpenPortal, isOwnerOrTeam, viewerId } from '@/lib/portalAccess'
 import BackToPortal from './BackToPortal'
 import { awaitingPayment } from '@/lib/paywall'
+import { loadPortal } from './loadPortal'
+import { APP_ORIGIN } from '@/lib/appHost'
 
 export const revalidate = 0
 
 type Params = { params: Promise<{ username: string; slug: string }> }
 
-// Portals aren't publicly readable in the database; this server page reads
-// them and only sends the browser what the visitor is allowed to see.
-// Cached so the page and its metadata share one lookup per request.
-const loadPortal = cache(async (username: string, slug: string) => {
-  const admin = supabaseAdmin()
-  // select('*') so a column that hasn't been added yet can't break every portal
-  const { data: portal, error } = await admin
-    .from('portals')
-    .select('*')
-    .eq('slug', slug)
-    .eq('owner_username', username)
-    .eq('is_active', true)
-    .maybeSingle()
-  if (error) console.error('[portal page] lookup failed', error.message)
-  if (!portal) return null
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('*') // all columns, so a newly added one (portal_style) can't break the page before its migration runs
-    .eq('username', username)
-    .single()
-  return { portal, profile, displayName: (profile?.business_name || profile?.full_name || username) as string }
-})
-
-// The browser tab and link previews (iMessage, Slack, email) name the portal
-// and its owner, never Voxabase: this is the owner's page, seen by their client.
+// The browser tab and link previews (iMessage, Slack, Discord, email) name the
+// portal and its owner, never Voxabase: this is the owner's page, seen by their
+// client. A password-protected portal keeps its name and details private here.
+// The preview picture comes from opengraph-image.tsx next to this page.
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username, slug } = await params
   const hit = await loadPortal(username, slug)
   if (!hit) return {}
-  const title = `${hit.portal.name} · ${hit.displayName}`
-  // A locked portal's description stays behind its password
-  const description = (!hit.portal.password_protected && hit.portal.description) || `Files from ${hit.displayName}`
-  return { title, description, openGraph: { title, description, siteName: hit.displayName } }
+  const priv = !!hit.portal.password_protected
+  const title = priv ? `Private delivery · ${hit.displayName}` : `${hit.portal.name} · ${hit.displayName}`
+  const description = (!priv && hit.portal.description) || `Files from ${hit.displayName}`
+  return {
+    // The preview picture is served from the app's own address, also for
+    // portals opened on an Agency customer's domain
+    metadataBase: new URL(APP_ORIGIN),
+    title,
+    description,
+    openGraph: { title, description, siteName: hit.displayName, type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
+  }
 }
 
 export default async function PortalPage({ params }: Params) {
