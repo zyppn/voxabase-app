@@ -11,6 +11,7 @@ import { loadPortal } from './loadPortal'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { DEFAULT_BRAND, normalizeBrand, textOnBrand } from '@/lib/brand'
 import { formatMoney } from '@/lib/invoice'
+import { needsPassword } from '@/lib/portalAccess'
 
 export const alt = 'Client delivery'
 export const size = { width: 1200, height: 630 }
@@ -87,9 +88,10 @@ export default async function Image({ params }: { params: Promise<{ username: st
 
   let title = 'Client delivery'
   let status = ''
+  const priv = hit ? await needsPassword(supabaseAdmin(), hit.portal) : false
   if (hit) {
     const p = hit.portal
-    if (p.password_protected) {
+    if (priv) {
       title = 'Private delivery'
       status = 'Password protected · Open the link to view'
     } else if (!p.files_ready) {
@@ -134,7 +136,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
         {/* What it is and where it stands */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
           <div style={{ display: 'flex', fontSize: 26, fontWeight: 600, color: FAINT, letterSpacing: 3, textTransform: 'uppercase' }}>
-            {hit?.portal.password_protected ? 'From' : 'Delivered by'} {clip(name, 40)}
+            {priv ? 'From' : 'Delivered by'} {clip(name, 40)}
           </div>
           <div style={{ display: 'flex', fontSize: 68, fontWeight: 700, color: PAPER, lineHeight: 1.08, letterSpacing: -1.5 }}>{title}</div>
           {status && <div style={{ display: 'flex', fontSize: 32, color: MUTED }}>{status}</div>}

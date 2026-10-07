@@ -49,9 +49,22 @@ export async function storedPassword(admin: SupabaseClient, portalId: string): P
   return data?.password || null
 }
 
+/**
+ * Is this portal really behind a password? Marked protected AND a password
+ * is saved. A portal marked protected with no password saved (a half-saved
+ * edit) would otherwise lock clients out for good, with nothing to type.
+ * If the check itself fails, it counts as protected: never open by mistake.
+ */
+export async function needsPassword(admin: SupabaseClient, portal: { id: string; password_protected?: boolean | null }): Promise<boolean> {
+  if (!portal.password_protected) return false
+  const { data, error } = await admin.from('portal_passwords').select('password').eq('portal_id', portal.id).maybeSingle()
+  if (error) return true
+  return !!data?.password
+}
+
 /** Can the current visitor see this portal's contents? */
 export async function canOpenPortal(admin: SupabaseClient, portal: PortalAccessRow, viewer?: string | null): Promise<boolean> {
-  if (!portal.password_protected) return portal.is_active
+  if (!(await needsPassword(admin, portal))) return portal.is_active
   const who = viewer === undefined ? await viewerId() : viewer
   if (await isOwnerOrTeam(admin, who, portal.user_id)) return true
   if (!portal.is_active) return false
