@@ -4,6 +4,9 @@
 //    reachable there: no dashboard, no settings.
 // 2. Two-step verification gate: an account with an authenticator set up must enter
 //    its code before private pages or account APIs work (a password alone is not enough).
+// 3. Signed in already: the sign-in and signup pages go straight to the dashboard, and
+//    a small "signed in" hint cookie on .voxabase.com lets the marketing site show a
+//    Dashboard button instead of Sign in / Get started. The hint holds nothing else.
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { DOMAIN_HEADER, OWN_HOST } from '@/lib/domainHeader'
@@ -14,6 +17,18 @@ const PROTECTED = [
   '/api/billing-portal', '/api/subscription', '/api/stripe-connect', '/api/verify-password',
   '/api/team', '/api/domains', '/api/files',
 ]
+
+const AUTH_PAGES = ['/login', '/signup']
+
+// Read by voxabase.com (not httpOnly). Only a yes/no, refreshed whenever the
+// app checks who's signed in, so it can't grant anything.
+const HINT_COOKIE = 'vb_signed_in'
+function setHint(response: NextResponse, host: string, signedIn: boolean) {
+  if (!/(^|\.)voxabase\.com$/.test(host)) return
+  const base = { domain: '.voxabase.com', path: '/', sameSite: 'lax' as const, secure: true }
+  if (signedIn) response.cookies.set(HINT_COOKIE, '1', { ...base, maxAge: 60 * 60 * 24 * 7 })
+  else response.cookies.set(HINT_COOKIE, '', { ...base, maxAge: 0 })
+}
 
 // Domain → username, cached briefly per server instance
 const cache = new Map<string, { username: string | null; until: number }>()
@@ -75,7 +90,8 @@ export async function proxy(request: NextRequest) {
   // The white-label marker only ever comes from the rewrite above
   const cleanHeaders = new Headers(request.headers)
   cleanHeaders.delete(DOMAIN_HEADER)
-  if (!PROTECTED.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+  const authPage = AUTH_PAGES.includes(pathname)
+  if (!authPage && !PROTECTED.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     return NextResponse.next({ request: { headers: cleanHeaders } })
   }
 
@@ -96,10 +112,24 @@ export async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  setHint(response, host, !!user)
   if (!user) return response
 
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-  if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+  const needsCode = !!aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2'
+  if (authPage) {
+    // Signed in: skip the form, unless it's for the two-step code or a team
+    // invite (?next=), which the page handles itself
+    const q = request.nextUrl.searchParams
+    if (needsCode || q.has('next') || q.has('mfa')) return response
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    url.search = ''
+    const redirect = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+    return redirect
+  }
+  if (needsCode) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Enter your two-step verification code first.' }, { status: 401 })
     }
